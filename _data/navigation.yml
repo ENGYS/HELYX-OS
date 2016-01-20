@@ -1,0 +1,41 @@
+#
+#   Navigation to the left › side: left
+#
+- title: "Project Home"
+  url: "/"
+  side: left
+
+- title: "Quick Links"
+  url: "#"
+  side: left
+  dropdown:
+  - title: "About"
+    url: "#"
+  - title: "Installation"
+    url: "#"
+  - title: "Support"
+    url: "#"
+  - title: "GitHub Project"
+    url: "#"
+
+#- title: Blog
+#  url: "/blog/"
+#  side: left
+#  dropdown:
+#  - title: "Blog Archive"
+#    url: "/blog/archive/"
+
+#
+#   Navigation to the right › side: right
+#
+#- title: "Info"
+#  url: "/info/"
+#  side: right
+
+- title: "Search"
+  url: "/search/"
+  side: right
+
+- title: "Contact"
+  url: "/contact/"
+  side: right
