@@ -6,11 +6,11 @@
 #
 layout: frontpage
 header:
-  image_fullwidth: 'https://engys.com/uploads/public/githubPages/engys-header-background.png'
+  image_fullwidth: engys-header-background.png
 widget1:
   title: "About HELYX-OS"
   url: 'https://www.engys.com/'
-  image: 'https://www.engys.com/uploads/public/githubPages/HELYX-OS-v231-welcomescreen-03.png'
+  image: HELYX-OS-v231-welcomescreen-03.png
   text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with the version 2.4.0 of the OpenFOAM library. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
 widget2:
   title: "Installation"
