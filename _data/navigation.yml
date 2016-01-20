@@ -10,14 +10,14 @@
   side: left
   dropdown:
   - title: "About"
-    url: "#"
+    url: "http://engys.com/products/helyx-os"
   - title: "Installation"
     url: "#"
   - title: "Support"
-    url: "#"
-  - title: "GitHub Project"
-    url: "#"
-
+    url: "http://engys.com/services/support"
+- title: "Github Project"
+  url: "https://github.com/ENGYS/HELYX-OS"
+  side: left
 #- title: Blog
 #  url: "/blog/"
 #  side: left
@@ -37,5 +37,5 @@
   side: right
 
 - title: "Contact"
-  url: "/contact/"
+  url: "http://engys.com/contact-us"
   side: right
