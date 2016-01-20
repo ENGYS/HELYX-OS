@@ -34,7 +34,7 @@ widget3:
 #
 callforaction:
   url: http://engys.com/products/helyx-os
-  text: Download the most recent binary ›
+  text: Download the latest HELYX-OS binary ›
   style: alert
 permalink: /index.html
 ---
