@@ -12,6 +12,11 @@
   url: https://twitter.com/engys_cae
   class: icon-twitter
   title: ""
+  
+- name: LinkedIn
+  url: http://www.linkedin.com/company/engys
+  class: icon-linkedin
+  title: ""
 
 # - name: Mixcloud
 #   url: http://www.mixcloud.com/
