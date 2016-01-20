@@ -5,6 +5,6 @@ teaser: ""
 permalink: /installation/
 ---
 header:
-    image_fullwidth: engys-header-background.png
+    image_fullwidth: '/images/engys-header-background.png'
 
 ##title##
