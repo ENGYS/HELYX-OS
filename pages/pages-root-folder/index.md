@@ -18,10 +18,10 @@ widget2:
   image: 'http://engys.com/development/1.jpeg?width=229&height=188'
   text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.'
 widget3:
-  title: "Support"
+  title: "Training  and Support"
   url: 'http://engys.com/services/support'
   image: 'http://engys.com/support/1.jpeg?width=229&height=188'
-  text: 'HELYX-OS is provided as a "community supported" product, without any formal support from ENGYS.  For additional paid support with HELYX-OS and all other ENGYS products, please visit our website.'
+  text: 'HELYX-OS is provided as an Open-Source product, without any formal support from ENGYS.  For additional paid support adn training with HELYX-OS and all other ENGYS products, please visit our website.'
 #
 # Use the call for action to show a button on the frontpage
 #
