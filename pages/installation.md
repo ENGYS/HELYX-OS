@@ -7,4 +7,6 @@ teaser: ""
 permalink: /installation/
 ---
 
-##title##
+Instructions to follow with screenshots
+
+Link to a getting started page with a simple case
