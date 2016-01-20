@@ -1,8 +1,7 @@
 ---
-layout: page
-title: "Info"
-subheadline: "Redirect to www.engys.com"
-teaser: ""
+title: "Redirecting to www.engys.com"
+layout: redirect
+sitemap: false
 permalink: /info/
 redirect_to:  "http://www.engys.com"
 ---
