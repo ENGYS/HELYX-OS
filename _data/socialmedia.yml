@@ -1,15 +1,15 @@
 - name: GitHub
-  url: http://github.com/
+  url: http://github.com/ENGYS
   class: icon-github
   title: ""
 
 - name: YouTube
-  url: http://www.youtube.com/
+  url: https://www.youtube.com/user/engysCFD
   class: icon-youtube
   title: ""
 
 - name: Twitter
-  url: http://twitter.com/
+  url: https://twitter.com/engys_cae
   class: icon-twitter
   title: ""
 
