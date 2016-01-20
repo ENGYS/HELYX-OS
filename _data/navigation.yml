@@ -32,10 +32,6 @@
 #  url: "/info/"
 #  side: right
 
-- title: "Search"
-  url: "/search/"
-  side: right
-
 - title: "Contact"
   url: "http://engys.com/contact-us"
   side: right
