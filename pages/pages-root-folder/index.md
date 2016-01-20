@@ -9,7 +9,7 @@ header:
   image_fullwidth: engys-header-background.png
 widget1:
   title: "About HELYX-OS"
-  url: 'https://www.engys.com/'
+  url: 'http://engys.com/products/helyx-os'
   image: '/images/HELYX-OS-v231-welcomescreen-03.png'
   text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with the version 2.4.0 of the OpenFOAM library. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
 widget2:
@@ -33,7 +33,7 @@ widget3:
 # To change colors see sass/_01_settings_colors.scss
 #
 callforaction:
-  url: https://www.engys.com
+  url: http://engys.com/products/helyx-os
   text: Download the most recent binary ›
   style: alert
 permalink: /index.html
