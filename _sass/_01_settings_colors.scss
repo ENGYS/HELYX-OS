@@ -24,7 +24,7 @@ $body-bg: 			#fdfdfd;
 /* Corporate Identity Colorpalette
    https://color.adobe.com/de/Flat-Design-Colors-v2-color-theme-4341903/
 ------------------------------------------------------------------- */
-
+$ci-0: #fff;		// white
 $ci-1: #334D5C;		// dark turquoise
 $ci-2: #45B29D;		// turquoise
 $ci-3: #EFC94C;		// yellow
@@ -83,9 +83,9 @@ $topbar-link-color-active-hover: #000;
 $topbar-dropdown-label-color: $ci-2;
 $topbar-dropdown-link-bg-hover: $ci-6;
 
-$topbar-link-bg-active: $ci-6; // Active Navigation Link
-$topbar-link-bg-hover: $ci-6;
-$topbar-link-bg-active-hover: $ci-2;
+$topbar-link-bg-active: $ci-5; // Active Navigation Link
+$topbar-link-bg-hover: $ci-5;
+$topbar-link-bg-active-hover: $ci-0;
 
 
 $topbar-dropdown-bg: $ci-6; // Background Mobile Navigation
@@ -106,7 +106,7 @@ $topbar-menu-icon-color-toggled: $ci-6;
 
 $footer-bg: $grey-8;
 $footer-color: #fff;
-$footer-link-color: $ci-6;
+$footer-link-color: $ci-5;
 
 
 $subfooter-bg: $grey-13;
