@@ -21,7 +21,7 @@ widget3:
   title: "Support"
   url: 'http://engys.com/services/support'
   image: 'http://engys.com/support/1.jpeg?width=229&height=188'
-  text: 'For official support with HELYX-OS and all other ENGYS products, please visit our support website'
+  text: 'For additional paid support with HELYX-OS and all other ENGYS products, please visit our support website'
 #
 # Use the call for action to show a button on the frontpage
 #
