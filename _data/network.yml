@@ -1,4 +1,15 @@
-- menu_name: "Other Products"
+- menu_name: "ENGYS Products"
+- name: "HELYX"
+  url: "http://engys.com/products/helyx"
+  title: "HELYX"
+  
+- name: "ELEMENTS"
+  url: "http://engys.com/products/elements"
+  title: "ELEMENTS"
+
+- name: "HELYX ADD-ONS"
+  url: "http://engys.com/products/add-ons"
+  title: "HELYX ADD-ONS"
 
 #- name: "Icons by Daniel Bruce"
 #  url: "http://entypo.com/"
