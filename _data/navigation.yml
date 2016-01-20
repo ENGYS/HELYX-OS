@@ -9,11 +9,11 @@
   url: "#"
   side: left
   dropdown:
-  - title: "About"
+  - title: "About HELYX-OS"
     url: "http://engys.com/products/helyx-os"
   - title: "Installation"
     url: "/installation/"
-  - title: "Support"
+  - title: "Support and Training"
     url: "http://engys.com/services/support"
 - title: "Github Project"
   url: "https://github.com/ENGYS/HELYX-OS"
