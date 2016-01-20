@@ -10,7 +10,7 @@ header:
 widget1:
   title: "About HELYX-OS"
   url: 'https://www.engys.com/'
-  image: HELYX-OS-v231-welcomescreen-03.png
+  image: '/images/HELYX-OS-v231-welcomescreen-03.png'
   text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with the version 2.4.0 of the OpenFOAM library. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
 widget2:
   title: "Installation"
@@ -20,7 +20,7 @@ widget2:
 widget3:
   title: "Support"
   url: 'http://engys.com/services/support'
-  image: 'http://engys.com/development/1.jpeg?width=229&height=188'
+  image: 'http://engys.com/support/1.jpeg?width=229&height=188'
   text: 'Contribute back to the community by visiting out GitHub Page'
 #
 # Use the call for action to show a button on the frontpage
