@@ -24,7 +24,7 @@ author: dcombest
 
 # This URL is the main address for absolute links. Don't include a slash at the end.
 #
-url: 'http://engys.github.io/HELYX-OS/'
+url: 'http://engys.github.io/HELYX-OS'
 baseurl: ''
 
 # This is for the editing function in _/includes/improve_content
