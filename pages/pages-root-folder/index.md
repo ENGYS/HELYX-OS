@@ -16,12 +16,12 @@ widget2:
   title: "Installation"
   url: 'https://www.engys.com'
   image: 'http://engys.com/development/1.jpeg?width=229&height=188'
-  text: 'For support, see the support page'
+  text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.'
 widget3:
   title: "Support"
   url: 'http://engys.com/services/support'
   image: 'http://engys.com/support/1.jpeg?width=229&height=188'
-  text: 'Contribute back to the community by visiting out GitHub Page'
+  text: 'For official support with HELYX-OS and all other ENGYS products, please visit our support website'
 #
 # Use the call for action to show a button on the frontpage
 #
