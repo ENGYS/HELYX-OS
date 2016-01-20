@@ -14,7 +14,7 @@ widget1:
   text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with the version 2.4.0 of the OpenFOAM library. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
 widget2:
   title: "Installation"
-  url: 'https://www.engys.com'
+  url: '/installation/'
   image: 'http://engys.com/development/1.jpeg?width=229&height=188'
   text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.'
 widget3:
