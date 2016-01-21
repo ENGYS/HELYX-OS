@@ -6,3 +6,14 @@ HELYX-OS is an open-source Graphical User Interface designed to work natively wi
 
 ## Installing the latest binary file for 64 bit linux
 Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to download the latest HELYX-OS binary and view installation instructions. 
+
+## Building HELYX-OS from source
+
+### Required Libs
+
+### Steps to Compile
+1. Clone the HELYX-OS git repository locally 
+
+        git clone https://github.com/ENGYS/HELYX-OS
+
+2. Navigate to the HELYX-OS directory
