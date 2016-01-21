@@ -8,6 +8,7 @@ permalink: /installation/
 ---
 
 ## Provided Platforms
+
 Platform | Availability
 -------------|----------------
 Linux 32 Bit | none
