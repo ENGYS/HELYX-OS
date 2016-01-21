@@ -2,13 +2,10 @@
 layout: page-fullwidth
 header:
     image_fullwidth: 'meshHeader-scaled2-lighter.png'
-title: "Installation Instructions"
+title: "Installation of the Latest 64 Bit Linux Binaries"
 teaser: ""
 permalink: /installation/
 ---
-The installation of HELYX-OS has been made easier for the user by leveraging a command line installer.  Below we will go through the steps to setup HELYX-OS in just a few minutes.
-
-## Installation of the Latest 64 Bit Linux Binaries
 
 1.  Download the latest 64 Bit binary from the [project front page](http://engys.github.io/HELYX-OS/) or from the list of [releases](https://github.com/ENGYS/HELYX-OS/releases).  The installer will have the form:
 
