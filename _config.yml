@@ -147,7 +147,8 @@ defaults:
 #   /_/    \__,_/ |___/_/\___/\____/_/ /_/____/   Favicon-Crap: Favicons, Chrome, Android & Apple Touch Buttons
 #                                                 More information » https://mathiasbynens.be/notes/touch-icons
 
-favicon-32x32:                          "favicon-32x32.png"
+#favicon-32x32:                          "favicon-32x32.png"
+favicon-32x32:                          "favicon.png"
 touch-icon-192x192:                     "touch-icon-192x192.png"
 apple-touch-icon-180x180-precomposed:   "apple-touch-icon-180x180-precomposed.png"
 apple-touch-icon-152x152-precomposed:   "apple-touch-icon-152x152-precomposed.png"
