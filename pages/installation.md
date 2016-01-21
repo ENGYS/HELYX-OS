@@ -57,7 +57,7 @@ permalink: /installation/
 
     For users with existing installations of OpenFOAM (see compatability table above), select to install only the GUI by typing **1** and hitting enter.  To install the HELYX-OS GUI and the compatable version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter. 
 
-9.  The user will be prompted to enter **the full path** to where HELYX-OS will be intalled:
+9.  The user will be prompted to enter **the full path** to where HELYX-OS will be installed:
 
         Select destination folder for HELYX-OS GUI:
 
