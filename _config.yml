@@ -29,7 +29,7 @@ baseurl: ''
 
 # This is for the editing function in _/includes/improve_content
 # Leave it empty if your site is not on GitHub/GitHub Pages
-improve_content: http://engys.github.io/HELYX-OS/edit/gh-pages
+improve_content: https://github.com/ENGYS/HELYX-OS/edit/gh-pages
 
 # This URL points directly to the images directory making
 # things easier to link to images in posts and templates. It needs a slash at the end.
@@ -220,7 +220,7 @@ sass:
 #
 # used in _includes/footer_scripts
 
-#google_analytics_tracking_id: UA-72714954-1
+google_analytics_tracking_id: UA-72714954-1
 
 
 
