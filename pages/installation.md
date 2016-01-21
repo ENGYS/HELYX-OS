@@ -88,7 +88,7 @@ Mac OSX      | none
 
 10.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
     
-        :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh```<br>
+        :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh
 
 ## Compillation from Source
 For the latest instructions on how to compile HELYX-OS from source, please see the git repository [README](https://github.com/ENGYS/HELYX-OS/blob/master/README.md) file inside the [HELYX-OS repository](https://github.com/ENGYS/HELYX-OS).
