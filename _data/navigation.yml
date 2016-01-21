@@ -1,7 +1,7 @@
 #
 #   Navigation to the left › side: left
 #
-- title: "Project Home"
+- title: "Home"
   url: "/"
   side: left
 
@@ -13,9 +13,9 @@
     url: "http://engys.com/products/helyx-os"
   - title: "Installation"
     url: "/installation/"
-  - title: "Support and Training"
+  - title: "Training and Support"
     url: "http://engys.com/services/support"
-- title: "Github Project"
+- title: "HELYX-OS on Github"
   url: "https://github.com/ENGYS/HELYX-OS"
   side: left
 #- title: Blog
