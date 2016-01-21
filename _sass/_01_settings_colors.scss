@@ -33,20 +33,6 @@ $ci-5: #DF4949;		// red
 $ci-6: #A1D044;     // green
 $ci-7: #313131;		// botton color
 
-
-
-/* Foundation Color Variables
-------------------------------------------------------------------- */
-
-$primary-color: $ci-7;
-$secondary-color: $ci-0;
-$alert-color: $ci-5;
-$success-color: $ci-6;
-$warning-color: $ci-4;
-$info-color: $ci-1;
-
-
-
 /* Grey Scale
 ------------------------------------------------------------------- */
 
@@ -67,6 +53,15 @@ $grey-14: #242424;
 $grey-15: #171717;
 $grey-16: #0B0B0B;
 
+/* Foundation Color Variables
+------------------------------------------------------------------- */
+
+$primary-color: $ci-7;
+$secondary-color: $grey-2;
+$alert-color: $ci-5;
+$success-color: $ci-6;
+$warning-color: $ci-4;
+$info-color: $ci-1;
 
 
 /* Topbar-Navigation
