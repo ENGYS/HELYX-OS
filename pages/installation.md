@@ -7,6 +7,12 @@ teaser: ""
 permalink: /installation/
 ---
 
+HELYX-OS Version | Compatable OpenFOAM Version
+-----------------|----------------------------
+HELYX-OS v2.3.1  | [OpenFOAM-2.4.0](http://www.openfoam.org/archive/2.4.0/download/source.php)
+
+
+
 1.  Download the latest 64 Bit binary from the [project front page](http://engys.github.io/HELYX-OS/) or from the list of [releases](https://github.com/ENGYS/HELYX-OS/releases).  The installer will have the form:
 
         <date>-Engys-HELYX-OS-<version>--linux-x86_64-FULL.bin
@@ -49,7 +55,7 @@ permalink: /installation/
         2) HELYX-OS-GUI and Kernel
         #?
 
-    For users with exisitng installations of OpenFOAM version 2.4.0, select to install only the GUI by typing **1** and hitting enter.  To install the HELYX-OS GUI and the compatable version of OpenFOAM (Ubuntu 14.04 or later only), type **2** and press enter. 
+    For users with existing installations of OpenFOAM (see compatability table above), select to install only the GUI by typing **1** and hitting enter.  To install the HELYX-OS GUI and the compatable version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter. 
 
 8.  The user will be prompted to enter **the full path** to where HELYX-OS will be intalled:
 
