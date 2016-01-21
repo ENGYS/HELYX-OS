@@ -1,7 +1,7 @@
 ---
 layout: page-fullwidth
 header:
-    image_fullwidth: 'engys-header-background.png'
+    image_fullwidth: 'meshHeader-scaled2.png'
 title: "Installation Instructions"
 teaser: ""
 permalink: /installation/
