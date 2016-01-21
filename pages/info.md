@@ -1,7 +1,7 @@
 ---
-title: "Redirecting to www.engys.com"
+title: "Redirecting to www.engys.com/website-disclaimer"
 layout: redirect
 sitemap: false
 permalink: /info/
-redirect_to:  "http://www.engys.com"
+redirect_to:  "http://engys.com/website-disclaimer"
 ---
