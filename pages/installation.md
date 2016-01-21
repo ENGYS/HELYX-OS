@@ -1,7 +1,7 @@
 ---
 layout: page-fullwidth
 header:
-    image_fullwidth: 'meshHeader-scaled2.png'
+    image_fullwidth: 'meshHeader-scaled2-lighter.png'
 title: "Installation Instructions"
 teaser: ""
 permalink: /installation/
