@@ -22,11 +22,6 @@ widget3:
   url: 'http://engys.com/services/support'
   image: 'http://engys.com/support/1.jpeg?width=229&height=188'
   text: 'HELYX-OS is provided without any formal support from ENGYS.  For additional paid support and training with HELYX-OS and/or all other ENGYS products, please visit our website.'
-widget4:
-  title: "Training  and Support"
-  url: 'http://engys.com/services/support'
-  image: 'http://engys.com/support/1.jpeg?width=229&height=188'
-  text: 'HELYX-OS is provided without any formal support from ENGYS.  For additional paid support and training with HELYX-OS and/or all other ENGYS products, please visit our website.'
 #
 # Use the call for action to show a button on the frontpage
 #
