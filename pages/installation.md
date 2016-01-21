@@ -8,15 +8,6 @@ permalink: /installation/
 ---
 The installation of HELYX-OS has been made easier for the user by leveraging a command line installer.  Below we will go through the steps to setup HELYX-OS in just a few minutes.
 
-## Provided Platforms
-
-Platform | Availability
--------------|----------------
-Linux 32 Bit | none
-Linux 64 Bit | [free](https://github.com/ENGYS/HELYX-OS/releases)
-Mac OSX      | none
-64 Bit Windows | [with paid support only](http://engys.com/products/helyx-os)
-
 ## Installation of the Latest 64 Bit Linux Binaries
 
 1.  Download the latest 64 Bit binary from the [project front page](http://engys.github.io/HELYX-OS/) or from the list of [releases](https://github.com/ENGYS/HELYX-OS/releases).  The installer will have the form:
