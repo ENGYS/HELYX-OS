@@ -16,16 +16,20 @@ Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to do
 
 ### Steps to Compile
 1.  Make sure the Oracle based java and JDK are installed in your machine (use `java -version` and `javac --version`) and configured correctly.
-2.  Navigate to the HELYX-OS directory (e.g. /home/user/Engys/HELYX-OS/vX.X.X)
-3.  Clone the HELYX-OS git repository 
+2.  Clone the HELYX-OS git repository in a clean folder (e.g. /home/user/git) 
 
         git clone https://github.com/ENGYS/HELYX-OS
 
-4. Compile using the command
+3. Navigate to the HELYX-OS directory (e.g. /home/user/Engys/HELYX-OS/vX.X.X)
+4. Move the sources in the HELYX-OS folder using the command
+ 
+        cp -R /home/user/git/HELYX-OS/* .
+
+5. Compile using the command
 
         ant -buildfile build_src.xml
 
-5. Run HELYX-OS with the command `./HELYX-OS.sh`
+6. Run HELYX-OS with the command `./HELYX-OS.sh`
 
 ####Disclaimer
 None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks.
