@@ -57,7 +57,7 @@ permalink: /installation/
 
         Select destination folder for HELYX-OS GUI:
 
-    For example, if a user named Scott wants to install HELYX-OS to their home folder (this is the suggested location), then they woudl enter:
+    For example, if a user named Scott wants to install HELYX-OS to their home folder (this is the suggested location), then they would enter:
 
         Select destination folder for HELYX-OS GUI: /home/scott/
     
