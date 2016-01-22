@@ -34,7 +34,7 @@ widget3:
 #
 callforaction:
   url: http://engys.com/products/helyx-os
-  text: Download the HELYX-OS v2.3.1 binary for 64 bit Linux ›
+  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
   style: alert
 permalink: /index.html
 ---
