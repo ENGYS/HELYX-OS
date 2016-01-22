@@ -1,0 +1,173 @@
+#!/bin/bash
+
+echo
+echo "---------------------------------"
+echo "       PBS QUEUE LAUNCHER        "
+echo "---------------------------------"
+
+HEADER() {
+    [[ -e ~/.profile ]] && source ~/.profile
+    [[ -e ~/.bash_profile ]] && source ~/.bash_profile
+    
+    echo "  Environment" 
+	echo "---------------------------------"
+    echo "  APPLICATION = $APPLICATION"
+    echo "  APP_OPT     = $APP_OPT"
+    echo "  ENV_LOADER  = $ENV_LOADER"
+    echo "  HOSTFILE    = $HOSTFILE"
+    echo "  CASE        = $CASE"
+    echo "  LOG         = $LOG"
+    echo "  NP          = $NP"
+    echo "  OPTIONS     = $1"
+	echo "---------------------------------"
+	echo "  PBS_O_WORKDIR = $PBS_O_WORKDIR"
+	echo "  PBS_NODEFILE  = $PBS_NODEFILE"
+	echo "---------------------------------"
+	echo "  SYSTEM   = `uname -a`"
+	echo "  PWD      = `pwd`"
+	echo "  HOSTNAME = `hostname`"
+	echo "  TIME     = `date`"
+	echo "  PWD      = `pwd`"
+    
+}
+
+setJobId() {
+    # Save job ID information 
+    if [[ -e  JOBID.log ]]
+    then
+        JOBID=$(cat JOBID.log)
+        echo "  JOBID       = $JOBID"
+		echo "---------------------------------"
+    else
+        echo "No running jobs. Aborting."
+        exit 1
+    fi
+}
+
+do_kill() {
+    JOB_STATUS=$(qstat $JOBID | awk 'NR==3''{print $5}')
+    echo ">> Deleting $JOBID"
+    qdel $JOBID
+    echo ">> Job DELETED"
+    exit 0
+}
+
+do_monitor() {
+    typeset -i n=0
+    typeset -i TIMEOUT=1000
+    
+    # Check job status and wait for job start
+    while :
+    do
+        JOB_STATUS=$(qstat $JOBID | awk 'NR==3''{print $5}')
+        STATUS=${JOB_STATUS:=E}
+        #echo "STATUS = '$STATUS'"
+        case "$STATUS" in
+            C)
+                #tail -n +1 out.log
+                echo ">> Job $JOBID COMPLETED!"
+                
+                JOB_EXIT_STATUS=$(qstat -f $JOBID | awk '/exit_status/''{print $3}')
+                echo ">> Exit Status: $JOB_EXIT_STATUS"
+                exit $JOB_EXIT_STATUS
+            ;;
+            E)
+                echo ">> Job $JOBID ERROR!?"
+                
+                JOB_EXIT_STATUS=$(qstat -f $JOBID | awk '/exit_status/''{print $3}')
+                echo ">> Exit Status: $JOB_EXIT_STATUS"
+                exit $JOB_EXIT_STATUS
+            ;;
+            R)
+                echo ">> Job $JOBID RUNNING"
+                break 1
+            ;;
+            *)
+               sleep 10
+               echo ">> Job $JOBID QUEUED. Waiting."
+            ;;
+        esac
+    
+        if [[ $n -gt $TIMEOUT ]]
+        then
+            echo ">> EXIT: Timeout Exceeded!"
+            exit 1
+        fi
+        n=$(echo "$n+1" | bc -l)
+    done
+            
+    #tail -n +1 -F out.log &
+    #PID=$!
+    while :
+    do
+        JOB_STATUS=$(qstat $JOBID | awk 'NR==3''{print $5}')
+        STATUS=${JOB_STATUS:=E}
+        #echo "STATUS = '$STATUS'"
+        case "$STATUS" in
+            C)
+                sleep 10
+                echo ">> Job COMPLETED!"
+                JOB_EXIT_STATUS=$(qstat -f $JOBID | awk '/exit_status/''{print $3}')
+                echo ">> Exit Status: $JOB_EXIT_STATUS"
+                kill -9 $PID
+                exit $JOB_EXIT_STATUS
+            ;;
+            E)
+                echo ">> Job $JOBID ERROR!?"
+                
+                JOB_EXIT_STATUS=$(qstat -f $JOBID | awk '/exit_status/''{print $3}')
+                echo ">> Exit Status: $JOB_EXIT_STATUS"
+                exit $JOB_EXIT_STATUS
+            ;;
+            *)
+                sleep 10
+                echo ">> Job RUNNING."
+            ;;
+        esac
+    done
+}
+
+check_command() {
+    echo -n "Check command '$1': "
+    # Check if pbs commands are available
+    command -v $1 >/dev/null 2>&1 || { echo >&2 "Not installed!  Aborting."; exit 1; }
+    echo "OK"
+}	
+
+do_launch() {
+	check_command "qsub"
+	check_command "qdel"
+	check_command "qstat"
+
+    # Submit ELEMENTS job to PBS queue system
+    qsub < driver.pbs > JOBID.log
+    
+    setJobId
+    echo ">> Job SUBMITTED."
+}
+
+case "$1" in
+    -kill)  
+        HEADER
+        setJobId
+        do_kill
+        ;;
+    -launch)  
+        HEADER
+        do_launch
+        do_monitor
+        ;;
+    -monitor) 
+        HEADER
+        setJobId
+        do_monitor
+        ;;
+    *)
+        HEADER
+        do_launch
+        do_monitor
+        ;;
+esac
+
+echo "Fail: Unexpected termination"
+exit 1

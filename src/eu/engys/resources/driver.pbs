@@ -1,0 +1,12 @@
+
+#module add openmpi/1.4.5
+#module load paraview
+
+#Initialize Environments
+source $ENV_LOADER
+source $PY_LOADER
+
+### Set OpenFOAM Environment
+export WM_64=ON
+export MPI_OPTIONS="-mca btl openib,sm,self"
+    

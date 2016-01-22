@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="dist" name="Create Runnable Jar for Project HELYXOS with libraries in sub-folder">
+
+	<property name="component.name" value="HelyxOS_MOD" />
+	<property name="component.version" value="2.3.1" />
+	<property name="component.vendor" value="" />
+
+	<property name="version" value="ocfd" />
+	<property name="version.name" value="OCFD" />
+
+	<property name="jar.name" value="${component.name}.jar" />
+
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build" />
+
+	<property name="lib.dir" value="lib" />
+	<property name="dist.dir" value="dist" />
+
+	<path id="main.path">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac debug="true" destdir="${build.dir}" target="1.7" source="1.7" verbose="false" srcdir="${src.dir}" includeantruntime="false" includejavaruntime="yes">
+			<include name="eu/engys/**/*.java" />
+			<include name="vtk/**/*.java" />
+			<classpath refid="main.path" />
+		</javac>
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}" includes="**/resources/**/*, **/*.png, **/*.jpeg, **/*.jpg, **/*.gif, **/*.properties" />
+		</copy>
+        <touch file="${build.dir}/eu/engys/resources/version.properties" />
+        <propertyfile file="${build.dir}/eu/engys/resources/version.properties">
+            <entry key="name" value="${component.name}" />
+            <entry key="vendor" value="${component.vendor}" />
+            <entry key="version" value="${component.version}" />
+            <entry key="build" type="date" value="now" pattern="yyyy-MM-dd" />
+        </propertyfile>
+	</target>
+
+	<target name="jar" depends="compile" description="">
+		<pathconvert property="main.class.path" pathsep=" ">
+			<path refid="main.path" />
+			<mapper>
+				<chainedmapper>
+					<flattenmapper />
+				</chainedmapper>
+			</mapper>
+		</pathconvert>
+
+		<!-- set the date -->
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd" />
+		</tstamp>
+
+		<!-- create the jar -->
+		<jar jarfile="${lib.dir}/${jar.name}" basedir="${build.dir}">
+			<!-- define MANIFEST.MF -->
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Main-Class" value="eu.engys.helyx.gui.Launcher" />
+				<attribute name="Specification-Title" value="${component.name}" />
+				<attribute name="Specification-Version" value="${component.version}" />
+				<attribute name="Specification-Vendor" value="${component.vendor}" />
+				<attribute name="Implementation-Title" value="${component.name}" />
+				<attribute name="Implementation-Version" value="${component.version} ${TODAY}" />
+				<attribute name="Implementation-Vendor" value="${component.vendor}" />
+
+				<attribute name="Class-Path" value="${main.class.path}" />
+				<attribute name="SplashScreen-Image" value="eu/engys/helyx/gui/resources/splash.png" />
+			</manifest>
+		</jar>
+	</target>
+
+    <target name="dist" depends="jar">
+    	<mkdir dir="${lib.dir}/old" />
+    	<move todir="${lib.dir}/old">
+            <fileset file="${lib.dir}/core-util.jar" />
+            <fileset file="${lib.dir}/core.jar" />
+            <fileset file="${lib.dir}/core-gui.jar" />
+            <fileset file="${lib.dir}/core-vtk.jar" />
+            <fileset file="${lib.dir}/commonCFD.jar" />
+            <fileset file="${lib.dir}/StandardCFD.jar" />
+            <fileset file="${lib.dir}/standardVOF.jar" />
+            <fileset file="${lib.dir}/HELYX-OS.jar" />
+        </move>
+    </target>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete quiet="true">
+			<fileset dir="${src.dir}" includes="**/*.class" />
+		</delete>
+	</target>
+</project>

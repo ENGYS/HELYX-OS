@@ -1,0 +1,68 @@
+/*--------------------------------*- Java -*---------------------------------*\
+ |		 o                                                                   |                                                                                     
+ |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
+ |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ |    o     o       | http://www.engys.com                                   |
+ |       o          |                                                        |
+ |---------------------------------------------------------------------------|
+ |	 License                                                                 |
+ |   This file is part of HelyxOS.                                           |
+ |                                                                           |
+ |   HelyxOS is free software; you can redistribute it and/or modify it      |
+ |   under the terms of the GNU General Public License as published by the   |
+ |   Free Software Foundation; either version 2 of the License, or (at your  |
+ |   option) any later version.                                              |
+ |                                                                           |
+ |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
+ |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ |   for more details.                                                       |
+ |                                                                           |
+ |   You should have received a copy of the GNU General Public License       |
+ |   along with HelyxOS; if not, write to the Free Software Foundation,      |
+ |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+\*---------------------------------------------------------------------------*/
+
+
+package eu.engys.util.ui.groupcolumnheader;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
+
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+
+public class GroupableTableColumnModel extends DefaultTableColumnModel {
+
+    protected ArrayList<ColumnGroup> columnGroups = new ArrayList<>();
+
+    public void addColumnGroup(ColumnGroup columnGroup) {
+        columnGroups.add(columnGroup);
+    }
+
+    public Iterator<ColumnGroup> columnGroupIterator() {
+        return columnGroups.iterator();
+    }
+
+    public ColumnGroup getColumnGroup(int index) {
+        if (index >= 0 && index < columnGroups.size()) {
+            return (ColumnGroup) columnGroups.get(index);
+        }
+        return null;
+    }
+
+    public Iterator<Object> getColumnGroups(TableColumn col) {
+        if (columnGroups.isEmpty())
+            return null;
+        Iterator<ColumnGroup> iter = columnGroups.iterator();
+        while (iter.hasNext()) {
+            ColumnGroup cGroup = iter.next();
+            Vector<Object> v_ret = cGroup.getColumnGroups(col, new Vector<>());
+            if (v_ret != null) {
+                return v_ret.iterator();
+            }
+        }
+        return null;
+    }
+}

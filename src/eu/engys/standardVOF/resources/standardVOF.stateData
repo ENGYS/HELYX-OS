@@ -1,0 +1,470 @@
+states
+{
+    interFoamRAS (transient incompressible ras VOF);
+    interFoamRAS2 (PIMPLE incompressible ras VOF);
+    interFoamRAS3 (PIMPLE incompressible ras multiphaseVOF);
+    
+    interFoamLES (transient incompressible les VOF);
+    interFoamLES2 (PIMPLE incompressible les VOF);
+    interFoamLES3 (PIMPLE incompressible les multiphaseVOF);
+
+}
+
+
+"interFoamRAS.*"
+{
+    fieldMaps
+    {
+        U U;
+        p_rgh pmultiphase;
+        alpha phase;
+    }
+    materialProperties
+    {
+        air{}
+        water{}
+    }
+    system
+    {
+        controlDict
+        {
+            startFrom           startTime;
+            startTime           0;
+            stopAt              endTime;
+            endTime             10;
+            deltaT              0.001;
+            writeControl        adjustableRunTime;
+            writeInterval       0.1;
+            purgeWrite          0;
+            writeFormat         ascii;
+            writePrecision      10;
+            writeCompression    uncompressed;
+            timeFormat          general;
+            timePrecision       6;
+            graphFormat         raw;
+            runTimeModifiable   yes;
+            adjustTimeStep      yes;
+            maxCo               0.5;
+            maxAlphaCo          0.25;
+            maxDeltaT           1.0;
+        }
+        fvSchemes
+        {
+            ddtSchemes {$fvSchemes_ddtSchemes_ras_trans;}
+    
+            gradSchemes 
+            {
+                $fvSchemes_gradSchemes;
+                grad(U) cellLimited Gauss linear 1;
+                grad(rho) cellLimited Gauss linear 1;
+                grad(p_rgh) cellLimited Gauss linear 1;
+                grad(pcorr) cellLimited Gauss linear 1;
+            }
+            
+            divSchemes
+            {
+                $fvSchemes_divSchemes_trans;
+                div(rhoPhi,U)  Gauss linearUpwindV grad(U);
+                div(phi,alpha)  Gauss vanLeer;
+                div(phirb,alpha) Gauss interfaceCompression;
+                div((nuEff*dev(T(grad(U))))) Gauss linear;
+            }
+    
+            $fvSchemes_misc;
+            fluxRequired
+            {
+                default              no;
+                p_rgh;
+                pcorr;
+                "alpha.*";
+            }
+        }
+        fvSolution
+        {
+            PIMPLE
+            {
+                momentumPredictor           no;
+                nCorrectors                 2;
+                nOuterCorrectors            1;
+                nNonOrthogonalCorrectors    0;
+                nAlphaCorr                  1;
+                nAlphaSubCycles             3;
+                cAlpha                      1.5;
+                correctPhi                  yes;
+                pRefCell                    0;
+                pRefValue                   0;
+                
+                residualControl
+                {
+                    "(U|k|epsilon|omega|nuTilda|T|p_rgh|p)"
+                    {
+                        relTol          0;
+                        tolerance       1e-5;
+                    }
+                    "alpha.*"
+                    {
+                        relTol          0;
+                        tolerance       1e-5;
+                    }
+                }
+                
+            }
+            solvers
+            {
+                
+                $fvSolution_solvers_PIMPLE;
+            
+                pcorr
+                {
+                    solver          PCG;
+                    preconditioner
+                    {
+                        preconditioner  GAMG;
+                        tolerance       1e-5;
+                        relTol          0;
+                        smoother        DICGaussSeidel;
+                        nPreSweeps      0;
+                        nPostSweeps     2;
+                        nFinestSweeps   2;
+                        cacheAgglomeration false;
+                        nCellsInCoarsestLevel 10;
+                        agglomerator    faceAreaPair;
+                        mergeLevels     1;
+                    }
+    
+                    tolerance       1e-05;
+                    relTol          0;
+                    maxIter         100;
+                    minIter         1;
+                }
+    
+                "alpha.*"
+                {
+                    solver smoothSolver;
+                    smoother GaussSeidel;
+                    tolerance 1e-6;
+                    relTol 0;
+                    nSweeps 1;
+                    minIter 1;
+                    nAlphaCorr 1;
+                    nAlphaSubCycles 3;
+                    cAlpha 1.5;
+                }
+            }
+            relaxationFactors {$fvSolution_relaxationFactors_trans;}
+    
+        }
+    }
+
+    constant
+    {
+        g{$g;}
+        transportProperties
+        {
+            sigma sigma [1 0 -2 0 0 0 0 ] 0.0;
+        }         
+    }
+}
+
+"interFoamLES.*"
+{
+    fieldMaps
+    {
+        U U;
+        p_rgh pmultiphase;
+        alpha phase;
+    }
+    materialProperties
+    {
+        air{}
+        water{}
+    }
+    system
+    {
+        controlDict
+        {
+            startFrom           startTime;
+            startTime           0;
+            stopAt              endTime;
+            endTime             10;
+            deltaT              0.001;
+            writeControl        adjustableRunTime;
+            writeInterval       0.1;
+            purgeWrite          0;
+            writeFormat         ascii;
+            writePrecision      10;
+            writeCompression    uncompressed;
+            timeFormat          general;
+            timePrecision       6;
+            graphFormat         raw;
+            runTimeModifiable   yes;
+            adjustTimeStep      yes;
+            maxCo               0.5;
+            maxAlphaCo          0.25;
+            maxDeltaT           1.0;
+        }
+        fvSchemes
+        {
+            ddtSchemes {$fvSchemes_ddtSchemes_les;}
+    
+            gradSchemes 
+            {
+                $fvSchemes_gradSchemes;
+                grad(U) cellLimited Gauss linear 1;
+                grad(rho) cellLimited Gauss linear 1;
+                grad(p_rgh) cellLimited Gauss linear 1;
+                grad(pcorr) cellLimited Gauss linear 1;
+            }
+            
+            divSchemes
+            {
+                $fvSchemes_divSchemes_trans;
+                div(rhoPhi,U)  Gauss LUST grad(U);
+                div(phi,alpha)  Gauss vanLeer;
+                div(phirb,alpha) Gauss interfaceCompression;
+                div((nuEff*dev(T(grad(U))))) Gauss linear;
+            }
+    
+            $fvSchemes_misc;
+            fluxRequired
+            {
+                default              no;
+                p_rgh;
+                pcorr;
+                "alpha.*";
+            }
+        }
+        fvSolution
+        {
+            PIMPLE
+            {
+                momentumPredictor           no;
+                nCorrectors                 5;
+                nOuterCorrectors            1;
+                nNonOrthogonalCorrectors    1;
+                nAlphaCorr                  1;
+                nAlphaSubCycles             5;
+                cAlpha                      1.5;
+                correctPhi                  yes;
+                pRefCell                    0;
+                pRefValue                   0;
+                
+                residualControl
+                {
+                    "(U|k|epsilon|omega|nuTilda|T|p_rgh|p)"
+                    {
+                        relTol          0;
+                        tolerance       1e-5;
+                    }
+                    "alpha.*"
+                    {
+                        relTol          0;
+                        tolerance       1e-5;
+                    }
+                }
+                
+            }
+            solvers
+            {
+                pcorr
+                {
+                    solver          PCG;
+                    preconditioner
+                    {
+                        preconditioner  GAMG;
+                        tolerance       1e-5;
+                        relTol          0;
+                        smoother        DICGaussSeidel;
+                        nPreSweeps      0;
+                        nPostSweeps     2;
+                        nFinestSweeps   2;
+                        cacheAgglomeration false;
+                        nCellsInCoarsestLevel 10;
+                        agglomerator    faceAreaPair;
+                        mergeLevels     1;
+                    }
+    
+                    tolerance       1e-05;
+                    relTol          0;
+                    maxIter         100;
+                    minIter         1;
+                }
+    
+                p_rgh
+                {
+                    solver          GAMG;
+                    tolerance       1e-8;
+                    relTol          0.01;
+                    smoother        DIC;
+                    nPreSweeps      0;
+                    nPostSweeps     2;
+                    nFinestSweeps   2;
+                    cacheAgglomeration true;
+                    nCellsInCoarsestLevel 10;
+                    agglomerator    faceAreaPair;
+                    mergeLevels     1;
+                    minIter         1;
+                }
+    
+                p_rghFinal
+                {
+                    solver          PCG;
+                    preconditioner
+                    {
+                        preconditioner  GAMG;
+                        tolerance       1e-8;
+                        relTol          0;
+                        nVcycles        2;
+                        smoother        DICGaussSeidel;
+                        nPreSweeps      2;
+                        nPostSweeps     2;
+                        nFinestSweeps   2;
+                        cacheAgglomeration true;
+                        nCellsInCoarsestLevel 10;
+                        agglomerator    faceAreaPair;
+                        mergeLevels     1;
+                    }
+    
+                    tolerance       1e-8;
+                    relTol          0;
+                    maxIter         20;
+                    minIter         1;
+                }
+    
+                U
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                k
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                kl
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                epsilon
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                nuTilda
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                omega
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0.1;
+                    nSweeps     1;
+                    minIter     1;
+                }
+    
+    
+                UFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                kFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                klFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                epsilonFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                nuTildaFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                omegaFinal
+                {
+                    solver      smoothSolver;
+                    smoother    GaussSeidel;
+                    tolerance   1e-6;
+                    relTol      0;
+                    nSweeps     1;
+                    minIter     1;
+                }
+                "alpha.*"
+                {
+                    solver smoothSolver;
+                    smoother GaussSeidel;
+                    tolerance 1e-6;
+                    relTol 0;
+                    nSweeps 1;
+                    minIter 1;
+                    nAlphaCorr 1;
+                    nAlphaSubCycles 3;
+                    cAlpha 1.5;
+                }
+            }
+            relaxationFactors {$fvSolution_relaxationFactors_trans;}
+        }
+    }
+
+    constant
+    {
+        g{$g;}
+        transportProperties
+        {
+            sigma sigma [1 0 -2 0 0 0 0 ] 0.0;
+        }         
+    }
+
+}

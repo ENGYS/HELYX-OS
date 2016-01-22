@@ -1,0 +1,130 @@
+U
+{
+    allowedFieldInitialisationMethods (default fixedValue );
+    
+    initialisation 
+    {
+        type default;
+    }
+    
+
+    fieldDefinition
+    {
+        type vector;
+        dimensions [ 0 1 -1 0 0 0 0 ];
+        internalField uniform (0 0 0);
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall {type fixedValue; value uniform (0 0 0);}
+
+                outlet {type inletOutlet; inletValue uniform (0 0 0); value uniform (0 0 0);}
+
+                inlet {type inletOutlet; inletValue uniform (0 0 0); value uniform (0 0 0);}
+
+                patch {type pressureInletOutletVelocity; value uniform (0 0 0);}
+                
+                processor {type processor; value uniform (0 0 0);}
+            }
+
+            partialNamed {}
+            
+            exactNamed{}
+        }
+    }
+}
+
+pmultiphase
+{
+    allowedFieldInitialisationMethods (default fixedValue );
+    
+    initialisation 
+    {
+        type default;
+    }
+    
+
+    fieldDefinition
+    {
+        type scalar;
+        dimensions [ 1 -1 -2 0 0 0 0 ];
+        internalField uniform 0;
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall 
+                {
+                    type            fixedFluxPressure;
+                    value           uniform 0;
+                }
+
+                outlet {type fixedValue; value uniform 0;}
+
+                inlet 
+                {
+                    type            fixedFluxPressure;
+                    value           uniform 0;
+                }
+
+                patch
+                {
+                    type            totalPressure;
+                    p0              uniform 0;
+                    U               U;
+                    value           uniform 0;
+                    phi             phi;
+                    rho             rho;
+                    psi             none;
+                    gamma           1;
+                }
+                
+                processor {type processor; value uniform 0;}
+            }
+
+            partialNamed {}
+            
+            exactNamed{}
+        }
+    }
+}
+
+phase
+{
+    allowedFieldInitialisationMethods (default fixedValue cellSet);
+    
+    initialisation 
+    {
+        type fixedValue; value uniform 0;
+    }
+
+    fieldDefinition
+    {
+        type scalar;
+        dimensions [ 0 0 0 0 0 0 0 ];
+        internalField uniform 0;
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall {type zeroGradient;}
+
+                outlet {type inletOutlet; inletValue uniform 0; value uniform 0;}
+
+                inlet {type fixedValue; value uniform 0;}
+
+                patch {type inletOutlet; inletValue uniform 0; value uniform 0;}
+                
+                processor {type processor; value uniform 0;}
+            }
+
+            partialNamed {}
+            
+            exactNamed{}
+        }
+    }
+}
