@@ -29,7 +29,9 @@ Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to do
 
         ant -buildfile build_src.xml
 
-6. Run HELYX-OS with the command `./HELYX-OS.sh`
+6. Run HELYX-OS with the command
+ 
+        ./HELYX-OS.sh
 
 ### Disclaimer
 None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks.
