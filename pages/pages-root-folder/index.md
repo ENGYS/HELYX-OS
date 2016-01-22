@@ -32,10 +32,12 @@ widget3:
 # to use the main color or success, alert or secondary.
 # To change colors see sass/_01_settings_colors.scss
 #
-callforaction:
-  url: http://engys.com/products/helyx-os
-  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
-  style: alert
+
+#callforaction:
+#  url: https://github.com/ENGYS/HELYX-OS/releases
+#  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
+#  style: alert
+
 permalink: /index.html
 ---
 <div id="videoModal" class="reveal-modal large" data-reveal="">
