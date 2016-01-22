@@ -33,10 +33,10 @@ widget3:
 # To change colors see sass/_01_settings_colors.scss
 #
 
-#callforaction:
-#  url: https://github.com/ENGYS/HELYX-OS/releases
-#  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
-#  style: alert
+callforaction:
+  url: https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin
+  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
+  style: alert
 
 permalink: /index.html
 ---
