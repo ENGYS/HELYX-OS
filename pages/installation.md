@@ -84,5 +84,8 @@ permalink: /installation/
     
             :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh
 
+
+Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
+
 ## Compillation from Source
 For the latest instructions on how to compile HELYX-OS from source, please see the git repository [README](https://github.com/ENGYS/HELYX-OS/blob/master/README.md) file inside the [HELYX-OS repository](https://github.com/ENGYS/HELYX-OS).
