@@ -31,5 +31,5 @@ Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to do
 
 6. Run HELYX-OS with the command `./HELYX-OS.sh`
 
-####Disclaimer
+### Disclaimer
 None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks.
