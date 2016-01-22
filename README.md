@@ -8,14 +8,15 @@ Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to do
 
 ## Building HELYX-OS from source
 
-### Required Libraries
+### Prerequisite Libraries
 
 ### Steps to Compile
-1. Clone the HELYX-OS git repository locally 
+1.  Ensure all prerequisite libraries are installed
+2.  Clone the HELYX-OS git repository locally 
 
         git clone https://github.com/ENGYS/HELYX-OS
 
-2. Navigate to the HELYX-OS directory
+3. Navigate to the HELYX-OS directory
 
 ####Disclaimer
 None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks.
