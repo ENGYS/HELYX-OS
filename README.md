@@ -6,17 +6,26 @@ HELYX-OS has been created to facilitate the usage of the standard OpenFOAM libra
 ## Installing the latest binary file for 64 bit linux
 Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to download the latest HELYX-OS binary and view [installation instructions](http://engys.github.io/HELYX-OS/installation/). 
 
-## Building HELYX-OS from source
+## Compiling HELYX-OS on your own
 
-### Prerequisite Libraries
+### Prerequisites
+ - Installation of precompiled HELYX-OS X.X.X
+ - Oracle Java version > 1.7
+ - Oracle JDK
+ - Ant > 1.7
 
 ### Steps to Compile
-1.  Ensure all prerequisite libraries are installed
-2.  Clone the HELYX-OS git repository locally 
+1.  Make sure the Oracle based java and JDK are installed in your machine (use `java -version` and `javac --version`) and configured correctly.
+2.  Navigate to the HELYX-OS directory (e.g. /home/user/Engys/HELYX-OS/vX.X.X)
+3.  Clone the HELYX-OS git repository 
 
         git clone https://github.com/ENGYS/HELYX-OS
 
-3. Navigate to the HELYX-OS directory
+4. Compile using the command
+
+        ant -buildfile build_src.xml
+
+5. Run HELYX-OS with the command `./HELYX-OS.sh`
 
 ####Disclaimer
 None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks.
