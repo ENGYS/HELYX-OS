@@ -9,19 +9,19 @@ permalink: /installation/
 
 1.  These instructions assume you have a working version of [OpenFOAM-2.4.0](http://www.openfoam.org/archive/2.4.0/download/source.php).  If you are using Ubuntu 14.04 or greater, the installer will download and install the proper version of OpenFOAM in steps 8-10.
 
-2.  Download the latest 64 Bit binary of HELYX-OS from the [project releases](https://github.com/ENGYS/HELYX-OS/releases) or the [project front page](http://engys.github.io/HELYX-OS/).  The installer name will have the form:
+2.  Download the [latest 64 Bit binary of HELYX-OS](https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin) from the [project releases](https://github.com/ENGYS/HELYX-OS/releases) or the [project front page](http://engys.github.io/HELYX-OS/).  The installer name will have the form:
 
-        <date>-Engys-HELYX-OS-<version>--linux-x86_64-FULL.bin
+        HELYX-OS-<version>-linux-x86_64.bin
 
 3.  Once the binary is downloaded, open a Linux terminal and navigate through the terminal to the location of the newly downloaded HELYX-OS installer.
 
 4.  Change the permissions of the installer by executing ```chmod 755 <installer name>``` in the terminal, similar to:
 
-        :~$ chmod 755 20160114-Engys-HELYX-OS-2.3.1--linux-x86_64-FULL.bin
+        :~$ chmod 755 HELYX-OS-2.3.1-linux-x86_64.bin
 
 5.  Start the installer by typing ```./<installer name>``` while in the terminal, similar to:
 
-        :~$ ./20160114-Engys-HELYX-OS-2.3.1--linux-x86_64-FULL.bin
+        :~$ ./HELYX-OS-2.3.1-linux-x86_64.bin
 
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
