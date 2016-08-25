@@ -26,7 +26,7 @@ permalink: /installation/
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
         Waiting for HELYX-OS installer to start...
-    
+        
         
         This program will install HELYX-OS on your system. Do you want to continue?
         1) Yes
@@ -69,16 +69,16 @@ permalink: /installation/
 
 10.  If you previously selected option **2** in step 8, you will now be prompted to select your linux distribution:
 
-            Please select your linux distribution:
-            1) Ubuntu (14.04 or later)
-            2) Other
-            #?
+        Please select your linux distribution:
+        1) Ubuntu (14.04 or later)
+        2) Other
+        #?
     
-        Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
+    Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
     
-            :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh
+        :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh
 
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
