@@ -88,7 +88,7 @@ Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubun
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
     
         :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh
-        
+         
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
 
