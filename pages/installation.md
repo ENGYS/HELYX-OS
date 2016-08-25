@@ -7,7 +7,7 @@ teaser: ""
 permalink: /installation/
 ---
 
-1.  These instructions assume you have a working version of [OpenFOAM-2.4.0](http://www.openfoam.org/archive/2.4.0/download/source.php).  If you are using Ubuntu 14.04 or greater, the installer will download and install the proper version of OpenFOAM in steps 8-10.
+1.  Before you proceed, please make sure you have a working version of [OpenFOAM-2.4.0](http://www.openfoam.org/archive/2.4.0/download/source.php) installed in your system. HELYX-OS v2.3.1 is designed to work only with this particular version of OpenFOAM. If you are using Ubuntu 14.04 or greater, the installer provided can download and install the proper version of OpenFOAM, as explained below during steps 8 to 10.
 
 2.  Download the [latest 64 Bit binary of HELYX-OS](https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin) from the [project releases](https://github.com/ENGYS/HELYX-OS/releases) or the [project front page](http://engys.github.io/HELYX-OS/).  The installer name will have the form:
 
@@ -51,7 +51,7 @@ permalink: /installation/
         2) HELYX-OS-GUI and Kernel
         #?
 
-    For users with existing installations of OpenFOAM (see compatability table above), select to install only the GUI by typing **1** and hitting enter.  To install the HELYX-OS GUI and the compatable version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter. 
+    For users with an existing installations of OpenFOAM (refer to step 1 for compatability), select to install only the GUI by typing **1** and hitting enter.  Otherwsie, to install the HELYX-OS GUI with the compatible version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter.
 
 9.  The user will be prompted to enter **the full path** to where HELYX-OS will be installed:
 
@@ -74,7 +74,7 @@ permalink: /installation/
             2) Other
             #?
     
-        Selecting **1** will install the compatable OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatable version of OpenFOAM must be installed manually by the user.
+        Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
     
