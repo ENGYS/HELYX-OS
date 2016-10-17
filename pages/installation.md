@@ -14,7 +14,6 @@ permalink: /installation/
 ```
 HELYX-OS-<version>-linux-x86_64.bin
 ```
-
 3.  Once the binary is downloaded, open a Linux terminal and navigate through the terminal to the location of the newly downloaded HELYX-OS installer.
 
 4.  Change the permissions of the installer by executing ```chmod 755 <installer name>``` in the terminal, similar to:
@@ -22,13 +21,11 @@ HELYX-OS-<version>-linux-x86_64.bin
 ```
 :~$ chmod 755 HELYX-OS-2.3.1-linux-x86_64.bin
 ```      
-
 5.  Start the installer by typing ```./<installer name>``` while in the terminal, similar to:
 
 ```
 :~$ ./HELYX-OS-2.3.1-linux-x86_64.bin
 ```     
-
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
 ```
