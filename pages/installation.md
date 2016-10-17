@@ -14,21 +14,18 @@ permalink: /installation/
 ```
 HELYX-OS-<version>-linux-x86_64.bin
 ```
-
 3.  Once the binary is downloaded, open a Linux terminal and navigate through the terminal to the location of the newly downloaded HELYX-OS installer.
 
 4.  Change the permissions of the installer by executing ```chmod 755 <installer name>``` in the terminal, similar to:
 
 ```
 :~$ chmod 755 HELYX-OS-2.3.1-linux-x86_64.bin
-```
-
+```      
 5.  Start the installer by typing ```./<installer name>``` while in the terminal, similar to:
 
 ```
 :~$ ./HELYX-OS-2.3.1-linux-x86_64.bin
-```
-
+```     
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
 ```
@@ -48,7 +45,6 @@ Do you accept the terms of agreement?
 1) Agree
 2) Exit
 #?
-
 ```
 
 In order to continue with the installation, you must agree by typing **1** in the terminal and press enter.<br>
@@ -81,7 +77,8 @@ and a folder named ```Engys```, containing HELYX-OS will be created in the user'
 ```
 Select destination folder for HELYX-OS GUI: /home/scott
 Installing in: /home/scott
-Installing HELYX-OS GUI ................done.    
+Installing HELYX-OS GUI ................done.
+        
 ```
 
 10.  If you previously selected option **2** in step 8, you will now be prompted to select your linux distribution:
@@ -97,7 +94,7 @@ Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubun
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
 
-```
+```    
 :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh       
 ```
 
