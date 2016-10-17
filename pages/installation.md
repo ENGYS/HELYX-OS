@@ -11,24 +11,27 @@ permalink: /installation/
 
 2.  Download the [latest 64 Bit binary of HELYX-OS](https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin) from the [project releases](https://github.com/ENGYS/HELYX-OS/releases) or the [project front page](http://engys.github.io/HELYX-OS/).  The installer name will have the form:
 
-```
+```sh
 HELYX-OS-<version>-linux-x86_64.bin
 ```
+
 3.  Once the binary is downloaded, open a Linux terminal and navigate through the terminal to the location of the newly downloaded HELYX-OS installer.
 
 4.  Change the permissions of the installer by executing ```chmod 755 <installer name>``` in the terminal, similar to:
 
-```
+```sh
 :~$ chmod 755 HELYX-OS-2.3.1-linux-x86_64.bin
-```      
+```
+
 5.  Start the installer by typing ```./<installer name>``` while in the terminal, similar to:
 
-```
+```sh
 :~$ ./HELYX-OS-2.3.1-linux-x86_64.bin
-```     
+```
+
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
-```
+```sh
 Waiting for HELYX-OS installer to start...
 This program will install HELYX-OS on your system. Do you want to continue?
 1) Yes
@@ -40,7 +43,7 @@ In order to continue with the installation, you must type **1** in the terminal 
 
 7.  The user will be presented with a copy of the Gnu Public License (press enter or space to read through the GPL):
 
-```
+```sh
 Do you accept the terms of agreement?
 1) Agree
 2) Exit
@@ -51,7 +54,7 @@ In order to continue with the installation, you must agree by typing **1** in th
 
 8.  Select which components to install:
 
-```
+```sh
 Select components to install
 1) HELYX-OS-GUI
 2) HELYX-OS-GUI and Kernel
@@ -62,19 +65,19 @@ For users with an existing installations of OpenFOAM (refer to step 1 for compat
 
 9.  The user will be prompted to enter **the full path** to where HELYX-OS will be installed:
 
-```
+```sh
 Select destination folder for HELYX-OS GUI:
 ```
 
 For example, if a user named Scott wants to install HELYX-OS to their home folder (this is the suggested location), then they would enter:
 
-```
+```sh
 Select destination folder for HELYX-OS GUI: /home/scott/
 ```
     
 and a folder named ```Engys```, containing HELYX-OS will be created in the user's home folder.  The GUI will install and produce the following output:
 
-```
+```sh
 Select destination folder for HELYX-OS GUI: /home/scott
 Installing in: /home/scott
 Installing HELYX-OS GUI ................done.
@@ -83,7 +86,7 @@ Installing HELYX-OS GUI ................done.
 
 10.  If you previously selected option **2** in step 8, you will now be prompted to select your linux distribution:
 
-```
+```sh
 Please select your linux distribution:
 1) Ubuntu (14.04 or later)
 2) Other
@@ -94,7 +97,7 @@ Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubun
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
 
-```    
+```sh
 :~$ ~/Engys/HELYX-OS/v2.3.1/HELYX-OS.sh       
 ```
 
