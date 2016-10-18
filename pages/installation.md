@@ -31,7 +31,7 @@ permalink: /installation/
         2) No
         #?        
 
-In order to continue with the installation, you must type **1** in the terminal and press enter.<br>
+    In order to continue with the installation, you must type **1** in the terminal and press enter.<br>
 
 7.  The user will be presented with a copy of the Gnu Public License (press enter or space to read through the GPL):
 
@@ -40,7 +40,7 @@ In order to continue with the installation, you must type **1** in the terminal 
         2) Exit
         #?
 
-In order to continue with the installation, you must agree by typing **1** in the terminal and press enter.<br>
+    In order to continue with the installation, you must agree by typing **1** in the terminal and press enter.<br>
 
 8.  Select which components to install:
 
@@ -49,30 +49,30 @@ In order to continue with the installation, you must agree by typing **1** in th
         2) HELYX-OS-GUI and Kernel
         #?
 
-For users with an existing installations of OpenFOAM (refer to step 1 for compatability), select to install only the GUI by typing **1** and hitting enter.  Otherwise, to install the HELYX-OS GUI with the compatible version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter.
+    For users with an existing installations of OpenFOAM (refer to step 1 for compatability), select to install only the GUI by typing **1** and hitting enter.  Otherwise, to install the HELYX-OS GUI with the compatible version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter.
 
 9.  The user will be prompted to enter **the full path** to where HELYX-OS will be installed:
 
         Select destination folder for HELYX-OS GUI:
 
-For example, if a user named Scott wants to install HELYX-OS to their home folder (this is the suggested location), then they would enter:
+    For example, if a user named Scott wants to install HELYX-OS to their home folder (this is the suggested location), then they would enter:
 
         Select destination folder for HELYX-OS GUI: /home/scott/
     
-and a folder named ```Engys```, containing HELYX-OS will be created in the user's home folder.  The GUI will install and produce the following output:
+    and a folder named ```Engys```, containing HELYX-OS will be created in the user's home folder.  The GUI will install and produce the following output:
 
         Select destination folder for HELYX-OS GUI: /home/scott
         Installing in: /home/scott
         Installing HELYX-OS GUI ................done.
 
 10.  If you previously selected option **2** in step 8, you will now be prompted to select your linux distribution:
-
+        
         Please select your linux distribution:
         1) Ubuntu (14.04 or later)
         2) Other
-        #?   
+        #?
 
-Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
+    Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.3.1``` directory similar to:
 
