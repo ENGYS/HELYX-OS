@@ -31,35 +31,35 @@ permalink: /installation/
 
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
-    ```
-    Waiting for HELYX-OS installer to start...
-    This program will install HELYX-OS on your system. Do you want to continue?
-    1) Yes
-    2) No
-    #?        
-    ```
+     ```
+     Waiting for HELYX-OS installer to start...
+     This program will install HELYX-OS on your system. Do you want to continue?
+     1) Yes
+     2) No
+     #?        
+     ```
 
 In order to continue with the installation, you must type **1** in the terminal and press enter.<br>
 
 7.  The user will be presented with a copy of the Gnu Public License (press enter or space to read through the GPL):
 
-    ```
+     ```
      Do you accept the terms of agreement?
      1) Agree
      2) Exit
      #?
-    ```
+     ```
 
 In order to continue with the installation, you must agree by typing **1** in the terminal and press enter.<br>
 
 8.  Select which components to install:
 
-    ```
+     ```
      Select components to install
      1) HELYX-OS-GUI
      2) HELYX-OS-GUI and Kernel
      #?
-    ```
+     ```
 
 For users with an existing installations of OpenFOAM (refer to step 1 for compatability), select to install only the GUI by typing **1** and hitting enter.  Otherwise, to install the HELYX-OS GUI with the compatible version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter.
 
