@@ -34,7 +34,7 @@ widget3:
 #
 
 callforaction:
-  url: https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin
+  url: 'https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin'
   text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
   style: alert
 
