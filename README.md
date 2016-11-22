@@ -6,13 +6,6 @@ HELYX-OS has been created to facilitate the usage of the standard OpenFOAM libra
 ## Installing the latest binary file for 64 bit linux
 Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to download the latest HELYX-OS binary and view [installation instructions](http://engys.github.io/HELYX-OS/installation/). 
 
-## Configuring HELYX-OS for OpenFOAM v1606+
-To use OpenFOAM v1606+ installed via Docker following the instructions detailed [here](http://openfoam.com/download/install-binary.php) you need to do the following:
- - Open HELYX-OS
- - Go to Edit>Preferences
- - In the "Misc" section check the "Use Docker" tick box and then type "openfoamplus/of_v1606plus_centos66" in the "Docker Image" textbox
- - Press "OK" to apply settings
-
 ## Compiling HELYX-OS on your own
 
 ### Prerequisites
