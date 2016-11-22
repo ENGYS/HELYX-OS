@@ -97,13 +97,13 @@ Please report all bugs encountered with HELYX-OS on the [project issue tracker](
 
 Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.
 
-### Using OpenFOAM 1606+ and Docker 
+** Using OpenFOAM 1606+ and Docker **
 
 1.  Open the newly installed HELYX-OS and go to Edit>Preferences
 2.  In the "Misc" section check the "Use Docker" tick box and then type "openfoamplus/of_v1606plus_centos66" in the "Docker Image" textbox
 3.  Press "OK" to apply settings 
 
-### Using a Compiled Version of OpenFOAM 1606+ (without Docker) 
+** Using a Compiled Version of OpenFOAM 1606+ (without Docker) **
 
 1.  Open the newly installed HELYX-OS and go to Edit>Preferences
 2.  Ensure that you have selected the core folder location of the OpenFOAM V1606+ installation
