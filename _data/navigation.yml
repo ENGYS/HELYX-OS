@@ -2,7 +2,7 @@
 #   Navigation to the left › side: left
 #
 - title: "Home"
-  url: "/"
+  url: "http://engys.github.io/HELYX-OS/"
   side: left
 
 - title: "Quick Links"
@@ -12,7 +12,7 @@
   - title: "About HELYX-OS"
     url: "http://engys.com/products/helyx-os"
   - title: "Installation"
-    url: "/installation/"
+    url: "http://engys.github.io/HELYX-OS/installation/"
   - title: "Training and Support"
     url: "http://engys.com/services/support"
 - title: "HELYX-OS on Github"

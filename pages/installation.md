@@ -7,7 +7,7 @@ teaser: ""
 permalink: /installation/
 ---
 
-1.  These instructions assume you have a working version of [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or [OpenFOAM v1606+](http://openfoam.com/download/install-binary.php).  If you are using Ubuntu 14.04 or greater, the installer will download and install the proper version of OpenFOAM in steps 8-10.
+1.  Before you proceed, please make sure you have a working version of [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or [OpenFOAM v1606+](http://openfoam.com/download/install-binary.php) installed in your system. HELYX-OS v2.4.0 is designed to work only with this particular version of OpenFOAM. If you are using Ubuntu 14.04 or greater, the installer provided can download and install the proper version of OpenFOAM, as explained below during steps 8 to 10.
 
 2.  Download the [latest 64 Bit binary of HELYX-OS](https://github.com/ENGYS/HELYX-OS/releases/download/v2.4.0/HELYX-OS-2.4.0-linux-x86_64.bin) from the [project releases](https://github.com/ENGYS/HELYX-OS/releases) or the [project front page](http://engys.github.io/HELYX-OS/).  The installer name will have the form:
 
@@ -17,22 +17,20 @@ permalink: /installation/
 
 4.  Change the permissions of the installer by executing ```chmod 755 <installer name>``` in the terminal, similar to:
 
-        :~$ chmod 755 HELYX-OS-2.4.0-linux-x86_64.bin
-
+        :~$ chmod 755 HELYX-OS-2.4.0-linux-x86_64.bin  
+   
 5.  Start the installer by typing ```./<installer name>``` while in the terminal, similar to:
 
-        :~$ ./HELYX-OS-2.4.0-linux-x86_64.bin
+        :~$ ./HELYX-OS-2.4.0-linux-x86_64.bin     
 
 6.  At this point, the installer will begin and the user will be guided through the installation process:
 
         Waiting for HELYX-OS installer to start...
-    
-        
         This program will install HELYX-OS on your system. Do you want to continue?
         1) Yes
         2) No
-        #?
-    
+        #?        
+
     In order to continue with the installation, you must type **1** in the terminal and press enter.<br>
 
 7.  The user will be presented with a copy of the Gnu Public License (press enter or space to read through the GPL):
@@ -51,7 +49,7 @@ permalink: /installation/
         2) HELYX-OS-GUI and Kernel
         #?
 
-    For users with existing installations of OpenFOAM (see compatability table above), select to install only the GUI by typing **1** and hitting enter.  To install the HELYX-OS GUI and the compatable version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter. 
+    For users with an existing installations of OpenFOAM (refer to step 1 for compatability), select to install only the GUI by typing **1** and hitting enter.  Otherwise, to install the HELYX-OS GUI with the compatible version of OpenFOAM (for Ubuntu 14.04 or later only), type **2** and press enter.
 
 9.  The user will be prompted to enter **the full path** to where HELYX-OS will be installed:
 
@@ -69,17 +67,16 @@ permalink: /installation/
 
 10.  If you previously selected option **2** in step 8, you will now be prompted to select your linux distribution:
 
-            Please select your linux distribution:
-            1) Ubuntu (14.04 or later)
-            2) Other
-            #?
+         Please select your linux distribution:
+         1) Ubuntu (14.04 or later)
+         2) Other
+         #?
     
-        Selecting **1** will install the compatable OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatable version of OpenFOAM must be installed manually by the user.
+     Selecting **1** will install the compatible OpenFOAM deb package for 64 bit Ubuntu on 14.04 or later.  For other linux distributions, the compatible version of OpenFOAM must be installed manually by the user.
     
 11.  To start HELYX-OS in the terminal, execute the ```HELYX-OS.sh``` file located in ```engys/HELYX-OS/v2.4.0``` directory similar to:
-    
-            :~$ ~/Engys/HELYX-OS/v2.4.0/HELYX-OS.sh
 
+         :~$ ~/Engys/HELYX-OS/v2.4.0/HELYX-OS.sh       
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
 
