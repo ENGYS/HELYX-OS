@@ -11,7 +11,7 @@ widget1:
   title: "About HELYX-OS"
   url: 'http://engys.com/products/helyx-os'
   image: '/images/HELYX-OS-v231-welcomescreen.png'
-  text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with OpenFOAM version 2.4.0. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
+  text: 'HELYX-OS is an open-source Graphical User Interface designed to work natively with OpenFOAM v4.1 and OpenFOAM v1606+. The GUI is developed by ENGYS using Java+VTK and delivered to the public under the GNU General Public License.'
 widget2:
   title: "Installation"
   url: '/installation/'
@@ -34,8 +34,8 @@ widget3:
 #
 
 callforaction:
-  url: https://github.com/ENGYS/HELYX-OS/releases/download/v2.3.1/HELYX-OS-2.3.1-linux-x86_64.bin
-  text: Download HELYX-OS v2.3.1 binary for 64 bit Linux ›
+  url: https://github.com/ENGYS/HELYX-OS/releases/download/v2.4.0/HELYX-OS-2.4.0-linux-x86_64.bin
+  text: Download HELYX-OS v2.4.0 binary for 64 bit Linux ›
   style: alert
 
 permalink: /index.html
