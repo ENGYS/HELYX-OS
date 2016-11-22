@@ -1,44 +1,45 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.view3D.fallback;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
-import vtk.vtkPlane;
 import eu.engys.core.controller.GeometryToMesh;
 import eu.engys.core.project.geometry.BoundingBox;
 import eu.engys.core.project.mesh.FieldItem;
-import eu.engys.core.project.mesh.ScalarBarType;
 import eu.engys.core.project.zero.cellzones.CellZone;
+import eu.engys.core.project.zero.facezones.FaceZone;
 import eu.engys.core.project.zero.patches.Patch;
 import eu.engys.gui.view.View3DElement;
 import eu.engys.gui.view3D.Actor;
 import eu.engys.gui.view3D.Context;
 import eu.engys.gui.view3D.Mesh3DController;
 import eu.engys.gui.view3D.RenderPanel;
+import vtk.vtkPlane;
 
 public class FallbackMesh3DController implements Mesh3DController {
 
@@ -63,6 +64,14 @@ public class FallbackMesh3DController implements Mesh3DController {
     }
 
     @Override
+    public void updateFaceZonesSelection(FaceZone[] selection) {
+    }
+
+    @Override
+    public void updateFaceZonesVisibility(FaceZone... selection) {
+    }
+
+    @Override
     public void loadActors() {
     }
 
@@ -80,28 +89,16 @@ public class FallbackMesh3DController implements Mesh3DController {
     }
 
     @Override
+    public void exportContourAsSTL(File stlFile) {
+    }
+
+    @Override
     public BoundingBox computeBoundingBox() {
         return null;
     }
 
     @Override
-    public void setManualRangeCalculation(double[] rangeField) {
-    }
-
-    @Override
-    public void setScalarsActorsResolution(int resolution) {
-    }
-
-    @Override
-    public void setScalarsBarType(ScalarBarType hueRangeType) {
-    }
-
-    @Override
-    public void resetScalarsActorsRangeAndResolutionAndHue() {
-    }
-
-    @Override
-    public void setAutomaticRangeCalculation(boolean autoRange) {
+    public void updateActorsColors() {
     }
 
     @Override
@@ -125,7 +122,7 @@ public class FallbackMesh3DController implements Mesh3DController {
     }
 
     @Override
-    public void showTimeStep(double value) {
+    public void changeTimeStep(double value) {
     }
 
     @Override
@@ -143,19 +140,19 @@ public class FallbackMesh3DController implements Mesh3DController {
     }
 
     @Override
-    public void clip(vtkPlane plane) {
+    public void clip(vtkPlane plane, boolean insideOut) {
     }
 
     @Override
-    public void slice(vtkPlane plane) {
+    public void slice(vtkPlane plane, List<Double> values) {
+    }
+
+    @Override
+    public void contour(String field, List<Double> values, int smoothingIterations, double smoothingConvergence) {
     }
 
     @Override
     public void crinkle(vtkPlane plane) {
-    }
-
-    @Override
-    public void insideOut(boolean selected) {
     }
 
     @Override
@@ -185,6 +182,11 @@ public class FallbackMesh3DController implements Mesh3DController {
     }
 
     @Override
+    public boolean isInternalMeshVisible() {
+        return false;
+    }
+
+    @Override
     public void render() {
     }
 
@@ -195,4 +197,5 @@ public class FallbackMesh3DController implements Mesh3DController {
     @Override
     public void disconnectFiltersFromInternalMesh() {
     }
+
 }

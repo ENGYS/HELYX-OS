@@ -1,38 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.vtk;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import vtk.vtkLookupTable;
 import eu.engys.core.project.mesh.FieldItem;
 import eu.engys.core.project.mesh.ScalarBarType;
 import eu.engys.gui.view3D.Actor;
+import vtk.vtkLookupTable;
 
 public class VTKColors {
 
@@ -71,13 +70,6 @@ public class VTKColors {
 
         public ScalarsColor to(VTKActors actors) {
             this.actors.addAll(actors.getActors());
-
-            if (field.isAutomaticRange()) {
-                new VTKRangeCalculator(field).calculateRange_Automatically_For(actors);
-            } else {
-                // use existing range
-            }
-
             return this;
         }
 
@@ -92,35 +84,30 @@ public class VTKColors {
     }
 
     public static void applyTypeToLookupTable(FieldItem fieldItem, vtkLookupTable table) {
-        // Vector Mode
-        if (fieldItem.getComponent() <= 0) {
-            table.SetVectorModeToMagnitude();
-        } else {
+        if (fieldItem.getComponentIndex() > 0) {
+            // Ux Uy Uz
             table.SetVectorModeToComponent();
-            table.SetVectorComponent(fieldItem.getComponent() - 1);
+            table.SetVectorComponent(fieldItem.getComponentIndex() - 1);
+        } else {
+            table.SetVectorModeToMagnitude();
         }
 
-        // Range
-        table.SetRange(fieldItem.getRange());
+        if (fieldItem.isScalar()) {
+            table.SetRange(fieldItem.range());
+        }
 
         // Colors
         ScalarBarType scalarBarType = fieldItem.getScalarBarType();
-        List<double[]> colors = scalarBarType.getColors(fieldItem.getResolution());
-        if (scalarBarType.equals(ScalarBarType.RED_TO_BLUE_RAINBOW) || scalarBarType.equals(ScalarBarType.BLUE_TO_RED_RAINBOW)) {
-            table.SetNumberOfTableValues(fieldItem.getResolution());
-            table.SetHueRange(scalarBarType.getColors(-1).get(0));
-            table.ForceBuild();
-        } else {
-            table.SetNumberOfTableValues(colors.size());
-            for (int i = 0; i < colors.size(); i++) {
-                double[] values = colors.get(i);
-                double red = values[0];
-                double green = values[1];
-                double blue = values[2];
-                table.SetTableValue(i, red, green, blue, 1);
-            }
-            table.Build();
+        List<double[]> colors = scalarBarType.getColors(fieldItem);
+        table.SetNumberOfTableValues(colors.size());
+        for (int i = 0; i < colors.size(); i++) {
+            double[] values = colors.get(i);
+            double red = values[0];
+            double green = values[1];
+            double blue = values[2];
+            table.SetTableValue(i, red, green, blue, 1);
         }
+        table.Build();
     }
 
     static class IndexedColor {

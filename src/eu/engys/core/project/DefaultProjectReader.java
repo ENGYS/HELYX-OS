@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project;
 
 import java.io.File;
@@ -37,6 +36,7 @@ import eu.engys.core.modules.ApplicationModule;
 import eu.engys.core.modules.ModulesUtil;
 import eu.engys.core.project.geometry.factory.DefaultGeometryFactory;
 import eu.engys.core.project.materials.MaterialsReader;
+import eu.engys.core.project.mesh.MeshInfoReader;
 import eu.engys.core.project.state.StateBuilder;
 import eu.engys.core.project.state.Table15;
 import eu.engys.core.project.system.ControlDict;
@@ -70,7 +70,33 @@ public class DefaultProjectReader extends AbstractProjectReader {
     }
 
     @Override
-    public void read() throws InvalidProjectException {
+    public void readMesh() {
+        File baseDir = model.getProject().getBaseDir();
+        if (baseDir.exists() && baseDir.isDirectory()) {
+            openFOAMProject prj = model.getProject();
+            ControlDict controlDict = prj.getSystemFolder().getControlDict();
+            if (controlDict != null) {
+                if (controlDict.isBinary()) {
+                    monitor.error("Binary fields format not supported");
+                } else {
+                    prj.getSystemFolder().readProjectDict(model, monitor, prj.getSystemFolder().getFileManager().getFile());
+                    logger.info("### Read mesh: '{}' ### ", prj.getZeroFolder().getFileManager().getFile());
+                    prj.getZeroFolder().read(model, cellZoneBuilder, modules, initialisation, monitor);
+                }
+            }
+            
+            new MeshInfoReader(model).read();
+            
+            if (!model.getPatches().isEmpty()) {
+                model.getGeometry().hideSurfaces();
+            }
+        } else {
+            monitor.error(baseDir + " not found");
+        }
+    }
+    
+    @Override
+    public void read() {
         File baseDir = model.getProject().getBaseDir();
         logger.info("################## Read '{}' ################## ", baseDir.getName());
         if (baseDir.exists() && baseDir.isDirectory()) {
@@ -85,54 +111,42 @@ public class DefaultProjectReader extends AbstractProjectReader {
         logger.info("################## End Read ################## ");
     }
 
-    @Override
-    public void readMesh() {
-        File baseDir = model.getProject().getBaseDir();
-        if (baseDir.exists() && baseDir.isDirectory()) {
-            openFOAMProject prj = model.getProject();
-            ControlDict controlDict = prj.getSystemFolder().getControlDict();
-            if (controlDict != null) {
-                if (controlDict.isBinary()) {
-                    monitor.error("Binary fields format not supported");
-                } else {
-                    logger.info("### Read mesh: '{}' ### ", prj.getZeroFolder().getFileManager().getFile());
-                    prj.getZeroFolder().read(model, cellZoneBuilder, modules, initialisation, monitor);
-                }
-            }
-
-            if (!model.getPatches().isEmpty()) {
-                model.getGeometry().hideSurfaces();
-            }
-        } else {
-            monitor.error(baseDir + " not found");
-        }
-    }
-
-    protected void defaultRead() throws InvalidProjectException {
+    
+    private void defaultRead() {
         monitor.info("");
         monitor.info("Reading Project");
         openFOAMProject project = model.getProject();
 
         monitor.info("-> Reading Constant Folder");
-        project.getConstantFolder().load(model, monitor);
+        project.getConstantFolder().read(model, monitor);
 
         monitor.info("-> Reading System Folder");
         project.getSystemFolder().read(model, ffoTypes, mfoTypes, monitor);
 
-        new SolverModelReader(model).load();
+        new SolverModelReader(model.getSolverModel()).load(project.getSystemFolder().getProjectDict());
+        
+        new MeshInfoReader(model).read();
 
         monitor.info("-> Reading Geometry");
         model.getGeometry().loadGeometry(model, monitor);
-
+        
+        monitor.info("-> Reading Modules Data");
+        ModulesUtil.read(modules);
+        
         monitor.info("-> Reading State");
         StateBuilder.loadState(model, solversTable, monitor);
-        solversTable.updateSolver(model.getState());
 
-        /*
-         * Call updateSolver after loadState because some module may need some other module state in order to select the correct solver (e.g. Dynamic and VOF)
-         */
         monitor.info("-> Reading Modules State");
         ModulesUtil.loadState(modules);
+
+        /*
+         * Call updateSolver after loadState because some module may need some other module 
+         * state in order to select the correct solver (e.g. Dynamic and VOF)
+         */
+        monitor.info("-> Reading Solver");
+        solversTable.updateSolver(model.getState());
+
+        monitor.info("-> Reading Modules Solver");
         ModulesUtil.updateSolver(modules, model.getState());
 
         monitor.info("-> Reading Materials");
@@ -155,5 +169,4 @@ public class DefaultProjectReader extends AbstractProjectReader {
             model.getGeometry().hideSurfaces();
         }
     }
-
 }

@@ -1,32 +1,35 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.controller;
 
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_CANCEL_OPTION;
+
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.Set;
 
 import javax.swing.Icon;
@@ -35,22 +38,28 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.engys.core.Arguments;
 import eu.engys.core.controller.actions.CommandException;
 import eu.engys.core.controller.actions.DeleteMesh;
+import eu.engys.core.executor.ExecutorTerminal;
+import eu.engys.core.executor.TerminalManager;
 import eu.engys.core.modules.ApplicationModule;
 import eu.engys.core.presentation.Action;
 import eu.engys.core.presentation.ActionContainer;
 import eu.engys.core.presentation.ActionManager;
 import eu.engys.core.project.CaseParameters;
-import eu.engys.core.project.InvalidProjectException;
+import eu.engys.core.project.CreateCaseDialog;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.Project200To210Converter;
+import eu.engys.core.project.Project210To240Converter;
 import eu.engys.core.project.ProjectFolderAnalyzer;
+import eu.engys.core.project.ProjectFolderAnalyzer.WhenInDoubt;
+import eu.engys.core.project.ProjectFolderStructure;
 import eu.engys.core.project.ProjectReader;
 import eu.engys.core.project.ProjectWriter;
 import eu.engys.core.project.SolverState;
 import eu.engys.core.project.openFOAMProject;
+import eu.engys.core.project.mesh.MeshInfo;
+import eu.engys.core.project.mesh.MeshInfoWriter;
 import eu.engys.core.project.system.monitoringfunctionobjects.ParserView;
 import eu.engys.core.project.zero.cellzones.CellZonesBuilder;
 import eu.engys.util.ApplicationInfo;
@@ -65,20 +74,42 @@ import eu.engys.util.ui.UiUtil;
 
 public abstract class AbstractController implements Controller, ActionContainer {
 
-    public static final String STOP_SOLVER = "Stop Solver";
-    public static final String KILL_SOLVER = "Kill Solver";
+    public static final String SOLVER_RUN = "solver.run";
+    public static final String SOLVER_RUN_EDIT = "solver.run.edit";
+
+    public static final String SOLVER_STOP = "solver.stop";
+    public static final String REFRESH_ONCE = "solver.refresh.once";
+    public static final String RUN_ALL = "solver.run.all";
+
+    public static final String INITIALISE_SCRIPT = "initialise.fields";
+    public static final String INITIALISE_SCRIPT_EDIT = "initialise.fields.edit";
+
+    public static final String MESH_CREATE = "mesh.create";
+    public static final String MESH_CREATE_EDIT = "mesh.create.edit";
+    public static final String MESH_CHECK = "mesh.check";
+    public static final String MESH_CHECK_EDIT = "mesh.check.edit";
+    public static final String MESH_DELETE = "mesh.delete";
+    public static final String MESH_STRETCH = "mesh.stretch";
+    public static final String DECOMPOSE = "decompose";
+
+    public static final String OPEN_RUN_MODE = "application.connection.window";
+    public static final String OPEN_PARAMETERS_MANAGER = "application.parameters.manager";
+    public static final String SAVE_SCREENSHOT = "save.screenshot";
+
+    public static final String STOP_SOLVER_LABEL = "Stop Solver";
+    public static final String KILL_SOLVER_LABEL = "Kill Solver";
 
     public static final String STOP_EXECUTION = "Stop Execution";
     public static final String KILL_PROCESS = "Kill Process";
-    
-    public static final String STOP_FIELDS_INITIALISATION = "Stop Fields Initialisation";
-    public static final String STOP_MESH_GENERATOR = "Stop Mesh Generator";
-    
+
     public static final String CANCEL = "Cancel";
     public static final String CONTINUE_IN_BATCH = "Continue in Batch";
 
-    private static final Icon EXIT_BIG_ICON = ResourcesUtil.getIcon("application.exit.big.icon");
-    private static final String EXIT_LABEL = ResourcesUtil.getString("application.exit.label");
+    public static final String PARALLEL_WORKS = "application.parallel.works";
+    
+    protected static final Icon EXIT_BIG_ICON = ResourcesUtil.getIcon("application.exit.big.icon");
+    protected static final String EXIT_LABEL = ResourcesUtil.getString("application.exit.label");
+
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
     protected final Model model;
@@ -89,6 +120,8 @@ public abstract class AbstractController implements Controller, ActionContainer 
     protected final ScriptFactory scriptFactory;
     protected ControllerListener listener;
     protected CellZonesBuilder cellZonesBuilder;
+
+    public static boolean isServer = false;
 
     public AbstractController(Model model, Set<ApplicationModule> modules, ProjectReader reader, ProjectWriter writer, CellZonesBuilder cellZonesBuilder, ProgressMonitor monitor, ScriptFactory scriptFactory) {
         this.cellZonesBuilder = cellZonesBuilder;
@@ -106,33 +139,61 @@ public abstract class AbstractController implements Controller, ActionContainer 
      */
 
     @Override
-    public void createCase(CaseParameters params) {
-        if (params != null) {
-            newCaseInAThread(params);
+    public void createCase(CaseParameters params, OpenOptions oo) {
+        if (params == null) {
+            params = caseParametersOrNull();
+        }
+
+        if (params.getBaseDir() != null) {
+            newCaseInAThread(params, oo);
         }
     }
 
-    private void newCaseInAThread(final CaseParameters params) {
+    private CaseParameters caseParametersOrNull() {
+        final CaseParameters p = new CaseParameters();
+
+        ExecUtil.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                final CreateCaseDialog createCaseDialog = new CreateCaseDialog();
+                createCaseDialog.showDialog();
+                if (createCaseDialog.isOK()) {
+                    ActionManager.getInstance().invoke("application.startup.hide");
+                    p.setBaseDir(createCaseDialog.getParameters().getBaseDir());
+                    p.setnHierarchy(createCaseDialog.getParameters().getnHierarchy());
+                    p.setnProcessors(createCaseDialog.getParameters().getnProcessors());
+                    p.setParallel(createCaseDialog.getParameters().isParallel());
+                }
+            }
+        });
+
+        return p;
+    }
+
+    private void newCaseInAThread(final CaseParameters params, final OpenOptions oo) {
         monitor.setTotal(10);
         monitor.start(String.format("Creating %s", params), false, new Runnable() {
             @Override
             public void run() {
-                create(params);
+                create(params, oo);
                 PrefUtil.putFile(PrefUtil.WORK_DIR, model.getProject().getBaseDir().getParentFile());
+                if (oo != null && oo.getFilesToImport() != null) {
+                    importFiles(oo.getFilesToImport());
+                }
                 monitor.end();
             }
         });
     }
 
     @Override
-    public void create(final CaseParameters params) {
+    public void create(final CaseParameters params, final OpenOptions oo) {
         if (listener != null) {
             listener.beforeNewCase();
         }
         clearModel();
         writer.create(params);
         if (listener != null) {
-            listener.afterNewCase();
+            listener.afterNewCase(oo != null ? oo.isLoadMesh() : true);
         }
     }
 
@@ -141,94 +202,124 @@ public abstract class AbstractController implements Controller, ActionContainer 
      */
 
     @Override
-    public void openCase(File file) {
-        if (file == null) {
-            file = fileToOpenOrNull();
+    public void openCase(OpenOptions oo) {
+        if (oo == null) {
+            oo = fileToOpenOrNull();
         }
-        if (file != null) {
-            ActionManager.getInstance().invoke("application.startup.hide");
-            openInAThread(file);
+        if (oo != null && oo.getFile() != null) {
+            openInAThread(oo);
         }
-        Arguments.load3Dgeometry = true;
-        Arguments.load3Dmesh = true;
     }
 
-    private File fileToOpenOrNull() {
-        final File[] openFile = new File[1];
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                File workDir = PrefUtil.getWorkDir(PrefUtil.WORK_DIR);
-                HelyxFileChooser fileChooser = new HelyxFileChooser(workDir.getAbsolutePath());
-                fileChooser.setTitle("Open");
-                fileChooser.setSelectionMode(SelectionMode.DIRS_AND_ARCHIVES);
-
-                View3DOptions options = new View3DOptions();
-                ReturnValue returnValue = fileChooser.showOpenDialog(options);
-                if (returnValue.isApprove()) {
-                    File selectedCase = fileChooser.getSelectedFile();
-                    if (isSuitable(selectedCase)) {
-                        PrefUtil.putFile(PrefUtil.WORK_DIR, selectedCase.getParentFile());
-                        Arguments.load3Dgeometry = true;
-                        Arguments.load3Dmesh = options.loadMesh();
-                        openFile[0] = selectedCase;
-                        return;
-                    }
-                    JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), selectedCase + "\n appears not to be a valid case folder", "File System Error", JOptionPane.ERROR_MESSAGE);
-                }
-                openFile[0] = null;
-                return;
-            }
-        };
+    private OpenOptions fileToOpenOrNull() {
+        OpenFile r = new OpenFile();
         ExecUtil.invokeAndWait(r);
-        return openFile[0];
+        return r.getOpenOptions();
     }
 
-    private void openInAThread(final File file) {
+    class OpenFile implements Runnable {
+
+        private OpenOptions openOptions;
+
+        @Override
+        public void run() {
+            File workDir = PrefUtil.getWorkDir(PrefUtil.WORK_DIR);
+            HelyxFileChooser fileChooser = new HelyxFileChooser(workDir.getAbsolutePath());
+            fileChooser.setTitle("Open");
+            fileChooser.setSelectionMode(SelectionMode.DIRS_AND_ARCHIVES);
+
+            View3DOptions options = new View3DOptions();
+            ReturnValue returnValue = fileChooser.showOpenDialog(options);
+            if (returnValue.isApprove()) {
+                File selectedCase = fileChooser.getSelectedFile();
+                if (isSuitable(selectedCase)) {
+                    PrefUtil.putFile(PrefUtil.WORK_DIR, selectedCase.getParentFile());
+                    openOptions = OpenOptions.file(selectedCase, OpenMode.CHECK_FOLDER_ASK_USER).loadMesh(options.loadMesh());
+                    ActionManager.getInstance().invoke("application.startup.hide");
+                    return;
+                }
+                JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), selectedCase + "\n appears not to be a valid case folder", "File System Error", JOptionPane.ERROR_MESSAGE);
+            }
+            return;
+        }
+
+        public OpenOptions getOpenOptions() {
+            return openOptions;
+        }
+    }
+
+    private void openInAThread(final OpenOptions oo) {
         monitor.setTotal(10);
-        monitor.start("Open " + file.getName(), false, new Runnable() {
+        monitor.start("Open " + oo.getFile().getName(), false, new Runnable() {
             @Override
             public void run() {
-                open(file);
+                open(oo);
                 monitor.end();
             }
         });
     }
 
     @Override
-    public void open(File file) {
+    public void open(OpenOptions oo) {
+        File file = oo.getFile();
+        OpenMode mode = oo.getMode();
+
         final File baseDir = file.isAbsolute() ? file : file.getAbsoluteFile();
         logger.debug("OPEN file {}", baseDir.getAbsolutePath());
+
         if (listener != null) {
             listener.beforeLoadCase();
         }
         clearModel();
 
-        model.setProject(openFOAMProject.createProject(baseDir, monitor));
+        switch (mode) {
+            case SERIAL:
+                model.setProject(openFOAMProject.newSerialProject(baseDir));
+                break;
+            case PARALLEL:
+                model.setProject(openFOAMProject.newParallelProject(baseDir));
+                break;
+            case CURRENT_SETTINGS:
+            case CHECK_FOLDER_ASK_USER:
+                ProjectFolderStructure structure1 = new ProjectFolderAnalyzer(baseDir, monitor).checkAll(WhenInDoubt.ASK_USER);
+                model.setProject(structure1.isParallel() ? openFOAMProject.newParallelProject(baseDir, structure1.getProcessors()) : openFOAMProject.newSerialProject(baseDir));
+                break;
+            case CHECK_FOLDER_PARALLEL:
+                ProjectFolderStructure structure2 = new ProjectFolderAnalyzer(baseDir, monitor).checkAll(WhenInDoubt.READ_PARALLEL);
+                model.setProject(structure2.isParallel() ? openFOAMProject.newParallelProject(baseDir, structure2.getProcessors()) : openFOAMProject.newSerialProject(baseDir));
+                break;
+            case MESH_ONLY:
+                break;
+            default:
+                break;
+        }
 
         new Project200To210Converter(model.getProject(), cellZonesBuilder).convert();
+        new Project210To240Converter(model.getProject()).convert();
 
-        _read();
+        reader.read();
 
         if (listener != null) {
-            listener.afterLoadCase();
+            listener.afterLoadCase(oo.isLoadMesh());
         }
 
         logger.debug("OPEN file {} done.", baseDir.getName());
     }
 
+    protected abstract void importFiles(final File[] stlFiles);
+    
     @Override
-    public void reopen(OpenOptions options) {
+    public void reopen(OpenMode mode) {
         File baseDir = model.getProject().getBaseDir();
         int np = model.getProject().getProcessors();
         boolean parallel = model.getProject().isParallel();
 
-        logger.debug("REOPEN file {} with option {}", baseDir.getAbsolutePath(), options);
+        logger.debug("REOPEN file {} in {} mode", baseDir.getAbsolutePath(), mode);
         if (listener != null) {
             listener.beforeReopenCase();
         }
 
-        if (options == OpenOptions.MESH_ONLY) {
+        if (mode == OpenMode.MESH_ONLY) {
             reader.readMesh();
             if (listener != null) {
                 listener.afterReopenCase();
@@ -237,23 +328,28 @@ public abstract class AbstractController implements Controller, ActionContainer 
         }
         clearModel();
 
-        switch (options) {
-        case SERIAL:
-            model.setProject(openFOAMProject.newSerialProject(baseDir));
-            break;
-        case PARALLEL:
-            model.setProject(openFOAMProject.newParallelProject(baseDir));
-            break;
-        case CHECK_FOLDER:
-            model.setProject(openFOAMProject.createProject(baseDir, monitor));
-            break;
-        case CURRENT_SETTINGS:
-            model.setProject(parallel ? openFOAMProject.newParallelProject(baseDir, np) : openFOAMProject.newSerialProject(baseDir));
-            break;
-        case MESH_ONLY:
-            break;
-        default:
-            break;
+        switch (mode) {
+            case SERIAL:
+                model.setProject(openFOAMProject.newSerialProject(baseDir));
+                break;
+            case PARALLEL:
+                model.setProject(openFOAMProject.newParallelProject(baseDir));
+                break;
+            case CHECK_FOLDER_ASK_USER:
+                ProjectFolderStructure structure1 = new ProjectFolderAnalyzer(baseDir, monitor).checkAll(WhenInDoubt.ASK_USER);
+                model.setProject(structure1.isParallel() ? openFOAMProject.newParallelProject(baseDir, structure1.getProcessors()) : openFOAMProject.newSerialProject(baseDir));
+                break;
+            case CHECK_FOLDER_PARALLEL:
+                ProjectFolderStructure structure2 = new ProjectFolderAnalyzer(baseDir, monitor).checkAll(WhenInDoubt.READ_PARALLEL);
+                model.setProject(structure2.isParallel() ? openFOAMProject.newParallelProject(baseDir, structure2.getProcessors()) : openFOAMProject.newSerialProject(baseDir));
+                break;
+            case CURRENT_SETTINGS:
+                model.setProject(parallel ? openFOAMProject.newParallelProject(baseDir, np) : openFOAMProject.newSerialProject(baseDir));
+                break;
+            case MESH_ONLY:
+                break;
+            default:
+                break;
         }
 
         reader.read();
@@ -264,18 +360,8 @@ public abstract class AbstractController implements Controller, ActionContainer 
         logger.debug("Open file {} done.", baseDir.getName());
     }
 
-    private void _read() {
-        try {
-            reader.read();
-        } catch (InvalidProjectException e) {
-            logger.error(e.getMessage());
-            JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), e.getMessage(), "Project error", JOptionPane.ERROR_MESSAGE);
-            clearModel();
-        }
-    }
-
     @Override
-    public void reopenCase(final OpenOptions options) {
+    public void reopenCase(final OpenMode options) {
         monitor.start("Reopen " + model.getProject().getBaseDir(), false, new Runnable() {
             @Override
             public void run() {
@@ -299,7 +385,7 @@ public abstract class AbstractController implements Controller, ActionContainer 
         }
     }
 
-    protected void saveInAThread(final File baseDir) {
+    private void saveInAThread(final File baseDir) {
         monitor.info("");
         monitor.start("Save: " + baseDir.getAbsolutePath(), false, new Runnable() {
             @Override
@@ -308,6 +394,9 @@ public abstract class AbstractController implements Controller, ActionContainer 
                 monitor.end();
             }
         });
+        if (ActionManager.getInstance().contains(SAVE_SCREENSHOT)) {
+            ActionManager.getInstance().get(SAVE_SCREENSHOT).actionPerformed(null);
+        }
     }
 
     @Override
@@ -316,8 +405,9 @@ public abstract class AbstractController implements Controller, ActionContainer 
             baseDir = model.getProject().getBaseDir();
         }
         logger.debug("Save file {}", baseDir.getAbsolutePath());
-        if (listener != null)
+        if (listener != null) {
             listener.beforeSaveCase();
+        }
         writer.write(baseDir);
         writeScripts();
         if (listener != null) {
@@ -368,13 +458,16 @@ public abstract class AbstractController implements Controller, ActionContainer 
      * MESH
      */
 
-    @Action(key = "mesh.delete")
+    @Action(key = MESH_DELETE)
     public void deleteMesh() {
         int retVal = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), "This action will delete the existing mesh.\nContinue?", "Delete Mesh", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (retVal == JOptionPane.YES_OPTION) {
             saveInAThread(model.getProject().getBaseDir());
             new DeleteMesh(model, this).executeClient();
-            reopenCase(OpenOptions.CURRENT_SETTINGS);
+            model.getMesh().setMeshInfo(new MeshInfo());
+            new MeshInfoWriter(model).write();
+            model.getProject().getSystemFolder().writeProjectDict(null);
+            reopenCase(OpenMode.CURRENT_SETTINGS);
         }
     }
 
@@ -393,10 +486,11 @@ public abstract class AbstractController implements Controller, ActionContainer 
      */
 
     @Override
-    public void createReport() {
+    public void createReport(ExecutorTerminal terminal) {
     }
 
-    protected void clearModel() {
+    @Override
+    public void clearModel() {
         logger.info("--- CLEAR MODEL ---");
         model.init();
         model.setProject(null);
@@ -418,31 +512,24 @@ public abstract class AbstractController implements Controller, ActionContainer 
     }
 
     @Override
-    public boolean allowActionsOnRunning(boolean exit) {
-        if (model != null && model.getSolverModel() != null) {
+    public boolean allowActionsOnRunning(boolean shouldAskConfirmation) {
+        String exitMessage = EXIT_LABEL + " " + ApplicationInfo.getName() + "?";
+
+        boolean thereIsACaseLoaded = model != null && model.getSolverModel() != null;
+        if (thereIsACaseLoaded) {
             SolverState solverState = model.getSolverModel().getServerState().getSolverState();
-            if (solverState.isMeshing()) {
-                return handleExitOnMeshRunning();
-            } else if (solverState.isInitialising()) {
-                return handleExitOnFieldsInitialising();
-            } else if (solverState.isRunning()) {
-                return handleExitOnSolverRunning();
-            } else if (exit) {
-                int option = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), EXIT_LABEL + " " + ApplicationInfo.getName() + "?", EXIT_LABEL, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, EXIT_BIG_ICON);
-                if (option == JOptionPane.CANCEL_OPTION) {
-                    return false;
-                } else {
-                    if (getClient() != null && getClient().getServer() != null) {
-                        shutdownServer();
+            if (solverState.isDoingSomething()) {
+                return handleExitOnRunning();
+            } else {// server not running
+                if (shouldAskConfirmation) {
+                    int option = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), exitMessage, EXIT_LABEL, OK_CANCEL_OPTION, INFORMATION_MESSAGE, EXIT_BIG_ICON);
+                    if (option == JOptionPane.CANCEL_OPTION) {
+                        return false;
                     }
-                    return true;
                 }
-            } else if (getClient() != null && getClient().getServer() != null) {
-                shutdownServer();
-                return true;
             }
-        } else if (exit) {// If no case has been loaded yet
-            int option = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), EXIT_LABEL + " " + ApplicationInfo.getName() + "?", EXIT_LABEL, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, EXIT_BIG_ICON);
+        } else if (shouldAskConfirmation) {
+            int option = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), exitMessage, EXIT_LABEL, OK_CANCEL_OPTION, INFORMATION_MESSAGE, EXIT_BIG_ICON);
             if (option == JOptionPane.CANCEL_OPTION) {
                 return false;
             }
@@ -450,52 +537,15 @@ public abstract class AbstractController implements Controller, ActionContainer 
         return true;
     }
 
-    private void shutdownServer() {
-        try {
-            getClient().getServer().shutdown();
-        } catch (RemoteException e) {
-            logger.error("Error shutting down server: {}" + e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error shutting down server: {}" + e.getMessage());
-        }
-    }
+    protected boolean handleExitOnRunning() {
+        Object[] options = new Object[] { KILL_PROCESS, CONTINUE_IN_BATCH, CANCEL };
+        String message = ApplicationInfo.getName() + " is running. Select an action to perform.";
+        String title = ApplicationInfo.getName();
 
-    protected boolean handleExitOnMeshRunning() {
-        Object[] options = new Object[] { STOP_MESH_GENERATOR, CONTINUE_IN_BATCH, CANCEL };
-        int option = JOptionPane.showOptionDialog(UiUtil.getActiveWindow(), "Mesh Generator is Running. Select an action to perform.", "Mesh Generator Running", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        int option = JOptionPane.showOptionDialog(UiUtil.getActiveWindow(), message, title, YES_NO_CANCEL_OPTION, QUESTION_MESSAGE, null, options, options[0]);
 
         if (getClient() != null && option == JOptionPane.YES_OPTION) {
-            kill();
-            return true;
-        } else if (getClient() != null && option == JOptionPane.NO_OPTION) {
-            getClient().goToBatch();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    protected boolean handleExitOnFieldsInitialising() {
-        Object[] options = new Object[] { STOP_FIELDS_INITIALISATION, CONTINUE_IN_BATCH, CANCEL };
-        int option = JOptionPane.showOptionDialog(UiUtil.getActiveWindow(), "Fields Initialisation is Running. Select an action to perform.", "Fields Initialisation Running", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-
-        if (getClient() != null && option == JOptionPane.YES_OPTION) {
-            kill();
-            return true;
-        } else if (getClient() != null && option == JOptionPane.NO_OPTION) {
-            getClient().goToBatch();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    protected boolean handleExitOnSolverRunning() {
-        Object[] options = new Object[] { STOP_SOLVER, CONTINUE_IN_BATCH, CANCEL };
-        int option = JOptionPane.showOptionDialog(UiUtil.getActiveWindow(), "Solver is Running. Select an action to perform.", "Solver Running", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-
-        if (getClient() != null && option == JOptionPane.YES_OPTION) {
-            getClient().stopCommand(Command.ANY);
+            getClient().killCommand(Command.ANY);
             return true;
         } else if (getClient() != null && option == JOptionPane.NO_OPTION) {
             getClient().goToBatch();
@@ -530,6 +580,11 @@ public abstract class AbstractController implements Controller, ActionContainer 
 
     @Override
     public String submitCommand(Command command) throws CommandException {
+        return null;
+    }
+
+    @Override
+    public TerminalManager getTerminalManager() {
         return null;
     }
 

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels;
 
 import static eu.engys.gui.mesh.panels.lines.AutomaticBaseMeshPanel.AUTOMATIC_LABEL;
@@ -39,8 +38,11 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.engys.core.controller.Controller;
-import eu.engys.core.dictionary.model.DictionaryPanelBuilder;
+import eu.engys.core.controller.ScriptFactory;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.geometry.Type;
 import eu.engys.core.project.geometry.surface.PlaneRegion;
@@ -55,14 +57,16 @@ import eu.engys.gui.mesh.panels.lines.BoundingBoxFacesPanel;
 import eu.engys.gui.mesh.panels.lines.FromFileBaseMeshPanel;
 import eu.engys.gui.mesh.panels.lines.UserDefinedBaseMeshPanel;
 import eu.engys.gui.tree.TreeNodeManager;
+import eu.engys.util.bean.BeanPanelBuilder;
 import eu.engys.util.ui.UiUtil;
 import eu.engys.util.ui.builder.JComboBoxController;
 import eu.engys.util.ui.textfields.StringField;
 
 public abstract class AbstractBaseMeshPanel extends AbstractGUIPanel {
 
-    public static final String BASE_MESH = "Base Mesh";
+    private static final Logger logger = LoggerFactory.getLogger(AbstractBaseMeshPanel.class);
 
+    public static final String BASE_MESH = "Base Mesh";
     public static final String BASE_MESH_TYPE_LABEL = "Base Mesh Type";
 
     private BaseMeshTreeNodeManager treeNodeManager;
@@ -73,26 +77,28 @@ public abstract class AbstractBaseMeshPanel extends AbstractGUIPanel {
     private PlaneRegion[] selectedPlane;
 
     private Controller controller;
+    private ScriptFactory scriptFactory;
 
     private AutomaticBaseMeshPanel automaticPanel;
     private UserDefinedBaseMeshPanel userDefinedPanel;
     private FromFileBaseMeshPanel fromFilePanel;
     private BoundingBoxFacesPanel facesPanel;
 
-    public AbstractBaseMeshPanel(Model model, Controller controller) {
+
+    public AbstractBaseMeshPanel(Model model, Controller controller, ScriptFactory scriptFactory) {
         super(BASE_MESH, model);
         this.controller = controller;
+        this.scriptFactory = scriptFactory;
         this.treeNodeManager = new BaseMeshTreeNodeManager(model, this);
         model.addObserver(treeNodeManager);
     }
 
     protected JComponent layoutComponents() {
-        DictionaryPanelBuilder builder = new DictionaryPanelBuilder();
-
+        BeanPanelBuilder builder = new BeanPanelBuilder();
         type = (JComboBoxController) builder.startChoice(BASE_MESH_TYPE_LABEL);
         automaticPanel = new AutomaticBaseMeshPanel(model, builder);
         userDefinedPanel = new UserDefinedBaseMeshPanel(model, builder);
-        fromFilePanel = new FromFileBaseMeshPanel(model, controller, builder);
+        fromFilePanel = new FromFileBaseMeshPanel(model, controller, scriptFactory, builder);
         builder.endChoice();
 
         facesPanel = new BoundingBoxFacesPanel(new RenamePlaneListener());
@@ -143,8 +149,15 @@ public abstract class AbstractBaseMeshPanel extends AbstractGUIPanel {
         } else if (isFromFile()) {
             fromFilePanel.save();
         } else if (isAutomatic()) {
-            automaticPanel.save();
+            automaticPanel.save(getBaseMeshSpacing(), shouldConsiderSpacing());
         }
+    }
+    
+    protected abstract boolean shouldConsiderSpacing();
+
+    @Override
+    public void geometryChanged() {
+        userDefinedPanel.geometryChanged();
     }
 
     private void saveSelectedPlane() {
@@ -243,11 +256,12 @@ public abstract class AbstractBaseMeshPanel extends AbstractGUIPanel {
             // To tell the Controller to delete mesh scripts
             EventManager.triggerEvent(this, new BaseMeshTypeChangedEvent());
             updateBlock();
-            save();
+//            save();
         }
     }
 
     private class RenamePlaneListener implements PropertyChangeListener {
+
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value") && evt.getSource() instanceof StringField) {
@@ -262,6 +276,7 @@ public abstract class AbstractBaseMeshPanel extends AbstractGUIPanel {
                 String newName = facesPanel.getPlaneName();
 
                 if (model.getGeometry().contains(newName)) {
+                    logger.error("Cannot use name \"{}\", it is already used: {}", newName, model.getGeometry().getAllSurfacesNames());
                     JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), "Name already in use", "Name Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero;
 
 import static eu.engys.core.project.system.ControlDict.START_FROM_KEY;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.FileUtils;
@@ -63,13 +63,13 @@ public class ZeroFolderUtil {
         return PROCESSOR + i;
     }
 
-    public static void clearFiles(File parent) {
+    public static void clearFiles(List<String> names, File parent) {
+        logger.debug("Deleting {}", names);
         if (parent.list().length != 0) {
             File[] files = parent.listFiles();
             for (File file : files) {
-                if (file.isFile()) {
-                    logger.debug("Deleting {}", file);
-                    file.delete();
+                if (file.isFile() && (names == null || names.contains(file.getName()))) {
+                    FileUtils.deleteQuietly(file);
                 }
             }
         }
@@ -160,20 +160,30 @@ public class ZeroFolderUtil {
         String startFrom = controlDict.lookup(START_FROM_KEY);
         String time = "0";
         switch (startFrom) {
-        case ControlDict.FIRST_TIME_VALUE:
-            time = getFirstFolderName(proc0);
-            break;
-        case ControlDict.LATEST_TIME_VALUE:
-            time = getLastFolderName(proc0);
-            break;
-        case ControlDict.START_TIME_VALUE:
-            time = controlDict.lookup(START_TIME_VALUE);
-            break;
-        default:
-            time = getFirstFolderName(proc0);
-            break;
+            case ControlDict.FIRST_TIME_VALUE:
+                time = getFirstFolderName(proc0);
+                break;
+            case ControlDict.LATEST_TIME_VALUE:
+                time = getLastFolderName(proc0);
+                break;
+            case ControlDict.START_TIME_VALUE:
+                time = getRealFolderName(proc0, controlDict.lookup(START_TIME_VALUE));
+                break;
+            default:
+                time = getFirstFolderName(proc0);
+                break;
         }
         logger.info("Start From: " + startFrom + " T: " + time);
+        return time;
+    }
+    
+    private static String getRealFolderName(File proc0, String time){
+        String[] directories = getDirectories(proc0);
+        for (String d : directories) {
+            if(Double.parseDouble(d) == Double.parseDouble(time)){
+                return d;
+            }
+        }
         return time;
     }
 
@@ -283,10 +293,14 @@ public class ZeroFolderUtil {
 
     public static String getTimeStepString(String timeStep) {
         try {
-            Integer i = Integer.valueOf(timeStep);
-            return String.valueOf(i);
+            double d = Double.parseDouble(timeStep);
+            if (d == (int) d) {
+                return String.valueOf((int) d);
+            } else {
+                return timeStep;
+            }
         } catch (NumberFormatException e) {
-            return timeStep;
+            return "0";
         }
     }
 
@@ -308,4 +322,5 @@ public class ZeroFolderUtil {
             }
         }
     }
+
 }

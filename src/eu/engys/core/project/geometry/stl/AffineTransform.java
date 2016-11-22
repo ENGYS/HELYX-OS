@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.geometry.stl;
 
@@ -33,10 +32,13 @@ import java.util.Locale;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 
-import vtk.vtkTransform;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import eu.engys.core.dictionary.DefaultElement;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.ListField;
+import vtk.vtkTransform;
 
 
 public class AffineTransform {
@@ -74,7 +76,7 @@ public class AffineTransform {
     public AffineTransform(AffineTransform t) {
         setOrigin(t.getOrigin());
         setScale(t.getScale());
-        setTranslate(t.getTranslation());
+        setTranslation(t.getTranslation());
         setRotation(t.getRotation());
     }
     
@@ -90,7 +92,7 @@ public class AffineTransform {
         scaleZ = scale[2];
     }
 	
-	public void setTranslate(double[] translate) {
+	public void setTranslation(double[] translate) {
 		posX = translate[0];
 		posY = translate[1];
 		posZ = translate[2];
@@ -151,6 +153,13 @@ public class AffineTransform {
 		return t;
 	}
 
+	public static AffineTransform getRotate(double dx, double dy, double dz) {
+	    AffineTransform t = new AffineTransform();
+	    t.rotX = dx;
+	    t.rotY = dx;
+	    t.rotZ = dx;
+	    return t;
+	}
 	public static AffineTransform getRotateX(double dx) {
 		AffineTransform t = new AffineTransform();
 		t.rotX = dx;
@@ -172,7 +181,7 @@ public class AffineTransform {
         transform.setOrigin(new double[]{0, 0, 0});
         transform.setRotation(t.GetOrientation());
         transform.setScale(t.GetScale());
-        transform.setTranslate(t.GetPosition());
+        transform.setTranslation(t.GetPosition());
         
         return transform;
     }
@@ -192,15 +201,6 @@ public class AffineTransform {
         return transform;
     }
     
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof AffineTransform) {
-            AffineTransform t = (AffineTransform) obj;
-            return posX == t.posX && posY == t.posY && posZ == t.posZ && scaleX == t.scaleX && scaleY == t.scaleY && scaleZ == t.scaleZ && rotX == t.rotX && rotY == t.rotY && rotZ == t.rotZ;
-        }
-        return super.equals(obj);
-    }
-    
     public static AffineTransform fromGeometryDictionary(Dictionary g) {
         AffineTransform t = new AffineTransform();
         if (g.isList(TRANSFORMS_KEY)) {
@@ -213,7 +213,7 @@ public class AffineTransform {
                         switch (type) {
                         case TRANSLATE_KEY:
                             double[] translate = d.lookupDoubleArray(TRANSLATE_VEC_KEY);
-                            t.setTranslate(translate);
+                            t.setTranslation(translate);
                             break;
                         case ROTATE_KEY:
                             if (d.found(N1N2_KEY)) {
@@ -352,5 +352,43 @@ public class AffineTransform {
         Vector3d v2_xy = new Vector3d(v2.x, v2.y, 0);
         
         return Math.toDegrees(v1_xy.angle(v2_xy));
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AffineTransform)) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        
+        AffineTransform fz = (AffineTransform) obj;
+        return new EqualsBuilder()
+        .append(posX, fz.posX)
+        .append(posY, fz.posY)
+        .append(posZ, fz.posZ)
+        .append(scaleX, fz.scaleX)
+        .append(scaleY, fz.scaleY)
+        .append(scaleZ, fz.scaleZ)
+        .append(rotX, fz.rotX)
+        .append(rotY, fz.rotY)
+        .append(rotZ, fz.rotZ)
+        .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 31)
+        .append(posX)
+        .append(posY)
+        .append(posZ)
+        .append(scaleX)
+        .append(scaleY)
+        .append(scaleZ)
+        .append(rotX)
+        .append(rotY)
+        .append(rotZ)
+        .toHashCode();
     }
 }

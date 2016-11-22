@@ -1,37 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.view3D;
 
 import javax.swing.SwingUtilities;
 
 import eu.engys.core.project.zero.cellzones.CellZone;
+import eu.engys.core.project.zero.facezones.FaceZone;
 import eu.engys.core.project.zero.patches.Patch;
 import eu.engys.gui.events.EventManager.Event;
 import eu.engys.gui.events.view3D.SelectCellZonesEvent;
+import eu.engys.gui.events.view3D.SelectFaceZonesEvent;
 import eu.engys.gui.events.view3D.SelectPatchesEvent;
 import eu.engys.gui.events.view3D.VisibleItemEvent;
 import eu.engys.util.ui.checkboxtree.VisibleItem;
@@ -52,7 +52,9 @@ public class Mesh3DEventListener implements View3DEventListener {
                 if (event instanceof SelectPatchesEvent) {
                     handleSelectPatches((SelectPatchesEvent) event);
                 } else if (event instanceof SelectCellZonesEvent) {
-                    handleSelectZones((SelectCellZonesEvent) event);
+                    handleSelectCellZones((SelectCellZonesEvent) event);
+                } else if (event instanceof SelectFaceZonesEvent) {
+                    handleSelectFaceZones((SelectFaceZonesEvent) event);
                 } else if (event instanceof VisibleItemEvent) {
                     handleVisibility((VisibleItemEvent) event);
                 }
@@ -65,9 +67,14 @@ public class Mesh3DEventListener implements View3DEventListener {
         mesh3DController.updatePatchesSelection(selection);
     }
 
-    private void handleSelectZones(SelectCellZonesEvent event) {
+    private void handleSelectCellZones(SelectCellZonesEvent event) {
         CellZone selection[] = ((SelectCellZonesEvent) event).getSelection();
         mesh3DController.updateCellZonesSelection(selection);
+    }
+
+    private void handleSelectFaceZones(SelectFaceZonesEvent event) {
+        FaceZone selection[] = ((SelectFaceZonesEvent) event).getSelection();
+        mesh3DController.updateFaceZonesSelection(selection);
     }
 
     private void handleVisibility(VisibleItemEvent event) {
@@ -76,6 +83,8 @@ public class Mesh3DEventListener implements View3DEventListener {
             mesh3DController.updatePatchesVisibility((Patch) selection);
         } else if (selection instanceof CellZone) {
             mesh3DController.updateCellZonesVisibility((CellZone) selection);
+        } else if (selection instanceof FaceZone) {
+            mesh3DController.updateFaceZonesVisibility((FaceZone) selection);
         }
     }
 }

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels;
 
 import java.awt.Component;
@@ -41,11 +40,14 @@ import org.slf4j.LoggerFactory;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.zero.cellzones.CellZone;
 import eu.engys.core.project.zero.cellzones.CellZones;
+import eu.engys.core.project.zero.facezones.FaceZone;
+import eu.engys.core.project.zero.facezones.FaceZones;
 import eu.engys.core.project.zero.patches.Patch;
 import eu.engys.core.project.zero.patches.Patches;
 import eu.engys.gui.GUIPanel;
 import eu.engys.gui.events.EventManager;
 import eu.engys.gui.events.view3D.SelectCellZonesEvent;
+import eu.engys.gui.events.view3D.SelectFaceZonesEvent;
 import eu.engys.gui.events.view3D.SelectPatchesEvent;
 import eu.engys.gui.tree.AbstractSelectionHandler;
 import eu.engys.gui.tree.DefaultTreeNodeManager;
@@ -63,10 +65,12 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
 
     private Map<DefaultMutableTreeNode, Patch> patchesMap;
     private Map<DefaultMutableTreeNode, CellZone> cellZonesMap;
+    private Map<DefaultMutableTreeNode, FaceZone> faceZonesMap;
 
     private SelectionHandler selectionHandler;
     private DefaultMutableTreeNode patches;
     private DefaultMutableTreeNode cellZones;
+//    private DefaultMutableTreeNode faceZones;
 
     public BoundaryMeshTreeNodeManager(Model model, GUIPanel panel) {
         super(model, panel);
@@ -74,17 +78,20 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
         this.selectionHandler = new BoundaryMeshSelectionHandler();
         this.patchesMap = new HashMap<>();
         this.cellZonesMap = new HashMap<>();
+        this.faceZonesMap = new HashMap<>();
 
         patches = new RootVisibleLoadableTreeNode("Patches");
         cellZones = new RootVisibleLoadableTreeNode("Cell Zones");
+//        faceZones = new RootVisibleLoadableTreeNode("Face Zones");
         root.add(patches);
         root.add(cellZones);
+//        root.add(faceZones);
     }
 
     @Override
     public void update(Observable o, final Object arg) {
-        if (arg instanceof Patches || arg instanceof CellZones) {
-            logger.debug("Observerd a change: arg is " + arg.getClass());
+        if (arg instanceof Patches || arg instanceof CellZones || arg instanceof FaceZones) {
+            logger.debug("[CHANGE OBSERVERD] arg: " + arg.getClass().getSimpleName());
             ExecUtil.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -107,6 +114,9 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
         for (CellZone zone : model.getCellZones()) {
             addCellZone(cellZones, zone);
         }
+//        for (FaceZone zone : model.getFaceZones()) {
+//            addFaceZone(faceZones, zone);
+//        }
 
         treeChanged(root);
     }
@@ -133,6 +143,13 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
         cellZonesMap.put(node, zone);
     }
 
+//    private void addFaceZone(DefaultMutableTreeNode parent, FaceZone zone) {
+//        DefaultMutableTreeNode node = new DefaultMutableTreeNode(zone);
+//        parent.add(node);
+//        nodeMap.put(zone, node);
+//        faceZonesMap.put(node, zone);
+//    }
+
     public void setSelectedValue(String name) {
     }
 
@@ -140,10 +157,12 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
         // clear node before selection handler!
         clearNode(patches);
         clearNode(cellZones);
+//        clearNode(faceZones);
         selectionHandler.clear();
         nodeMap.clear();
         patchesMap.clear();
         cellZonesMap.clear();
+        faceZonesMap.clear();
     }
 
     public DefaultMutableTreeNode getRoot() {
@@ -186,10 +205,13 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
         public void handleSelection(boolean fire3DEvent, Object... selection) {
             boolean isValidPatchSelection = TreeUtil.isConsistent(selection, Patch.class) && fire3DEvent;
             boolean isValidCellZoneSelection = TreeUtil.isConsistent(selection, CellZone.class) && fire3DEvent;
+            boolean isValidFaceZoneSelection = TreeUtil.isConsistent(selection, FaceZone.class) && fire3DEvent;
             if (isValidPatchSelection) {
                 handleValidPatchSelection(fire3DEvent, selection);
             } else if (isValidCellZoneSelection) {
-                handleValidZoneSelection(fire3DEvent, selection);
+                handleValidCellZoneSelection(fire3DEvent, selection);
+            } else if (isValidFaceZoneSelection) {
+                handleValidFaceZoneSelection(fire3DEvent, selection);
             } else {
                 handleInvalidSelection();
             }
@@ -199,24 +221,40 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
             logger.debug("handleSelection: {} selected, fire3D {} {}", selection.length, fire3DEvent, selection.length == 1 ? ", selection is: " + selection[0] : "");
 
             this.currentSelection = Arrays.copyOf(selection, selection.length, Patch[].class);
-            EventManager.triggerEvent(this, new SelectPatchesEvent((Patch[]) currentSelection));
+            if (fire3DEvent) {
+                EventManager.triggerEvent(this, new SelectPatchesEvent((Patch[]) currentSelection));
+            }
         }
 
-        private void handleValidZoneSelection(boolean fire3DEvent, Object... selection) {
+        private void handleValidCellZoneSelection(boolean fire3DEvent, Object... selection) {
             logger.debug("handleSelection: {} selected, fire3D {} {}", selection.length, fire3DEvent, selection.length == 1 ? ", selection is: " + selection[0] : "");
 
             this.currentSelection = Arrays.copyOf(selection, selection.length, CellZone[].class);
-            EventManager.triggerEvent(this, new SelectCellZonesEvent((CellZone[]) currentSelection));
+            if (fire3DEvent) {
+                EventManager.triggerEvent(this, new SelectCellZonesEvent((CellZone[]) currentSelection));
+            }
+        }
+
+        private void handleValidFaceZoneSelection(boolean fire3DEvent, Object... selection) {
+            logger.debug("handleSelection: {} selected, fire3D {} {}", selection.length, fire3DEvent, selection.length == 1 ? ", selection is: " + selection[0] : "");
+
+            this.currentSelection = Arrays.copyOf(selection, selection.length, FaceZone[].class);
+            if (fire3DEvent) {
+                EventManager.triggerEvent(this, new SelectFaceZonesEvent((FaceZone[]) currentSelection));
+            }
         }
 
         private void handleInvalidSelection() {
             boolean shouldClearPatchesSelection = TreeUtil.isConsistent(currentSelection, Patch.class);
-            boolean shouldClearZoneSelection = TreeUtil.isConsistent(currentSelection, CellZone.class);
+            boolean shouldClearCellZoneSelection = TreeUtil.isConsistent(currentSelection, CellZone.class);
+            boolean shouldClearFaceZoneSelection = TreeUtil.isConsistent(currentSelection, FaceZone.class);
 
             if (shouldClearPatchesSelection) {
                 EventManager.triggerEvent(this, new SelectPatchesEvent(new Patch[0]));
-            } else if (shouldClearZoneSelection) {
+            } else if (shouldClearCellZoneSelection) {
                 EventManager.triggerEvent(this, new SelectCellZonesEvent(new CellZone[0]));
+            } else if (shouldClearFaceZoneSelection) {
+                EventManager.triggerEvent(this, new SelectFaceZonesEvent(new FaceZone[0]));
             }
         }
 
@@ -246,10 +284,12 @@ public class BoundaryMeshTreeNodeManager extends DefaultTreeNodeManager<VisibleI
             if (getTree() != null) {
                 if (selected) {
                     getTree().getCheckManager().selectNode(patches);
-                    getTree().getCheckManager().selectNode(cellZones);
+//                    getTree().getCheckManager().selectNode(cellZones);
+//                    getTree().getCheckManager().selectNode(faceZones);
                 } else {
                     getTree().getCheckManager().deselectNode(patches);
-                    getTree().getCheckManager().deselectNode(cellZones);
+//                    getTree().getCheckManager().deselectNode(cellZones);
+//                    getTree().getCheckManager().deselectNode(faceZones);
                 }
             }
         }

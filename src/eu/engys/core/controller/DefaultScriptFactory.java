@@ -1,35 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.controller;
 
 import static eu.engys.core.OpenFOAMEnvironment.loadEnvironment;
 import static eu.engys.core.OpenFOAMEnvironment.printHeader;
 import static eu.engys.core.OpenFOAMEnvironment.printVariables;
 import static eu.engys.util.OpenFOAMCommands.BLOCK_MESH;
+import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_PARALLEL;
+import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_PARALLEL_CONSTANT;
+import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_SERIAL;
+import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_SERIAL_CONSTANT;
 import static eu.engys.util.OpenFOAMCommands.DECOMPOSE_PAR;
 import static eu.engys.util.OpenFOAMCommands.DECOMPOSE_PAR_ALLREGIONS;
 import static eu.engys.util.OpenFOAMCommands.DECOMPOSE_PAR_CONSTANT_ALLREGIONS;
@@ -42,8 +44,6 @@ import static eu.engys.util.OpenFOAMCommands.RUN_CASE_PARALLEL;
 import static eu.engys.util.OpenFOAMCommands.RUN_CASE_SERIAL;
 import static eu.engys.util.OpenFOAMCommands.RUN_MESH_PARALLEL;
 import static eu.engys.util.OpenFOAMCommands.RUN_MESH_SERIAL;
-//import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_PARALLEL;
-//import static eu.engys.util.OpenFOAMCommands.CHECK_MESH_SERIAL;
 import static eu.engys.util.OpenFOAMCommands.SNAPPY_CHECK_MESH_PARALLEL;
 import static eu.engys.util.OpenFOAMCommands.SNAPPY_CHECK_MESH_SERIAL;
 
@@ -102,7 +102,7 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
         sb.newLine();
         sb.appendIf(performBlockMesh(), BLOCK_MESH());
         sb.newLine();
-        sb.appendIf(performBlockMesh(), DECOMPOSE_PAR());
+        sb.appendIf(performBlockMesh(), DECOMPOSE_PAR(Collections.<String> emptySet()));
         sb.newLine();
         sb.append(RUN_MESH_PARALLEL());
         sb.newLine();
@@ -118,7 +118,7 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
         printVariables(sb);
         loadEnvironment(sb);
         sb.newLine();
-        sb.append(SNAPPY_CHECK_MESH_SERIAL());
+        sb.append(meshOnZero() ? CHECK_MESH_SERIAL() : CHECK_MESH_SERIAL_CONSTANT());
         sb.newLine();
         return sb.getLines();
     }
@@ -127,6 +127,30 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
     protected List<String> getParallelCheckMeshScript() {
         ScriptBuilder sb = new ScriptBuilder();
         printHeader(sb, CHECK_MESH);
+        printVariables(sb);
+        loadEnvironment(sb);
+        sb.newLine();
+        sb.append(meshOnZero() ? CHECK_MESH_PARALLEL() : CHECK_MESH_PARALLEL_CONSTANT());
+        sb.newLine();
+        return sb.getLines();
+    }
+
+    @Override
+    protected List<String> getSerialSnappyCheckMeshScript() {
+        ScriptBuilder sb = new ScriptBuilder();
+        printHeader(sb, SNAPPY_CHECK_MESH);
+        printVariables(sb);
+        loadEnvironment(sb);
+        sb.newLine();
+        sb.append(SNAPPY_CHECK_MESH_SERIAL());
+        sb.newLine();
+        return sb.getLines();
+    }
+
+    @Override
+    protected List<String> getParallelSnappyCheckMeshScript() {
+        ScriptBuilder sb = new ScriptBuilder();
+        printHeader(sb, SNAPPY_CHECK_MESH);
         printVariables(sb);
         loadEnvironment(sb);
         sb.newLine();
@@ -216,7 +240,7 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
         sb.newLine();
         sb.appendIf(meshOnZero(), RECONSTRUCT_PAR_MESH(), RECONSTRUCT_PAR_MESH_CONSTANT());
         sb.append(EXTRUDE_REGION_TO_MESH());
-        sb.appendIf(meshOnZero(), DECOMPOSE_PAR_ALLREGIONS(), DECOMPOSE_PAR_CONSTANT_ALLREGIONS());
+        sb.appendIf(meshOnZero(), DECOMPOSE_PAR_ALLREGIONS(Collections.<String> emptySet()), DECOMPOSE_PAR_CONSTANT_ALLREGIONS(Collections.<String> emptySet()));
         sb.newLine();
         return sb.getLines();
     }
@@ -263,13 +287,13 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
 
         boolean copy = false;
         for (String l : lines) {
-            if(l.startsWith(end)){
+            if (l.startsWith(end)) {
                 break;
             }
-            if(copy){
+            if (copy) {
                 support.add(l);
             }
-            if(l.startsWith(start)){
+            if (l.startsWith(start)) {
                 copy = true;
             }
         }
@@ -280,15 +304,11 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
         InputStream inputStream = DefaultScriptFactory.class.getClassLoader().getResourceAsStream("eu/engys/resources/driver.pbs");
         try {
             String body = IOUtils.readStringFromStream(inputStream);
-            return Arrays.asList(body.split(IOUtils.EOL));
+            return Arrays.asList(body.split(IOUtils.LNX_EOL));
         } catch (IOException e) {
             e.printStackTrace();
             return Collections.emptyList();
         }
-    }
-
-    private List<String> getWindowsQueueDriver() {
-        throw new RuntimeException("NOT IMPLEMENTED");
     }
 
     private List<String> getLinuxQueueDriver(List<String> body) {
@@ -366,7 +386,17 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
     }
 
     @Override
-    protected List<String> getExportScript() {
+    protected List<String> getSerialExportScript() {
+        throw new RuntimeException("NOT IMPLEMENTED");
+    }
+
+    @Override
+    protected List<String> getParallelExportScript() {
+        throw new RuntimeException("NOT IMPLEMENTED");
+    }
+
+    @Override
+    public List<String> getReportScript() {
         throw new RuntimeException("NOT IMPLEMENTED");
     }
 
@@ -380,7 +410,7 @@ public class DefaultScriptFactory extends AbstractScriptFactory {
             e.printStackTrace();
         }
 
-        return Arrays.asList(driverString.split(IOUtils.EOL));
+        return Arrays.asList(driverString.split(IOUtils.LNX_EOL));
     }
 
     @Override

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero;
 
 import static eu.engys.core.project.zero.ZeroFolderUtil.clearFiles;
@@ -38,14 +37,19 @@ import static eu.engys.core.project.zero.ZeroFolderUtil.newZeroDir;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.engys.core.project.files.DefaultFileManager;
 import eu.engys.core.project.system.ControlDict;
 
 public class SerialZeroFileManager extends DefaultFileManager implements ZeroFileManager {
+    
+    private static final Logger logger = LoggerFactory.getLogger(SerialZeroFileManager.class);
 
     public SerialZeroFileManager(File file) {
         super(file);
@@ -62,7 +66,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
     @Override
     public void clearZeroDirs(String timeStep) {
         for (File file : getZeroDirs(timeStep)) {
-            clearFiles(file);
+            clearFiles(null, file);
         }
     }
 
@@ -87,7 +91,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
             File zeroDir = zeroDirs[0];
             return arrayOf(getRegionDir(zeroDir, region));
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Size should be 1 instead is " + zeroDirs.length);
         }
     }
 
@@ -97,7 +101,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
             File zeroDir = zeroDirs[0];
             return arrayOf(getPolyMeshDir(zeroDir));
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Size should be 1 instead is " + zeroDirs.length);
         }
     }
 
@@ -107,7 +111,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
             File polyMesh = polyMeshDirs[0];
             return arrayOf(getBoundaryFile(polyMesh));
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Size should be 1 instead is " + polyMeshDirs.length);
         }
     }
 
@@ -117,7 +121,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
             File polyMesh = polyMeshDirs[0];
             return arrayOf(getCellZonesFile(polyMesh));
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Size should be 1 instead is " + polyMeshDirs.length);
         }
     }
 
@@ -127,7 +131,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
             File polyMesh = polyMeshDirs[0];
             return arrayOf(getFaceZonesFile(polyMesh));
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("Size should be 1 instead is " + polyMeshDirs.length);
         }
     }
 
@@ -150,15 +154,29 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
         File boundaryFile = getBoundaryFile(polyMesh);
 
         if (boundaryFile.exists()) {
+            logger.info("Found mesh in ZERO");
             check.setBoundaryFieldInZero(true);
-        } else {
-            File constantDir = getConstantDir(getFile());
-            polyMesh = getPolyMeshDir(constantDir);
-            boundaryFile = getBoundaryFile(polyMesh);
+        } 
+        
+        String[] regionNames = ZeroFolderUtil.getRegions(zeroDir);
+        if (regionNames != null  && regionNames.length > 0) {
+            logger.info("Found MULTIREGION mesh in ZERO: {}", Arrays.toString(regionNames));
+            check.setBoundaryFieldInZeroMultiRegion(true);
+        }
+        
+        File constantDir = getConstantDir(getFile());
+        polyMesh = getPolyMeshDir(constantDir);
+        boundaryFile = getBoundaryFile(polyMesh);
+        
+        if (boundaryFile.exists()) {
+            logger.info("Found mesh in CONSTANT");
+            check.setBoundaryFieldInConstant(true);
+        }
 
-            if (boundaryFile.exists()) {
-                check.setBoundaryFieldInConstant(true);
-            }
+        regionNames = ZeroFolderUtil.getRegions(constantDir);
+        if (regionNames != null  && regionNames.length > 0) {
+            logger.info("Found MULTIREGION mesh in CONSTANT: {}", Arrays.toString(regionNames));
+            check.setBoundaryFieldInConstantMultiRegion(true);
         }
 
         return check;
@@ -211,7 +229,7 @@ public class SerialZeroFileManager extends DefaultFileManager implements ZeroFil
 
     @Override
     public File[] getNonZeroDirs(String timeStep) {
-        List<File> nonZeroFolders = new ArrayList<File>();
+        List<File> nonZeroFolders = new ArrayList<>();
         File[] foldersWithANumberName = getFile().listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {

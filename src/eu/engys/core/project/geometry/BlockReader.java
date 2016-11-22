@@ -1,34 +1,30 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.geometry;
 
-import static eu.engys.core.project.geometry.Surface.MAX_KEY;
-import static eu.engys.core.project.geometry.Surface.MIN_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.BLOCKS_KEY;
-import static eu.engys.core.project.system.BlockMeshDict.ELEMENTS_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.PATCHES_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.VERTICES_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.ADD_LAYERS_CONTROLS_KEY;
@@ -47,9 +43,9 @@ import eu.engys.core.project.system.SnappyHexMeshDict;
 
 public class BlockReader {
 
-    private static final String DEFAULT_MAX_VALUE = "(1 1 1)";
-    private static final String DEFAULT_MIN_VALUE = "(-1 -1 -1)";
-    private static final String DEFAULT_ELEMENTS_VALUE = "(10 10 10)";
+//    private static final String DEFAULT_MAX_VALUE = "(1 1 1)";
+//    private static final String DEFAULT_MIN_VALUE = "(-1 -1 -1)";
+//    private static final String DEFAULT_ELEMENTS_VALUE = "(10 10 10)";
     private Geometry geometry;
 
     public BlockReader(Geometry geometry) {
@@ -60,23 +56,24 @@ public class BlockReader {
      * Here the user has selected a block mesh of type: user defined. I need to load the data from blockMeshDict to visualise the block.
      */
     public MultiPlane loadBlock(BlockMeshDict blockMeshDict, SnappyHexMeshDict snappyHexMeshDict) {
-        Dictionary blockDict = new Dictionary("block");
-        MultiPlane block = null;
-        loadBlocksFromBlockMeshDict(blockMeshDict, blockDict);
-        loadVerticesFromBlockMeshDict(blockMeshDict, blockDict);
+        MultiPlane block = new MultiPlane("BoundingBox");
+        loadBlocksFromBlockMeshDict(blockMeshDict, block);
+        loadVerticesFromBlockMeshDict(blockMeshDict, block);
+        
         if (blockMeshDict.found(PATCHES_KEY)) {
             ListField2 patches = blockMeshDict.getList2(PATCHES_KEY);
             String[] patchesList = extractPatches(patches);
             if (patchesList.length == 6) {
-                block = loadPatches(patchesList, blockDict);
+                loadPatches(patchesList, block);
             } else {
-                block = loadDefaultPatches();
+                loadDefaultPatches(block);
             }
         } else {
-            block = loadDefaultPatches();
+            loadDefaultPatches(block);
         }
-        block.setGeometryDictionary(blockDict);
-
+        
+        block.updatePlanes();
+        
         loadLayers(snappyHexMeshDict, block);
         geometry.setBlock(block);
         geometry.setCellSize(block.getDelta());
@@ -84,63 +81,50 @@ public class BlockReader {
     }
 
     /*
-     * Patches
+     * Blocks
      */
 
-    private MultiPlane loadPatches(String[] patchesList, Dictionary blockDict) {
-        MultiPlane block = new MultiPlane("BoundingBox");
-        for (int i = 0; i < patchesList.length; i++) {
-            blockDict.add("patch" + i, patchesList[i]);
-            block.addPlane(patchesList[i]);
+    private void loadBlocksFromBlockMeshDict(BlockMeshDict blockMeshDict, MultiPlane block) {
+        if (blockMeshDict.found(BLOCKS_KEY)) {
+            ListField2 blocks = blockMeshDict.getList2(BLOCKS_KEY);
+            block.setElements(extractElements(blocks));
+        } else {
+            block.setElements(MultiPlane.DEFAULT_ELEMENTS);
         }
-        return block;
-    }
-
-    private MultiPlane loadDefaultPatches() {
-        MultiPlane block = new MultiPlane("BoundingBox");
-        block.addPlane("ffminx");
-        block.addPlane("ffmaxx");
-        block.addPlane("ffminy");
-        block.addPlane("ffmaxy");
-        block.addPlane("ffminz");
-        block.addPlane("ffmaxz");
-        return block;
     }
 
     /*
      * Vertices
      */
 
-    private void loadVerticesFromBlockMeshDict(BlockMeshDict blockMeshDict, Dictionary d) {
+    private void loadVerticesFromBlockMeshDict(BlockMeshDict blockMeshDict, MultiPlane block) {
         if (blockMeshDict.found(VERTICES_KEY)) {
             ListField2 vertices = blockMeshDict.getList2(VERTICES_KEY);
-            d.add(MIN_KEY, extractMin(vertices));
-            d.add(MAX_KEY, extractMax(vertices));
+            block.setMin(extractMin(vertices));
+            block.setMax(extractMax(vertices));
         } else {
-            loadDefaultVertices(d);
+            block.setMin(MultiPlane.DEFAULT_MIN);
+            block.setMax(MultiPlane.DEFAULT_MAX);
         }
-    }
-
-    private void loadDefaultVertices(Dictionary d) {
-        d.add(MIN_KEY, DEFAULT_MIN_VALUE);
-        d.add(MAX_KEY, DEFAULT_MAX_VALUE);
     }
 
     /*
-     * Blocks
+     * Patches
      */
 
-    private void loadBlocksFromBlockMeshDict(BlockMeshDict blockMeshDict, Dictionary d) {
-        if (blockMeshDict.found(BLOCKS_KEY)) {
-            ListField2 blocks = blockMeshDict.getList2(BLOCKS_KEY);
-            d.add(ELEMENTS_KEY, extractElements(blocks));
-        } else {
-            loadDefaultBlocks(d);
+    private void loadPatches(String[] patchesList, MultiPlane block) {
+        for (int i = 0; i < patchesList.length; i++) {
+            block.addPlane(patchesList[i]);
         }
     }
 
-    private void loadDefaultBlocks(Dictionary d) {
-        d.add(ELEMENTS_KEY, DEFAULT_ELEMENTS_VALUE);
+    private void loadDefaultPatches(MultiPlane block) {
+        block.addPlane("ffminx");
+        block.addPlane("ffmaxx");
+        block.addPlane("ffminy");
+        block.addPlane("ffmaxy");
+        block.addPlane("ffminz");
+        block.addPlane("ffmaxz");
     }
 
     private void loadLayers(SnappyHexMeshDict snappyHexMeshDict, MultiPlane block) {
@@ -158,54 +142,54 @@ public class BlockReader {
      * Utils
      */
 
-    private String extractElements(ListField2 blocks) {
+    public static int[] extractElements(ListField2 blocks) {
         if (blocks.isEmpty()) {
-            return DEFAULT_ELEMENTS_VALUE;
+            return MultiPlane.DEFAULT_ELEMENTS;
         } else {
-            StringBuffer sb = new StringBuffer("(");
             ListField2 element = (ListField2) blocks.getListElements().get(2);
             FieldElement x = ((FieldElement) element.getListElements().get(0));
             FieldElement y = ((FieldElement) element.getListElements().get(1));
             FieldElement z = ((FieldElement) element.getListElements().get(2));
-            sb.append(x.getValue() + " ");
-            sb.append(y.getValue() + " ");
-            sb.append(z.getValue() + " ");
-            sb.append(")");
-            return sb.toString();
+            
+            int ix = Integer.parseInt(x.getValue());
+            int iy = Integer.parseInt(y.getValue());
+            int iz = Integer.parseInt(z.getValue());
+            
+            return new int[] {ix, iy, iz};
         }
     }
 
-    private String extractMin(ListField2 vertices) {
+    public static double[] extractMin(ListField2 vertices) {
         if (vertices.isEmpty()) {
-            return DEFAULT_MIN_VALUE;
+            return MultiPlane.DEFAULT_MIN;
         } else {
-            StringBuffer sb = new StringBuffer("(");
             ListField2 firstElement = (ListField2) vertices.getListElements().get(0);
             FieldElement x = ((FieldElement) firstElement.getListElements().get(0));
             FieldElement y = ((FieldElement) firstElement.getListElements().get(1));
             FieldElement z = ((FieldElement) firstElement.getListElements().get(2));
-            sb.append(x.getValue() + " ");
-            sb.append(y.getValue() + " ");
-            sb.append(z.getValue() + " ");
-            sb.append(")");
-            return sb.toString();
+
+            double dx = Double.parseDouble(x.getValue());
+            double dy = Double.parseDouble(y.getValue());
+            double dz = Double.parseDouble(z.getValue());
+            
+            return new double[] {dx, dy, dz};
         }
     }
 
-    private String extractMax(ListField2 vertices) {
+    public static double[] extractMax(ListField2 vertices) {
         if (vertices.isEmpty()) {
-            return DEFAULT_MAX_VALUE;
+            return MultiPlane.DEFAULT_MAX;
         } else {
-            StringBuffer sb = new StringBuffer("(");
             ListField2 firstElement = (ListField2) vertices.getListElements().get(vertices.getListElements().size() - 2);
             FieldElement x = ((FieldElement) firstElement.getListElements().get(0));
             FieldElement y = ((FieldElement) firstElement.getListElements().get(1));
             FieldElement z = ((FieldElement) firstElement.getListElements().get(2));
-            sb.append(x.getValue() + " ");
-            sb.append(y.getValue() + " ");
-            sb.append(z.getValue() + " ");
-            sb.append(")");
-            return sb.toString();
+
+            double dx = Double.parseDouble(x.getValue());
+            double dy = Double.parseDouble(y.getValue());
+            double dz = Double.parseDouble(z.getValue());
+            
+            return new double[] {dx, dy, dz};
         }
     }
 

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.zero.cellzones;
 
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import eu.engys.core.modules.ApplicationModule;
 import eu.engys.core.modules.ModulesUtil;
 import eu.engys.core.project.Model;
+import eu.engys.core.project.constant.MRFProperties;
 import eu.engys.core.project.system.FvOptions;
 import eu.engys.util.IOUtils;
 import eu.engys.util.progress.ProgressMonitor;
@@ -80,9 +80,11 @@ public class CellZonesReader {
 
     private void readCellZoneTypeAndDictionary(CellZones cellZones) {
         FvOptions fvOptions = model.getProject().getSystemFolder().getFvOptions();
-        builder.loadMRFDictionary(cellZones, fvOptions);
+        MRFProperties mrfProperties = model.getProject().getConstantFolder().getMrfProperties();
+        builder.loadMRFDictionary(cellZones, fvOptions, mrfProperties);
         builder.loadPorousDictionary(cellZones, fvOptions);
         builder.loadThermalDictionary(cellZones, fvOptions, model.getState());
+        builder.loadHeatExchangerDictionary(cellZones, fvOptions);
         ModulesUtil.updateCellZonesFromModel(modules, cellZones);
     }
 
@@ -140,13 +142,14 @@ public class CellZonesReader {
                                 
                                 CellZone cz = new CellZone(zoneName);
                                 cz.setName(zoneName);
-                                cz.setVisible(true);
+//                                cz.setVisible(true);
+                                cz.setVisible(false);
 
                                 zones.add(cz);
                             }
                         }
                         if (Integer.parseInt(nZones) != zonesCounter) {
-                            monitor.error(String.format("Number of read patches (%d) is invalid (expected %d).", zonesCounter, nZones), 2);
+                            monitor.error(String.format("Number of read patches (%s) is invalid (expected %s).", zonesCounter, nZones), 2);
                         }
                     }
                 }

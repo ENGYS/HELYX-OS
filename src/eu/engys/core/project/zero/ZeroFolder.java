@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero;
 
 import java.io.File;
@@ -39,7 +38,6 @@ import eu.engys.core.modules.ModulesUtil;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.openFOAMProject;
 import eu.engys.core.project.defaults.DefaultsProvider;
-import eu.engys.core.project.files.FileManager;
 import eu.engys.core.project.files.Folder;
 import eu.engys.core.project.state.State;
 import eu.engys.core.project.zero.cellzones.CellZones;
@@ -61,6 +59,9 @@ import eu.engys.util.progress.ConsoleMonitor;
 import eu.engys.util.progress.ProgressMonitor;
 
 public class ZeroFolder implements Folder {
+
+    public static final String ZERO = "0";
+    public static final String POLY_MESH = "polyMesh";
 
     private static final Logger logger = LoggerFactory.getLogger(ZeroFolder.class);
 
@@ -88,6 +89,8 @@ public class ZeroFolder implements Folder {
         try {
             timeValue = zeroFileManager.findTimeValue(model.getProject().getSystemFolder().getControlDict());
 
+            monitor.info("Time: " + timeValue, 1);
+
             File[] zeroDirs = zeroFileManager.getZeroDirs("0");
             File[] timeDirs = zeroFileManager.getZeroDirs(timeValue);
             File[] polyMeshes = zeroFileManager.getPolyMeshDirs(zeroDirs);
@@ -107,7 +110,7 @@ public class ZeroFolder implements Folder {
 
             monitor.setIndeterminate(false);
 
-            model.setPatches(readPatches(monitor, boundaryFiles));
+            model.setPatches(readPatches(model, monitor, boundaryFiles));
             model.setCellZones(readCellZones(model, builder, monitor, cellZonesFiles, modules));
             model.setFaceZones(readFaceZones(monitor, faceZonesFiles));
             model.setFields(readFields(null, model.getProject(), model.getState(), model.getDefaults(), model.getPatches(), modules, initialisations, monitor, timeDirs, boundaryFiles));
@@ -139,7 +142,7 @@ public class ZeroFolder implements Folder {
                         faceZonesFiles = zeroFileManager.getFaceZonesFiles(polyMeshes);
                     }
 
-                    Patches patches = readPatches(monitor, boundaryFiles);
+                    Patches patches = readPatches(model, monitor, boundaryFiles);
                     Fields fields = readFields(regionName, model.getProject(), model.getState(), model.getDefaults(), patches, modules, initialisations, monitor, regionTimeDirs, boundaryFiles);
                     MeshRegion region = new MeshRegion();
                     region.setPatches(patches);
@@ -158,7 +161,7 @@ public class ZeroFolder implements Folder {
         model.faceZonesChanged();
     }
 
-    public Patches readPatches() {
+    public Patches readPatches(Model model) {
         File[] zeroDirs = zeroFileManager.getZeroDirs("0");
         File[] polyMeshes = zeroFileManager.getPolyMeshDirs(zeroDirs);
         File[] boundaryFiles = zeroFileManager.getBoundaryFiles(polyMeshes);
@@ -169,10 +172,10 @@ public class ZeroFolder implements Folder {
             boundaryFiles = zeroFileManager.getBoundaryFiles(polyMeshes);
         }
 
-        return readPatches(new ConsoleMonitor(), boundaryFiles);
+        return readPatches(model, new ConsoleMonitor(), boundaryFiles);
     }
 
-    public Patches readPatches(String regionName) {
+    public Patches readPatches(Model model, String regionName) {
         File[] zeroDirs = zeroFileManager.getZeroDirs("0");
         File[] regionDirs = zeroFileManager.getRegionDirs(regionName, zeroDirs);
         File[] polyMeshes = zeroFileManager.getPolyMeshDirs(regionDirs);
@@ -185,13 +188,13 @@ public class ZeroFolder implements Folder {
             boundaryFiles = zeroFileManager.getBoundaryFiles(polyMeshes);
         }
 
-        return readPatches(new ConsoleMonitor(), boundaryFiles);
+        return readPatches(model, new ConsoleMonitor(), boundaryFiles);
     }
 
-    private Patches readPatches(ProgressMonitor monitor, File[] boundaryFiles) {
+    private Patches readPatches(Model model, ProgressMonitor monitor, File[] boundaryFiles) {
         if (ZeroFolderUtil.exists(boundaryFiles)) {
             monitor.setCurrent("Reading patches", 0, boundaryFiles.length, 1);
-            Patches patches = new PatchesReader(monitor).read(boundaryFiles);
+            Patches patches = new PatchesReader(model, monitor).read(boundaryFiles);
             monitor.info("Patches: " + patches.filterProcBoundary().patchesNames().toString(), 1);
             return patches;
         } else {
@@ -228,24 +231,36 @@ public class ZeroFolder implements Folder {
     }
 
     private Fields readFields(String region, openFOAMProject prj, State state, DefaultsProvider defaults, Patches patches, Set<ApplicationModule> modules, Initialisations initialisations, ProgressMonitor monitor, File[] timeDirs, File[] boundaryFiles) {
-        if (initialisations != null && ZeroFolderUtil.exists(timeDirs) && ZeroFolderUtil.exists(boundaryFiles)) {
-            Fields fields = new Fields();
-            if (prj.isParallel()) {
-                fields.newParallelFields(prj.getProcessors());
-            }
-            logger.debug("Loading fields from defaults");
-            fields.merge(FieldsDefaults.loadFieldsFromDefaults(state, defaults, patches, region));
-            logger.debug("Loading fields from MODULE defaults");
-            fields.merge(ModulesUtil.loadFieldsFromDefaults(modules, region));
-            logger.debug("Reading field from case");
-            fields.merge(new FieldsReader(initialisations, monitor).read(fields.keySet(), timeDirs));
-            fields.fixPVisibility(state);
+        if (initialisations != null) {
+            if (ZeroFolderUtil.exists(timeDirs)) {
+                if (ZeroFolderUtil.exists(boundaryFiles)) {
+                    Fields fields = new Fields();
+                    if (prj.isParallel()) {
+                        fields.newParallelFields(prj.getProcessors());
+                    }
+                    logger.debug("Loading fields from defaults");
+                    fields.merge(FieldsDefaults.loadFieldsFromDefaults(prj.getBaseDir(), state, defaults, patches, region));
+                    logger.debug("Loading fields from MODULE defaults");
+                    fields.merge(ModulesUtil.loadFieldsFromDefaults(modules, region));
+                    logger.debug("Reading field from case");
+                    fields.merge(new FieldsReader(initialisations, monitor).read(fields.keySet(), timeDirs));
+                    fields.fixPVisibility(state);
 
-            monitor.info("Fields: " + fields.fieldNames().toString(), 1);
-            return fields;
+                    monitor.info("Fields: " + fields.fieldNames().toString(), 1);
+                    return fields;
+                } else {
+                    monitor.warning("Missing fields", 1);
+                    logger.warn("Boundary Files " + Arrays.toString(boundaryFiles) + " does not exist");
+                    return new Fields();
+                }
+            } else {
+                monitor.warning("Missing fields", 1);
+                logger.warn("Time Folders " + Arrays.toString(timeDirs) + " does not exist");
+                return new Fields();
+            }
         } else {
             monitor.warning("Missing fields", 1);
-            logger.warn(Arrays.toString(timeDirs) + " does not exist");
+            logger.warn("No initialisation");
             return new Fields();
         }
     }
@@ -387,7 +402,7 @@ public class ZeroFolder implements Folder {
     }
 
     @Override
-    public FileManager getFileManager() {
+    public ZeroFileManager getFileManager() {
         return zeroFileManager;
     }
 
@@ -399,12 +414,13 @@ public class ZeroFolder implements Folder {
         }
     }
 
-    protected boolean avoidSave(Model model) {
-        return model.getCellZones().isEmpty() && model.getPatches().isEmpty() && model.getFields().isEmpty();
+    public void deleteFields() {
+        zeroFileManager.clearZeroDirs("0");
+        zeroFileManager.removeNonZeroDirs("0");
     }
 
-    public void clearFields() {
-        zeroFileManager.clearZeroDirs(timeValue);
+    protected boolean avoidSave(Model model) {
+        return model.getCellZones().isEmpty() && model.getPatches().isEmpty() && model.getFields().isEmpty();
     }
 
     public void removeNonZeroTimeFolders_GreaterThanActualTimeStep() {
@@ -426,10 +442,6 @@ public class ZeroFolder implements Folder {
     // For tests purposes only!!!
     public void setTimeValue(String timeValue) {
         this.timeValue = timeValue;
-    }
-
-    public ZeroFileManager getZeroFileManager() {
-        return zeroFileManager;
     }
 
     public boolean hasRegions() {

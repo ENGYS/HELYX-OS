@@ -1,35 +1,32 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.geometry;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import vtk.vtkPolyData;
-import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.geometry.factory.GeometryFactory;
 import eu.engys.core.project.geometry.surface.Box;
@@ -44,6 +41,7 @@ import eu.engys.core.project.system.BlockMeshDict;
 import eu.engys.core.project.system.SnappyHexMeshDict;
 import eu.engys.util.Util;
 import eu.engys.util.progress.ProgressMonitor;
+import vtk.vtkPolyData;
 
 public class Geometry {
 
@@ -53,7 +51,7 @@ public class Geometry {
     private final FeatureLines lines = new FeatureLines();
     private MultiPlane block = FAKE_BLOCK;
     private GeometryFactory geometryFactory;
-    
+
     private boolean autoBoundingBox = true;
     private double[] cellSize;
 
@@ -114,6 +112,10 @@ public class Geometry {
         return surfaces.toArray(new Surface[surfaces.size()]);
     }
 
+    public List<Surface> getSurfacesList() {
+        return surfaces;
+    }
+
     public void loadGeometry(Model model, ProgressMonitor monitor) {
         new GeometryReader(this).loadGeometry(model, monitor);
     }
@@ -130,12 +132,12 @@ public class Geometry {
         new BlockReader(this).loadBlock(blockMeshDict, snappyHexMeshDict);
     }
 
-    public void saveUserDefinedBlock(Model model, Dictionary d) {
-        new BlockSaver(model, this).saveUserDefinedBlock(d);
+    public void saveUserDefinedBlock(Model model, MultiPlane block) {
+        new BlockSaver(model).saveUserDefinedBlock(block);
     }
 
-    public void saveAutoBlock(Model model) {
-        new BlockSaver(model, this).saveAutomaticBlock();
+    public void saveAutoBlock(Model model, double spacing, boolean shouldConsiderSpacing) {
+        new BlockSaver(model).saveAutomaticBlock(spacing, shouldConsiderSpacing);
     }
 
     public GeometryFactory getFactory() {
@@ -203,19 +205,23 @@ public class Geometry {
         return geometryFactory.newSurface(Cylinder.class, getAName("cylinder"));
     }
 
+    public static String getAName(List<String> names, String initialName) {
+        String finalName = initialName;
+        int counter = 0;
+        while (names.contains(finalName)) {
+            finalName = initialName + counter++;
+        }
+
+        return finalName;
+    }
+    
     public String getAName(String name) {
         List<String> surfacesNames = new ArrayList<String>();
         for (Surface surface : surfaces) {
             surfacesNames.add(surface.getName());
         }
 
-        String finalName = name;
-        int counter = 0;
-        while (surfacesNames.contains(finalName)) {
-            finalName = name + counter++;
-        }
-
-        return finalName;
+        return getAName(surfacesNames, name);
     }
 
     public String getALineName(String name) {
@@ -224,13 +230,7 @@ public class Geometry {
             linesNames.add(line.getName());
         }
 
-        String finalName = name;
-        int counter = 0;
-        while (linesNames.contains(finalName)) {
-            finalName = name + counter++;
-        }
-
-        return finalName;
+        return getAName(linesNames, name);
     }
 
     public MultiPlane getBlock() {
@@ -298,28 +298,26 @@ public class Geometry {
     }
 
     public boolean contains(String name) {
+        return getAllSurfacesNames().contains(name);
+    }
+
+    public List<String> getAllSurfacesNames() {
+        List<String> names = new ArrayList<String>();
         for (Surface surface : surfaces) {
-            if (surface.getName().equals(name)) {
-                return true;
-            }
+            names.add(surface.getName());
             if (surface.hasRegions()) {
                 for (Surface region : surface.getRegions()) {
-                    if (region.getName().equals(name)) {
-                        return true;
-                    }
+                    names.add(region.getName());
                 }
             }
         }
-        
+
         for (Surface region : block.getRegions()) {
-            if (region.getName().equals(name)) {
-                return true;
-            }
+            names.add(region.getName());
         }
-        
-        return false;
+        return names;
     }
-    
+
     public double[] getCellSize(int level) {
         if (cellSize != null) {
             return new double[] { cellSize[0] / Math.pow(2, level), cellSize[1] / Math.pow(2, level), cellSize[2] / Math.pow(2, level) };
@@ -327,7 +325,6 @@ public class Geometry {
             return new double[3];
         }
     }
-
 
     public void setCellSize(double[] cellSize) {
         this.cellSize = cellSize;

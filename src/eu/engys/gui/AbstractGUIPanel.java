@@ -1,36 +1,33 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
 
-import javax.inject.Inject;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,17 +39,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.engys.core.project.Model;
+import eu.engys.core.project.system.monitoringfunctionobjects.MonitoringFunctionObject;
+import eu.engys.core.project.zero.patches.BoundaryType;
 import eu.engys.gui.view3D.CanvasPanel;
-import eu.engys.util.progress.ProgressMonitor;
 import eu.engys.util.ui.UiUtil;
 import eu.engys.util.ui.builder.PanelBuilder;
 
 public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, ModelObserver {
 
     private static final Logger logger = LoggerFactory.getLogger(GUIPanel.class);
-
-    @Inject
-    protected ProgressMonitor monitor;
 
     private final String title;
     protected final Model model;
@@ -75,7 +70,7 @@ public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, Model
     public void install(CanvasPanel view3D) {
         this.view3D = view3D;
     }
-    
+
     @Override
     public void layoutPanel() {
         JComponent titleComponent = createTitle(title);
@@ -97,12 +92,14 @@ public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, Model
         Font font = titleLabel.getFont();
         titleLabel.setFont(font.deriveFont(font.getSize2D() + 2).deriveFont(Font.BOLD));
 
-        titleToolbar = UiUtil.getToolbar("view.gui.toolbar");
-        titleToolbar.add(titleLabel);
-        titleToolbar.add(Box.createHorizontalGlue());
+        titleToolbar = UiUtil.getToolbarWrapped("view.gui.toolbar");
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(titleLabel, BorderLayout.CENTER);
+        p.add(titleToolbar, BorderLayout.EAST);
 
         PanelBuilder pb = new PanelBuilder();
-        pb.addComponent(titleToolbar);
+        pb.addComponent(p);
         pb.addComponent(new JSeparator());
 
         return pb.removeMargins().getPanel();
@@ -187,6 +184,10 @@ public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, Model
     }
 
     @Override
+    public void monitoringFunctionObjectChanged(MonitoringFunctionObject fo) {
+    }
+
+    @Override
     public void monitoringFunctionObjectsChanged() {
     }
 
@@ -197,11 +198,19 @@ public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, Model
     @Override
     public void runtimeFieldsChanged() {
     }
-    
+
     @Override
     public void fieldsChanged() {
     }
-    
+
+    @Override
+    public void boundaryTypeChanged(BoundaryType arg) {
+    }
+
+    @Override
+    public void geometryChanged() {
+    }
+
     @Override
     public void solverChanged() {
     }
@@ -217,14 +226,6 @@ public abstract class AbstractGUIPanel extends JPanel implements GUIPanel, Model
     @Override
     public int getIndex() {
         return -1;
-    }
-
-    public ProgressMonitor getMonitor() {
-        return monitor;
-    }
-
-    public void setMonitor(ProgressMonitor monitor) {
-        this.monitor = monitor;
     }
 
     @Override

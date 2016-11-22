@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.geometry.stl;
 
@@ -43,14 +42,9 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import vtk.vtkCleanPolyData;
-import vtk.vtkPolyData;
-import vtk.vtkSTLReader;
-import eu.engys.core.LoggerUtil;
 import eu.engys.core.project.geometry.surface.Solid;
 import eu.engys.util.TempFolder;
 import eu.engys.util.Util;
@@ -58,6 +52,7 @@ import eu.engys.util.VTKSettings;
 import eu.engys.util.progress.ProgressMonitor;
 import eu.engys.util.progress.SilentMonitor;
 import eu.engys.util.ui.ExecUtil;
+import vtk.vtkSTLReader;
 
 public class STLReader implements Runnable {
 
@@ -96,8 +91,7 @@ public class STLReader implements Runnable {
     @Override
     public void run() {
         try {
-            initMonitor();
-            initFilesIO();
+            detectType();
             readFile();
         } catch (Exception e) {
             logAnError(e);
@@ -107,15 +101,32 @@ public class STLReader implements Runnable {
         }
     }
 
-    void initMonitor() throws IOException {
+    void initASCIIMonitor() throws IOException {
         int totalLines = count(sourceFile);
         monitor.setTotal(totalLines);
         monitor.setIndeterminate(false);
     }
+    
+    void initBINARYMonitor(int totalLines) throws IOException {
+        monitor.setTotal(totalLines);
+        monitor.setIndeterminate(false);
+    }
 
-	void initFilesIO() throws IOException {
-	    reader = new BufferedReader(new FileReader(sourceFile), SIZE);
-	}
+    private void detectType() throws IOException {
+        try(BufferedReader reader = new BufferedReader(new FileReader(sourceFile), SIZE)) {
+            String line1 = reader.readLine();
+            String line2 = reader.readLine();
+            // If the first word is not "solid" then we consider the file is binary
+            // Can give us problems if the comment of the binary file begins by "solid"
+            // Then we check also the second line for "facet normal" or "color"
+            if (line1.startsWith("solid") && line2 != null && (line2.contains("facet normal") || line2.contains("color"))) {
+                this.setAscii(true);
+            } else {
+                this.setAscii(false);
+            }
+        } catch (Exception e) {
+        }
+    }
 
     void logAnError(Exception e) {
         monitor.error(e.getMessage(), 1);
@@ -124,34 +135,35 @@ public class STLReader implements Runnable {
     }
     
     void readFile() throws Exception {
-        if (reader.ready()) {
-            String line = reader.readLine();
-            detectType(line);
-
-            try {
-                executor = ExecUtil.createParallelExecutor(NP);
-                if (isAscii()) {
-                    logger.info("Read STL " + sourceFile.getName() + " [ASCII]");
-                    monitor.info(sourceFile.getName() + " [ASCII]", 2);
-                    
-                    parseLine(line);
-                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                        parseLine(line);
-                        increaseCounter();
-                    }
-                    
-                } else {
-                    logger.info("Read STL " + sourceFile.getName() + " [BINARY]");
-                    monitor.info(sourceFile.getName() + " [BINARY]", 2);
-                    readBinary();
-                }
-                ExecUtil.awaitTermination(executor);
-            } finally {
-                closeFilesIO();
+        try {
+            executor = ExecUtil.createParallelExecutor(NP);
+            if (isAscii()) {
+                logger.info("Read STL " + sourceFile.getName() + " [ASCII]");
+                monitor.info(sourceFile.getName() + " [ASCII]", 2);
+                readAscii();
+            } else {
+                logger.info("Read STL " + sourceFile.getName() + " [BINARY]");
+                monitor.info(sourceFile.getName() + " [BINARY]", 2);
+                readBinary();
             }
+            ExecUtil.awaitTermination(executor);
+        } finally {
+            closeFilesIO();
         }
     }
     
+    private void readAscii() throws Exception {
+        initASCIIMonitor();
+        reader = new BufferedReader(new FileReader(sourceFile), SIZE);
+        if (reader.ready()) {
+            String line = null;
+            while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                parseLine(line);
+                increaseCounter();
+            }
+        }        
+    }
+
     private void increaseCounter() {
         lineCounter++;
         if (lineCounter % 50000 == 0) 
@@ -166,16 +178,6 @@ public class STLReader implements Runnable {
 
         reader = null;
         regionWriter = null;
-    }
-
-    private void detectType(String line) {
-        if (line.startsWith("solid")) {
-            this.setAscii(true);
-        } else {
-            // If the first word is not "solid" then we consider the file is binary
-            // Can give us problems if the comment of the binary file begins by "solid"
-            this.setAscii(false);
-        }
     }
 
     private String regionName = "";
@@ -256,46 +258,7 @@ public class STLReader implements Runnable {
                 reader.Delete();
             }
             this.regionFile.delete();            
-
         }
-    }
-    
-//    public static vtkPolyData repairDataSet(vtkPolyData dataset) {
-//        System.out.println("STLReader.repairDataSet() POINTS: " + dataset.GetNumberOfPoints());
-//        System.out.println("STLReader.repairDataSet() LINES:  " + dataset.GetNumberOfLines());
-//        System.out.println("STLReader.repairDataSet() CELLS:  " + dataset.GetNumberOfCells());
-//        
-//        vtkPolyData pippo = new RemoveDuplicates(dataset).execute();
-//        
-//        System.out.println("STLReader.repairDataSet() POINTS: " + repaired.GetNumberOfPoints());
-//        System.out.println("STLReader.repairDataSet() LINES:  " + repaired.GetNumberOfLines());
-//        System.out.println("STLReader.repairDataSet() CELLS:  " + repaired.GetNumberOfCells());
-//        return pippo;
-//    }
-    
-    public static vtkPolyData repairDataSet(vtkPolyData dataset) {
-        System.out.println("STLReader.repairDataSet() POINTS: " + dataset.GetNumberOfPoints());
-        System.out.println("STLReader.repairDataSet() LINES:  " + dataset.GetNumberOfLines());
-        System.out.println("STLReader.repairDataSet() CELLS:  " + dataset.GetNumberOfCells());
-
-        vtkCleanPolyData clean = new vtkCleanPolyData();
-        // clean.ConvertLinesToPointsOff(); //def: on
-        // clean.ConvertPolysToLinesOff(); //def: on
-        // clean.ConvertStripsToPolysOff(); //def: on
-        // clean.PieceInvariantOff(); //def: on
-        // clean.PointMergingOff(); //def: on
-        // clean.SetAbsoluteTolerance(0); //def: 1.0
-        // clean.SetTolerance(0);//def: 0.0
-        // clean.ToleranceIsAbsoluteOn(); //def: off
-        clean.SetInputData(dataset);
-        clean.Update();
-
-        vtkPolyData repaired = clean.GetOutput();
-        System.out.println("STLReader.repairDataSet() POINTS: " + repaired.GetNumberOfPoints());
-        System.out.println("STLReader.repairDataSet() LINES:  " + repaired.GetNumberOfLines());
-        System.out.println("STLReader.repairDataSet() CELLS:  " + repaired.GetNumberOfCells());
-        
-        return repaired;
     }
     
     private void setValidRegionName(String line) {
@@ -360,6 +323,8 @@ public class STLReader implements Runnable {
 
             Number_faces = dataBuffer.getInt();
 
+            initBINARYMonitor(Number_faces);
+
             Temp_Info = new byte[50 * Number_faces]; // Each face has 50 bytes of data
 
             data.read(Temp_Info); // We get the rest of the file
@@ -389,6 +354,9 @@ public class STLReader implements Runnable {
                     if (i != Number_faces - 1) {
                         dataBuffer.get();
                         dataBuffer.get();
+                    }
+                    if (i % 500 == 0) {
+                        monitor.setCurrent(null, i);
                     }
                 } catch (IOException e) {
                     // Quit
@@ -440,7 +408,7 @@ public class STLReader implements Runnable {
     }
 
     public static void main(String[] args) {
-        LoggerUtil.initTestLogger(Level.DEBUG);
+//        LoggerUtil.initTestLogger(Level.DEBUG);
         VTKSettings.LoadAllNativeLibraries();
         new STLReader(new File("/home/stefano/ENGYS/examples/STL/plateExchanger.stl"), new SilentMonitor()).run();
         

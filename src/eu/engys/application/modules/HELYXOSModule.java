@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.application.modules;
 
 import com.google.inject.AbstractModule;
@@ -32,7 +31,6 @@ import com.google.inject.name.Names;
 
 import eu.engys.application.Application;
 import eu.engys.application.HELYXOS;
-import eu.engys.core.Arguments;
 import eu.engys.core.controller.Controller;
 import eu.engys.core.controller.HelyxOSController;
 import eu.engys.core.controller.ScriptFactory;
@@ -65,12 +63,13 @@ import eu.engys.gui.casesetup.CaseSetup;
 import eu.engys.gui.casesetup.CaseSetup3DElement;
 import eu.engys.gui.casesetup.CaseSetupElement;
 import eu.engys.gui.casesetup.RuntimeControlsPanel;
+import eu.engys.gui.casesetup.StandardSolverSettingsPanel;
 import eu.engys.gui.casesetup.actions.StandardCaseSetupActions;
-import eu.engys.gui.casesetup.boundaryconditions.BoundaryConditionsPanel;
-import eu.engys.gui.casesetup.boundaryconditions.panels.CyclicSettingsPanel;
+import eu.engys.gui.casesetup.boundaryconditions.panels.BoundaryConditionsPanel;
 import eu.engys.gui.casesetup.boundaryconditions.panels.StandardCyclicAMISettingsPanel;
 import eu.engys.gui.casesetup.boundaryconditions.panels.patch.PatchSettingsPanel;
 import eu.engys.gui.casesetup.boundaryconditions.panels.wall.StandardWallSettingsPanel;
+import eu.engys.gui.casesetup.boundaryconditions.parameterspanel.CyclicSettingsPanel;
 import eu.engys.gui.casesetup.cellzones.CellZonesPanel;
 import eu.engys.gui.casesetup.cellzones.StandardCellZonesBuilder;
 import eu.engys.gui.casesetup.cellzones.mrf.StandardMRF;
@@ -89,13 +88,12 @@ import eu.engys.gui.casesetup.materials.panels.MaterialsPanel;
 import eu.engys.gui.casesetup.run.StandardTable15;
 import eu.engys.gui.casesetup.schemes.NumericalSchemesPanel;
 import eu.engys.gui.casesetup.solution.StandardSolutionModellingPanel;
-import eu.engys.gui.casesetup.solver.SolverSettingsPanel;
 import eu.engys.gui.custom.CustomNodePanel;
 import eu.engys.gui.mesh.Mesh;
 import eu.engys.gui.mesh.Mesh3DElement;
 import eu.engys.gui.mesh.MeshElement;
+import eu.engys.gui.mesh.StandardBoundaryMeshPanel;
 import eu.engys.gui.mesh.actions.StandardMeshActions;
-import eu.engys.gui.mesh.panels.DefaultBoundaryMeshPanel;
 import eu.engys.gui.mesh.panels.DefaultMeshAdvancedOptionsPanel;
 import eu.engys.gui.mesh.panels.MaterialPointsPanel;
 import eu.engys.gui.mesh.panels.SolverBoundaryMeshPanel;
@@ -113,26 +111,18 @@ import eu.engys.gui.solver.postprocessing.panels.residuals.ResidualsPanel;
 import eu.engys.gui.view.View;
 import eu.engys.gui.view.View3DElement;
 import eu.engys.gui.view.ViewElement;
-import eu.engys.gui.view3D.CanvasPanel;
 import eu.engys.gui.view3D.Controller3D;
 import eu.engys.gui.view3D.Geometry3DController;
 import eu.engys.gui.view3D.Mesh3DController;
-import eu.engys.gui.view3D.fallback.FallbackGeometry3DController;
-import eu.engys.gui.view3D.fallback.FallbackMesh3DController;
-import eu.engys.gui.view3D.fallback.FallbackView3D;
 import eu.engys.gui.view3D.widget.Widget;
 import eu.engys.launcher.ApplicationLauncher;
 import eu.engys.launcher.HELYXOSLauncher;
+import eu.engys.standardDynamic.StandardDynamicModule;
 import eu.engys.standardVOF.StandardVOFModule;
-import eu.engys.util.VTKSettings;
 import eu.engys.util.plaf.HelyxOSLookAndFeel;
 import eu.engys.util.plaf.ILookAndFeel;
 import eu.engys.util.progress.ProgressMonitor;
 import eu.engys.util.progress.ProgressMonitorImpl;
-import eu.engys.vtk.VTKEmptyView3D;
-import eu.engys.vtk.VTKGeometry3DController;
-import eu.engys.vtk.VTKMesh3DController;
-import eu.engys.vtk.VTKView3D;
 import eu.engys.vtk.WidgetPanel;
 
 public class HELYXOSModule extends AbstractModule {
@@ -184,27 +174,11 @@ public class HELYXOSModule extends AbstractModule {
     private void configureModules() {
         Multibinder<ApplicationModule> applicationModules = Multibinder.newSetBinder(binder(), ApplicationModule.class);
         applicationModules.addBinding().to(StandardVOFModule.class).in(Singleton.class);
+        applicationModules.addBinding().to(StandardDynamicModule.class).in(Singleton.class);
     }
 
     protected void configure3D() {
         bind(WidgetPanel.class).in(Singleton.class);
-        if (!VTKSettings.librariesAreLoaded()) {
-            VTKSettings.LoadAllNativeLibraries();
-        }
-        if (VTKSettings.librariesAreLoaded()) {
-            if (Arguments.no3D) {
-                bind(CanvasPanel.class).to(VTKEmptyView3D.class).in(Singleton.class);
-            } else {
-                bind(CanvasPanel.class).to(VTKView3D.class).in(Singleton.class);
-            }
-            bind(Geometry3DController.class).to(VTKGeometry3DController.class).in(Singleton.class);
-            bind(Mesh3DController.class).to(VTKMesh3DController.class).in(Singleton.class);
-        } else {
-            bind(CanvasPanel.class).to(FallbackView3D.class).in(Singleton.class);
-            bind(Geometry3DController.class).to(FallbackGeometry3DController.class).in(Singleton.class);
-            bind(Mesh3DController.class).to(FallbackMesh3DController.class).in(Singleton.class);
-        }
-
         Multibinder<Controller3D> controllers = Multibinder.newSetBinder(binder(), Controller3D.class);
         controllers.addBinding().to(Geometry3DController.class).in(Singleton.class);
         controllers.addBinding().to(Mesh3DController.class).in(Singleton.class);
@@ -242,7 +216,7 @@ public class HELYXOSModule extends AbstractModule {
         panelsMesh.addBinding().to(StandardGeometryPanel.class).in(Singleton.class);
         panelsMesh.addBinding().to(StandardFeatureLinesPanel.class).in(Singleton.class);
         panelsMesh.addBinding().to(MaterialPointsPanel.class).in(Singleton.class);
-        panelsMesh.addBinding().to(DefaultBoundaryMeshPanel.class).in(Singleton.class);
+        panelsMesh.addBinding().to(StandardBoundaryMeshPanel.class).in(Singleton.class);
         panelsMesh.addBinding().to(CustomNodePanel.class).in(Singleton.class);
 
         Multibinder<GUIPanel> panelsCaseSetup = Multibinder.newSetBinder(binder(), GUIPanel.class, CaseSetup.class);
@@ -250,8 +224,9 @@ public class HELYXOSModule extends AbstractModule {
         panelsCaseSetup.addBinding().to(MaterialsPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(BoundaryConditionsPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(CellZonesPanel.class).in(Singleton.class);
+//        panelsCaseSetup.addBinding().to(FaceZonesPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(NumericalSchemesPanel.class).in(Singleton.class);
-        panelsCaseSetup.addBinding().to(SolverSettingsPanel.class).in(Singleton.class);
+        panelsCaseSetup.addBinding().to(StandardSolverSettingsPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(RuntimeControlsPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(StandardFieldsInitialisationPanel.class).in(Singleton.class);
         panelsCaseSetup.addBinding().to(CustomNodePanel.class).in(Singleton.class);

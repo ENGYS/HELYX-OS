@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.ui;
 
 import java.awt.Color;
@@ -39,6 +38,7 @@ import javax.swing.JList;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ListDataListener;
@@ -99,6 +99,7 @@ public class ComponentsFactory {
         JCheckBox checkBox = new JCheckBox(string);
         checkBox.setSelected(def);
         checkBox.setOpaque(false);
+        checkBox.setForeground(color.darker());
         checkBox.putClientProperty("Synthetica.background", color);
         checkBox.putClientProperty("Synthetica.background.alpha", UIManager.get("Synthetica.checkbox.background.alpha"));
         return checkBox;
@@ -120,12 +121,20 @@ public class ComponentsFactory {
         return new StringField(text);
     }
 
+    public static StringField stringField(String text, boolean checkEmptyStrings, boolean checkForbidden) {
+        return new StringField(text, checkEmptyStrings, checkForbidden);
+    }
+
     public static JPasswordField passwordField() {
         return new JPasswordField(20);
     }
 
     public static SpinnerField spinnerField() {
         return new SpinnerField(0, Integer.MAX_VALUE, 0);
+    }
+
+    public static SpinnerField spinnerField(Integer def) {
+        return new SpinnerField(0, Integer.MAX_VALUE, def);
     }
 
     public static SpinnerField spinnerField(Integer lb, Integer ub) {
@@ -138,6 +147,10 @@ public class ComponentsFactory {
 
     public static IntegerField intField(Integer lb, Integer ub) {
         return new IntegerField(lb, ub, Math.max(0, lb));
+    }
+
+    public static IntegerField intField(Integer lb, Integer ub, Integer value, boolean checkEmptyValue) {
+        return new IntegerField(lb, ub, value, checkEmptyValue);
     }
 
     public static IntegerField intField(Integer def) {
@@ -164,8 +177,8 @@ public class ComponentsFactory {
         return new DoubleField(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, places);
     }
 
-    public static DoubleField doubleField(Integer places, Double d) {
-        return new DoubleField(-Double.MAX_VALUE, Double.MAX_VALUE, d, places);
+    public static DoubleField doubleField(Integer places, Double def) {
+        return new DoubleField(-Double.MAX_VALUE, Double.MAX_VALUE, def, places);
     }
 
     public static DoubleField doubleField(Double lb, Double ub) {
@@ -347,22 +360,72 @@ public class ComponentsFactory {
         return combo;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static <T> JComboBox<T> selectField(final ListModel<T> listModel) {
+        final JComboBox<T> combo = selectField();
+        combo.setModel(new ComboBoxModel() {
+            
+            private Object selected;
+            
+            @Override
+            public void removeListDataListener(ListDataListener l) {
+            }
+            
+            @Override
+            public int getSize() {
+                return listModel.getSize();
+            }
+            
+            @Override
+            public Object getElementAt(int index) {
+                return listModel.getElementAt(index);
+            }
+            
+            @Override
+            public void addListDataListener(ListDataListener l) {
+            }
+            
+            @Override
+            public void setSelectedItem(Object anItem) {
+                this.selected = anItem;
+                combo.revalidate();
+                combo.repaint();
+            }
+            
+            @Override
+            public Object getSelectedItem() {
+                return selected;
+            }
+        });
+        return combo;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> JComboBox<T> selectField(T... items) {
+        JComboBox<T> combo = new SelectField<>(items);
+        return combo;
+    }
+    
     public static JComboBox<String> selectField(String... items) {
         JComboBox<String> combo = new SelectField<>(items);
         return combo;
+    }
+
+    public static <E> JComboBox<E> selectField(final E[] keys, final String[] labels) {
+        return selectField(keys, labels, new Icon[keys.length]);
     }
 
     public static JComboBox<String> selectField(final String[] keys, final String[] labels) {
         return selectField(keys, labels, new Icon[keys.length]);
     }
 
-    public static SelectField<String> selectField(final String[] keys, final String[] labels, final Icon[] icons) {
-        SelectField<String> combo = new SelectField<>(keys, labels, icons);
+    public static <E> SelectField<E> selectField(final E[] keys, final String[] labels, final Icon[] icons) {
+        SelectField<E> combo = new SelectField<>(keys, labels, icons);
         return combo;
     }
 
-    private static JComboBoxWithItemsSupport selectFieldWithItemSupport() {
-        JComboBoxWithItemsSupport combo = new JComboBoxWithItemsSupport() {
+    private static JComboBoxWithItemsSupport<String> selectFieldWithItemSupport() {
+        JComboBoxWithItemsSupport<String> combo = new JComboBoxWithItemsSupport<String>() {
             @Override
             protected void fireActionEvent() {
                 super.fireActionEvent();
@@ -372,17 +435,19 @@ public class ComponentsFactory {
         return combo;
     }
 
-    public static JComboBoxWithItemsSupport selectFieldWithItemSupport(final String[] items) {
-        JComboBoxWithItemsSupport combo = selectFieldWithItemSupport();
-        for (String string : items) {
+    public static JComboBoxWithItemsSupport<String> selectFieldWithItemSupport(final String[] keys) {
+        JComboBoxWithItemsSupport<String> combo = selectFieldWithItemSupport();
+        for (String string : keys) {
             combo.addItem(string);
         }
         return combo;
     }
 
-    public static JComboBoxWithItemsSupport selectFieldWithItemSupport(final String[] keys, final String[] items) {
-        JComboBoxWithItemsSupport combo = selectFieldWithItemSupport(keys);
-        combo.setLabels(items);
+    public static JComboBoxWithItemsSupport<String> selectFieldWithItemSupport(final String[] keys, final String[] labels) {
+        JComboBoxWithItemsSupport<String> combo = selectFieldWithItemSupport();
+        for (int i = 0; i < keys.length; i++) {
+            combo.addItem(keys[i], labels[i]);
+        }
         return combo;
     }
 

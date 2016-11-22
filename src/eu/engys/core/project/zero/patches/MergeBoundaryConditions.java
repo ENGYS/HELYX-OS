@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero.patches;
 
 import static eu.engys.core.project.zero.fields.Fields.ALPHA_SGS;
@@ -45,6 +43,7 @@ import static eu.engys.core.project.zero.fields.Fields.NU_SGS;
 import static eu.engys.core.project.zero.fields.Fields.NU_TILDA;
 import static eu.engys.core.project.zero.fields.Fields.OMEGA;
 import static eu.engys.core.project.zero.fields.Fields.P;
+import static eu.engys.core.project.zero.fields.Fields.POINT_DISPLACEMENT;
 import static eu.engys.core.project.zero.fields.Fields.SMOKE;
 import static eu.engys.core.project.zero.fields.Fields.T;
 import static eu.engys.core.project.zero.fields.Fields.U;
@@ -62,6 +61,8 @@ import eu.engys.core.project.zero.fields.Fields;
 public class MergeBoundaryConditions {
 
 	private static final Logger logger = LoggerFactory.getLogger(MergeBoundaryConditions.class);
+
+    private static final boolean VERBOSE = false;
 	
     private Patches patches;
 	private Fields fields;
@@ -74,7 +75,7 @@ public class MergeBoundaryConditions {
     public void execute() {
         for (Patch patch : patches) {
             String name = patch.getName();
-            logger.info("Merging boundary condition for patch {}", name);
+            logger.debug("Merging boundary condition for patch {}", name);
             // System.out.println("*** patch "+name+" ***");
             Patches[] parallelPatches = patches.getParallelPatches();
             if (parallelPatches != null) {
@@ -99,6 +100,18 @@ public class MergeBoundaryConditions {
     }
 
     private void merge(BoundaryConditions source, BoundaryConditions target) {
+        mergeMomentum(source, target);
+        mergeTurbulence(source, target);
+        mergeRoughness(source, target);
+        mergeThermal(source, target);
+        mergeHumidity(source, target);
+        mergeRadiation(source, target);
+        mergePassiveScalars(source, target);
+        mergePhase(source, target);
+        mergeDisplacement(source, target);
+    }
+
+    private void mergeMomentum(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getMomentum().isEmpty()) {
             mergeField(source.getMomentum(), target.getMomentum(), U);
             for (Field U : fields.getMultiphaseUFields()) {
@@ -106,6 +119,9 @@ public class MergeBoundaryConditions {
             }
             mergeField(source.getMomentum(), target.getMomentum(), P);
         }
+    }
+
+    private void mergeTurbulence(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getTurbulence().isEmpty()) {
             mergeField(source.getTurbulence(), target.getTurbulence(), K);
             mergeField(source.getTurbulence(), target.getTurbulence(), OMEGA);
@@ -118,22 +134,37 @@ public class MergeBoundaryConditions {
             mergeField(source.getTurbulence(), target.getTurbulence(), ALPHA_T);
             mergeField(source.getTurbulence(), target.getTurbulence(), ALPHA_SGS);
         }
+    }
+
+    private void mergeRoughness(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getRoughness().isEmpty()) {
             mergeField(source.getRoughness(), target.getRoughness(), NUT);
             mergeField(source.getRoughness(), target.getRoughness(), NU_SGS);
             mergeField(source.getRoughness(), target.getRoughness(), MUT);
             mergeField(source.getRoughness(), target.getRoughness(), MU_SGS);
         }
+    }
+
+    private void mergeThermal(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getThermal().isEmpty()) {
             mergeField(source.getThermal(), target.getThermal(), T);
         }
+    }
+
+    private void mergeHumidity(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getHumidity().isEmpty()) {
             mergeField(source.getHumidity(), target.getHumidity(), W);
             mergeField(source.getHumidity(), target.getHumidity(), DT_W);
         }
+    }
+
+    private void mergeRadiation(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getRadiation().isEmpty()) {
             mergeField(source.getRadiation(), target.getRadiation(), IDEFAULT);
         }
+    }
+
+    private void mergePassiveScalars(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getPassiveScalars().isEmpty()) {
             mergeField(source.getPassiveScalars(), target.getPassiveScalars(), AOA);
             mergeField(source.getPassiveScalars(), target.getPassiveScalars(), DT_AOA);
@@ -142,6 +173,9 @@ public class MergeBoundaryConditions {
             mergeField(source.getPassiveScalars(), target.getPassiveScalars(), SMOKE);
             mergeField(source.getPassiveScalars(), target.getPassiveScalars(), DT_SMOKE);
         }
+    }
+
+    private void mergePhase(BoundaryConditions source, BoundaryConditions target) {
         if (!source.getPhase().isEmpty()) {
             mergeField(source.getPhase(), target.getPhase(), ETA);
         	for (Field af : fields.getAlphaFields()) {
@@ -149,23 +183,29 @@ public class MergeBoundaryConditions {
 			}
         }
     }
+    
+    private void mergeDisplacement(BoundaryConditions source, BoundaryConditions target) {
+        if (!source.getDisplacement().isEmpty()) {
+            mergeField(source.getDisplacement(), target.getDisplacement(), POINT_DISPLACEMENT);
+        }
+    }
 
-    private void mergeField(Dictionary source, Dictionary target, String field) {
+    static void mergeField(Dictionary source, Dictionary target, String field) {
         if (source.isDictionary(field) /* && target.isDictionary(field) */) {
             Dictionary fieldSource = source.subDict(field);
             // Dictionary fieldTarget = target.subDict(field);
 
             if (BoundaryConditions.isPlaceHolder(fieldSource)) {
-                // System.out.println("\t\t"+field+" PH");
+                info("\t\t"+field+" PH");
                 /* DO NOTHING */
             } else {
-                // System.out.println("\t\t"+field+" UN");
+                info("\t\t"+field+" UN");
                 target.add(new Dictionary(fieldSource));
             }
         } else if (source.isDictionary(field)) {
-            // System.err.println("ERROR: missing TARGET "+field+" dictionary");
+            info("ERROR: missing TARGET "+field+" dictionary");
         } else {
-            // System.err.println("ERROR: missing SOURCE "+field+" dictionary");
+            info("ERROR: missing SOURCE "+field+" dictionary");
             // System.out.println(""+source+target);
         }
     }
@@ -195,6 +235,9 @@ public class MergeBoundaryConditions {
             mergeExcludingNonUniform(source.getRoughness(), target.getRoughness(), NU_SGS);
             mergeExcludingNonUniform(source.getRoughness(), target.getRoughness(), MUT);
             mergeExcludingNonUniform(source.getRoughness(), target.getRoughness(), MU_SGS);
+        }
+        if (!source.getDisplacement().isEmpty()) {
+            mergeExcludingNonUniform(source.getDisplacement(), target.getDisplacement(), POINT_DISPLACEMENT);
         }
         if (!source.getThermal().isEmpty()) {
             mergeExcludingNonUniform(source.getThermal(), target.getThermal(), T);
@@ -275,6 +318,9 @@ public class MergeBoundaryConditions {
             excludeNonUniform(target.getRoughness(), MUT);
             excludeNonUniform(target.getRoughness(), MU_SGS);
         }
+        if (!target.getDisplacement().isEmpty()) {
+            excludeNonUniform(target.getDisplacement(), POINT_DISPLACEMENT);
+        }
         if (!target.getThermal().isEmpty()) {
             excludeNonUniform(target.getThermal(), T);
         }
@@ -302,7 +348,7 @@ public class MergeBoundaryConditions {
     }
 
     private void excludeNonUniform(Dictionary target, String field) {
-        if (target.isDictionary(field) && target.isDictionary(field)) {
+        if (target.isDictionary(field)) {
             Dictionary fieldTarget = target.subDict(field);
             if (BoundaryConditions.isNonUniform(fieldTarget)) {
                 if (field.equals(Fields.U)) {
@@ -312,6 +358,10 @@ public class MergeBoundaryConditions {
                 }
             }
         }
+    }
+
+    private static void info(String msg) {
+        if (VERBOSE) System.err.println(msg);
     }
     
 }

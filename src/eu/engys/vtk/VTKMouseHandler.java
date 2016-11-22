@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.vtk;
 
 import java.awt.event.InputEvent;
@@ -37,8 +35,11 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.SwingUtilities;
 
+import eu.engys.gui.view3D.Interactor;
+import eu.engys.gui.view3D.Representation;
 import vtk.vtkGenericRenderWindowInteractor;
 import vtk.vtkInteractorObserver;
+import vtk.vtkInteractorStyleHelyx;
 import vtk.vtkInteractorStyleRubberBand3D;
 import vtk.vtkInteractorStyleRubberBandZoom;
 import vtk.vtkInteractorStyleTrackballCamera;
@@ -64,13 +65,16 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
     public void mouseClicked(MouseEvent e) {
 //        System.out.println("MOUSE CLICKED");
         VTKPickManager pickManager = vtkRenderPanel.getPickManager();
-        vtkGenericRenderWindowInteractor iren = (vtkGenericRenderWindowInteractor) vtkRenderPanel.getInteractor();
+        Interactor interactor = vtkRenderPanel.getInteractor();
+        vtkGenericRenderWindowInteractor iren = (vtkGenericRenderWindowInteractor) interactor;
         
         if (SwingUtilities.isLeftMouseButton(e)) {
             if (!isDragging) {
                 int[] pos = iren.GetEventPosition();
                 
                 if (iren.GetInteractorStyle() instanceof vtkInteractorStyleTrackballCamera) {
+                    pickManager.pick(pos[0], pos[1], e.isControlDown(), e.isShiftDown());
+                } else if (iren.GetInteractorStyle() instanceof vtkInteractorStyleHelyx) {
                     pickManager.pick(pos[0], pos[1], e.isControlDown(), e.isShiftDown());
                 }
             } else if(iren.GetInteractorStyle() instanceof vtkInteractorStyleRubberBand3D) {
@@ -79,7 +83,7 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
                 int[] endPosition = style.GetEndPosition();
                 pickManager.pickArea(startPosition, endPosition, e.isControlDown(), e.isShiftDown());
             } else if(iren.GetInteractorStyle() instanceof vtkInteractorStyleRubberBandZoom) {
-                iren.SetInteractorStyle(new vtkInteractorStyleTrackballCamera());
+                interactor.setStyleToDefault();
             }
         } else if (SwingUtilities.isRightMouseButton(e)) {
             if (!isDragging) {
@@ -87,7 +91,9 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
                 
                 if (iren.GetInteractorStyle() instanceof vtkInteractorStyleTrackballCamera) {
                     pickManager.popup(pos[0], pos[1], e);
-                }
+                } else if (iren.GetInteractorStyle() instanceof vtkInteractorStyleHelyx) {
+                    pickManager.popup(pos[0], pos[1], e);
+                } 
             } 
         }
     }
@@ -110,6 +116,8 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
                 iren.SetEventInformationFlipY(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
             } else if (style instanceof vtkInteractorStyleTrackballCamera) {
                 iren.SetEventInformation(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
+            } else if (style instanceof vtkInteractorStyleHelyx) {
+                iren.SetEventInformation(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
             }
             iren.RightButtonPressEvent();
         }
@@ -123,7 +131,8 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
     public void mouseReleased(MouseEvent e) {
 //        System.out.println("MOUSE RELEASED");
         VTKPickManager pickManager = vtkRenderPanel.getPickManager();
-    	vtkGenericRenderWindowInteractor iren = (vtkGenericRenderWindowInteractor) vtkRenderPanel.getInteractor();
+    	Interactor interactor = vtkRenderPanel.getInteractor();
+        vtkGenericRenderWindowInteractor iren = (vtkGenericRenderWindowInteractor) interactor;
         iren.SetEventInformationFlipY(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
 
         vtkRenderPanel.lock();
@@ -131,7 +140,7 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
         if (SwingUtilities.isLeftMouseButton(e)) {
             iren.LeftButtonReleaseEvent();
             if(iren.GetInteractorStyle() instanceof vtkInteractorStyleRubberBandZoom) {
-                iren.SetInteractorStyle(new vtkInteractorStyleTrackballCamera());
+                interactor.setStyleToDefault();
             } else if(iren.GetInteractorStyle() instanceof vtkInteractorStyleRubberBand3D) {
                 vtkInteractorStyleRubberBand3D style = (vtkInteractorStyleRubberBand3D) iren.GetInteractorStyle();
                 int[] startPosition = style.GetStartPosition();
@@ -205,7 +214,13 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
     	    } else {
     	        iren.SetEventInformationFlipY(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
     	    }
-    	}
+    	} else if (style instanceof vtkInteractorStyleHelyx) {
+            if (SwingUtilities.isRightMouseButton(e)) {
+                iren.SetEventInformation(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
+            } else {
+                iren.SetEventInformationFlipY(e.getX(), e.getY(), ctrlPressed(e), shiftPressed(e), '0', 0, "0");
+            }
+        }
 
         vtkRenderPanel.lock();
         iren.MouseMoveEvent();
@@ -236,6 +251,27 @@ public class VTKMouseHandler implements MouseListener, MouseMotionListener, Mous
 
     @Override
     public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        switch (key) {
+        case KeyEvent.VK_W:
+            vtkRenderPanel.changeRepresentation(Representation.WIREFRAME);
+            break;
+        case KeyEvent.VK_O:
+            vtkRenderPanel.changeRepresentation(Representation.OUTLINE);
+            break;
+        case KeyEvent.VK_E:
+            vtkRenderPanel.changeRepresentation(Representation.SURFACE_WITH_EDGES);
+            break;
+        case KeyEvent.VK_S:
+            vtkRenderPanel.changeRepresentation(Representation.SURFACE);
+            break;
+        case KeyEvent.VK_R:
+            vtkRenderPanel.resetZoomLater();
+            break;
+
+        default:
+            break;
+        }
     }
 
     @Override

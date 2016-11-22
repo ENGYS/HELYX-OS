@@ -1,62 +1,59 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.util.ui;
 
 import java.awt.Component;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-public class JComboBoxWithItemsSupport extends JComboBox<String> implements ItemListener {
+public class JComboBoxWithItemsSupport<T> extends JComboBox<T> {
 	
-	private Map<String, String> itemFromKey = new HashMap<String, String>();
+	private Map<T, String> itemFromKey = new HashMap<>();
 	private List<Integer> disabledIndexes = new ArrayList<Integer>();
+    private boolean isDisabledIndex;
 	
 	public JComboBoxWithItemsSupport() {
     	super();
-    	final ListCellRenderer<? super String> renderer = getRenderer();
-        setRenderer(new ListCellRenderer<String>() {
+    	final ListCellRenderer<? super T> renderer = getRenderer();
+        setRenderer(new ListCellRenderer<T>() {
             @Override
-        	public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+        	public Component getListCellRendererComponent(JList<? extends T> list, T value, int index, boolean isSelected, boolean cellHasFocus) {
             	Component c = renderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             	
             	if (c instanceof JLabel) {
             		JLabel label = (JLabel) c;
-            		String key = value;
-            		label.setText(itemFromKey.containsKey(key) ? itemFromKey.get(key) : key);
+            		T key = value;
+            		label.setText(key != null ? (itemFromKey.containsKey(key) ? itemFromKey.get(key) : key.toString()) : "");
             		
             		if (disabledIndexes.contains(index)) {
             			label.setFocusable(false);
@@ -72,50 +69,81 @@ public class JComboBoxWithItemsSupport extends JComboBox<String> implements Item
             	return c;
         	}
         });
-        addItemListener(this);
     }
-    
+
 	@Override
-    public void itemStateChanged(ItemEvent e) {
-    	if (e.getSource() instanceof JComboBox && e.getStateChange() == ItemEvent.SELECTED) {
-    		JComboBox<?> combo = (JComboBox<?>) e.getSource();
-			int index = combo.getSelectedIndex();
-    		if (disabledIndexes.contains(index)) {
-    			combo.setSelectedIndex(-1);
-    		}
-    	}
-    }
+	public void setPopupVisible(boolean visible) {
+	    if(!visible && isDisabledIndex){
+	        isDisabledIndex = false;
+	    } else {
+	        super.setPopupVisible(visible);
+	    }
+	}
 	
 	@Override
 	public void setSelectedIndex(int index) {
 		if (disabledIndexes.contains(index)) {
-			super.setSelectedIndex(-1);
+		    isDisabledIndex = true;
+		    if(getSelectedIndex() == index){
+		        super.setSelectedIndex(-1);
+		    }
 		} else {
 			super.setSelectedIndex(index);
 		}
 	}
 	
-	public boolean isDisabledAt(int index){
-		return disabledIndexes.contains(index);
-	}
+	@SuppressWarnings("unchecked")
+    @Override
+	public void setSelectedItem(Object item) {
+        if (disabledIndexes.contains(getIndexOf((T)item))) {
+            isDisabledIndex = true;
+            if(getSelectedItem() == item){
+                super.setSelectedIndex(-1);
+            }
+        } else {
+            super.setSelectedItem(item);
+        }
+    }
 	
-//    private void addDisabledIndex(int index) {
-//    	disabledIndexes.add(index);
-//    }
+    public void addDisabledItem(T item) {
+        int itemIndex = getIndexOf(item);
+        disabledIndexes.add(itemIndex);
+    }
 
-    public void addDisabledItem(String item) {
-        int itemIndex = ((DefaultComboBoxModel<String>) getModel()).getIndexOf(item);
+    public void addDisabledItem(int itemIndex) {
         disabledIndexes.add(itemIndex);
     }
     
+    private int getIndexOf(T item) {
+        for (int i = 0; i < getModel().getSize(); i++) {
+            if (getModel().getElementAt(i).equals(item)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void clearDisabledIndexes() {
     	disabledIndexes.clear();
     }
+    
+    public boolean isDisabled(T item){
+        int itemIndex = getIndexOf(item);
+        return disabledIndexes.contains(itemIndex);
+    }
 
-	public void setLabels(String[] labels) {
-		for (int i = 0; i < getItemCount(); i++) {
-			itemFromKey.put(getItemAt(i), labels[i]);
-		}
-	}
+    @Override
+    public void addItem(T item) {
+        super.addItem(item);
+    }
+
+    public void addItem(T item, String label) {
+        super.addItem(item);
+        itemFromKey.put(item, label);
+    }
+    
+    public void addLabel(T item, String label) {
+        itemFromKey.put(item, label);
+    }
     
 }

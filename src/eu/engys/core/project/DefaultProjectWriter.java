@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project;
 
@@ -32,16 +31,20 @@ import java.io.IOException;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.engys.core.modules.ApplicationModule;
+import eu.engys.core.modules.ModulesUtil;
 import eu.engys.core.project.materials.MaterialsWriter;
+import eu.engys.core.project.mesh.MeshInfoWriter;
 import eu.engys.core.project.zero.cellzones.CellZonesBuilder;
 import eu.engys.core.project.zero.fields.Initialisations;
 import eu.engys.util.progress.ProgressMonitor;
+import eu.engys.util.ui.UiUtil;
 
 public class DefaultProjectWriter extends AbstractProjectWriter {
 
@@ -78,12 +81,23 @@ public class DefaultProjectWriter extends AbstractProjectWriter {
         logger.info("################## Write '{}' ################## ", baseDir.getName());
         monitor.info("");
         monitor.info("Saving Project");
+        openFOAMProject oldProject = model.getProject();
+        File newProjectBaseDir = baseDir.getAbsoluteFile();
+        File oldProjectBaseDir = oldProject.getBaseDir().getAbsoluteFile();
+		boolean isSaveAs = !newProjectBaseDir.equals(oldProjectBaseDir);
+        if(isSaveAs){
+        	if(newProjectBaseDir.getParentFile().equals(oldProjectBaseDir)){
+        	    String title = "Save error";
+        	    String message = "The destination folder is a subfolder of the source folder";
+        		JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), message, title, JOptionPane.ERROR_MESSAGE);
+        		return;
+        	}
+        }
+        
         if (!baseDir.exists()) {
             baseDir.mkdirs();
         }
 
-        openFOAMProject oldProject = model.getProject();
-        boolean isSaveAs = !baseDir.getAbsoluteFile().equals(oldProject.getBaseDir().getAbsoluteFile());
         if (isSaveAs) {
             CreateCase.deleteAll(baseDir, oldProject.isParallel(), oldProject.getProcessors());
             makeACopy(baseDir);
@@ -96,9 +110,13 @@ public class DefaultProjectWriter extends AbstractProjectWriter {
         
         model.getCustom().saveCustomDict(model);
 
-        new SolverModelWriter(model).save();
+        new SolverModelWriter(model.getSolverModel()).save(model.getProject());
 
         openFOAMProject project = model.getProject();
+        
+        monitor.info("-> Saving Materials");
+        model.getMaterials().saveMaterials(model, materialsWriter);
+        ModulesUtil.saveMaterials(modules);
 
         monitor.info("-> Saving Zero Folder");
         project.getZeroFolder().write(model, cellZoneBuilder, modules, initialisations, monitor);
@@ -110,16 +128,13 @@ public class DefaultProjectWriter extends AbstractProjectWriter {
         project.getSystemFolder().write(model, monitor);
         
         monitor.info("-> Saving Modules");
-        for (ApplicationModule m : modules) {
-            monitor.info(m.getName(), 1);
-            m.write();
-        }
+        ModulesUtil.write(modules);
 
         for (ProjectWriter writer : writers) {
             writer.write(baseDir);
         }
 
-        File logFolder = new File(baseDir, "log");
+        File logFolder = new File(baseDir, openFOAMProject.LOG);
         if (!logFolder.exists()) {
             logFolder.mkdir();
         }
@@ -127,6 +142,8 @@ public class DefaultProjectWriter extends AbstractProjectWriter {
         monitor.info("-> Saving Custom");
         model.getCustom().write(model, monitor);
 
+        new MeshInfoWriter(model).write();
+        
         logger.info("################## End Write ############################## ");
     }
 

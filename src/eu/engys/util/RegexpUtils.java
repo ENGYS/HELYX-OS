@@ -1,44 +1,51 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util;
 
 public class RegexpUtils {
 
     public static final String DOUBLE = "\\-?\\d+\\.?\\d*(?:[eE][+-]?\\d+)?";
     public static final String INTEGER = "\\-?\\d+[^.eE\\d+]";
-    
+
     public static final String POINT = "\\(\\s*" + DOUBLE + "\\s" + DOUBLE + "\\s" + DOUBLE + "\\s*\\)";
-    
-    public static final String SPACES = "\\s*";
-    
+    public static final String SYM_TENSOR = "\\(\\s*" + DOUBLE + "\\s" + DOUBLE + "\\s" + DOUBLE + "\\s" + DOUBLE + "\\s" + DOUBLE + "\\s" + DOUBLE + "\\s*\\)";
+
+    public static final String NONE_OR_MORE_SPACES = "\\s*";
+    public static final String ONE_OR_MORE_SPACES = "\\s+";
+
     public static final String OPEN_BRACKET = "\\(";
     public static final String CLOSED_BRACKET = "\\)";
+    public static final String ANY_CHAR = ".*";
 
     public static final String OPEN_TAG_BRACKET = "\\<";
     public static final String CLOSED_TAG_BRACKET = "\\>";
     public static final String COMA = "\\s*,\\s*";
-    
+
+    public static final String SCALAR_PATTERN = OPEN_BRACKET + NONE_OR_MORE_SPACES + DOUBLE + ONE_OR_MORE_SPACES + DOUBLE + NONE_OR_MORE_SPACES + CLOSED_BRACKET;
+    public static final String ATMOSPHERIC_PATTERN = OPEN_BRACKET + NONE_OR_MORE_SPACES + DOUBLE + ONE_OR_MORE_SPACES + SYM_TENSOR + NONE_OR_MORE_SPACES + CLOSED_BRACKET;
+    public static final String VECTOR_PATTERN = OPEN_BRACKET + NONE_OR_MORE_SPACES + DOUBLE + ONE_OR_MORE_SPACES + POINT + NONE_OR_MORE_SPACES + CLOSED_BRACKET;
+    public static final String SYM_TENSOR_PATTERN = OPEN_BRACKET + NONE_OR_MORE_SPACES + DOUBLE + ONE_OR_MORE_SPACES + POINT + NONE_OR_MORE_SPACES + CLOSED_BRACKET;
+
 }

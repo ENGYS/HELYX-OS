@@ -1,31 +1,36 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.gui.casesetup.schemes;
 
+import static eu.engys.core.project.system.FvSchemes.CORRECTED;
+import static eu.engys.core.project.system.FvSchemes.DEFAULT;
+import static eu.engys.core.project.system.FvSchemes.LAPLACIAN_SCHEMES;
+import static eu.engys.core.project.system.FvSchemes.LIMITED;
+import static eu.engys.core.project.system.FvSchemes.SN_GRAD_SCHEMES;
+import static eu.engys.core.project.system.FvSchemes.UNCORRECTED;
 import static eu.engys.core.project.zero.fields.Fields.AOA;
 import static eu.engys.core.project.zero.fields.Fields.CO2;
 import static eu.engys.core.project.zero.fields.Fields.EPSILON;
@@ -41,13 +46,10 @@ import static eu.engys.util.ui.ComponentsFactory.doubleField;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.ParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 
 import com.google.inject.Inject;
 
@@ -83,89 +85,31 @@ public class NumericalSchemesPanel extends DefaultGUIPanel {
     private PanelBuilder advectionBuilder;
 
     private AdvectionSchemes schemes;
-    
+
     private Map<String, SchemePanel> schemePanelsMap = new LinkedHashMap<String, SchemePanel>();
 
     @Inject
     public NumericalSchemesPanel(Model model) {
         super(NUMERICAL_SCHEMES, model);
+        this.schemes = new AdvectionSchemes(model);
     }
 
     @Override
     protected JComponent layoutComponents() {
-        laplaceModel = new DictionaryModel(new Dictionary("laplacianSchemes"));
-        snGradModel = new DictionaryModel(new Dictionary("snGradSchemes"));
+        this.laplaceModel = new DictionaryModel(new Dictionary(LAPLACIAN_SCHEMES));
+        this.snGradModel = new DictionaryModel(new Dictionary(SN_GRAD_SCHEMES));
 
         DoubleField field = doubleField(0.0, 1.0);
-        laplacianBuilder = new PanelBuilder();
-        laplacianBuilder.addComponent(NON_ORTHOGONAL_CORRECTION_LABEL, field).addPropertyChangeListener(new LaplacianFieldHandler("default", field));
-        try {
-            field.commitEdit();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        this.laplacianBuilder = new PanelBuilder();
+        this.laplacianBuilder.addComponent(NON_ORTHOGONAL_CORRECTION_LABEL, field).addPropertyChangeListener(new LaplacianFieldHandler(DEFAULT, field));
 
-        schemes = new AdvectionSchemes(model);
-
-        advectionBuilder = new PanelBuilder();
-        JPanel advectionPanel = advectionBuilder.removeMargins().getPanel();
-        advectionPanel.setBorder(BorderFactory.createTitledBorder(ADVECTION_LABEL));
-        advectionPanel.setName(ADVECTION_LABEL);
-
-        JPanel laplacianPanel = laplacianBuilder.removeMargins().getPanel();
-        laplacianPanel.setBorder(BorderFactory.createTitledBorder(LAPLACIAN_LABEL));
-        laplacianPanel.setName(LAPLACIAN_LABEL);
+        this.advectionBuilder = new PanelBuilder();
 
         PanelBuilder builder = new PanelBuilder();
-        builder.addComponent(advectionPanel);
-        builder.addComponent(laplacianPanel);
+        builder.addComponent(advectionBuilder.removeMargins().withTitle(ADVECTION_LABEL).withName(ADVECTION_LABEL).getPanel());
+        builder.addComponent(laplacianBuilder.removeMargins().withTitle(LAPLACIAN_LABEL).withName(LAPLACIAN_LABEL).getPanel());
 
         return builder.removeMargins().getPanel();
-    }
-
-    private void rebuildPanel() {
-        if (model.getProject() != null) {
-            FvSchemes fvSchemes = model.getProject().getSystemFolder().getFvSchemes();
-            if (fvSchemes != null) {
-                Dictionary divSchemes = fvSchemes.getDivSchemes();
-                Dictionary laplacianSchemes = fvSchemes.getLaplacianSchemes();
-
-                if (divSchemes != null && laplacianSchemes != null) {
-                    
-                    laplaceModel.setDictionary(laplacianSchemes);
-
-                    advectionBuilder.clear();
-                    schemePanelsMap.clear();
-
-                    buildFieldPanel(advectionBuilder, U);
-                    for (Field field : model.getFields().getMultiphaseUFields()) {
-                        buildFieldPanel(advectionBuilder, field.getName());
-                    }
-
-                    buildFieldPanel(advectionBuilder, K);
-                    buildFieldPanel(advectionBuilder, EPSILON);
-                    buildFieldPanel(advectionBuilder, OMEGA);
-                    buildFieldPanel(advectionBuilder, NU_TILDA);
-                    buildFieldPanel(advectionBuilder, T);
-                    buildFieldPanel(advectionBuilder, W);
-                    buildFieldPanel(advectionBuilder, ILAMBDA);
-                    buildFieldPanel(advectionBuilder, CO2);
-                    buildFieldPanel(advectionBuilder, AOA);
-                    buildFieldPanel(advectionBuilder, SMOKE);
-                }
-            }
-        }
-    }
-
-    private void buildFieldPanel(PanelBuilder advectionBuilder, String fieldName) {
-
-        Fields fields = getModel().getFields();
-        if (fields.containsKey(fieldName)) {
-            SchemePanel schemePanel = new SchemePanel(schemes, fieldName);
-            schemePanel.load();
-            schemePanelsMap.put(fieldName, schemePanel);
-            advectionBuilder.addComponent(fieldName, schemePanel.getPanel());
-        }
     }
 
     @Override
@@ -204,7 +148,44 @@ public class NumericalSchemesPanel extends DefaultGUIPanel {
         });
     }
 
-    class LaplacianFieldHandler implements PropertyChangeListener, DictionaryListener {
+    private void rebuildPanel() {
+        if (model.getProject() != null) {
+            FvSchemes fvSchemes = model.getProject().getSystemFolder().getFvSchemes();
+            if (fvSchemes != null && fvSchemes.getLaplacianSchemes() != null) {
+                laplaceModel.setDictionary(fvSchemes.getLaplacianSchemes());
+
+                advectionBuilder.clear();
+                schemePanelsMap.clear();
+
+                buildFieldPanel(U);
+                for (Field field : model.getFields().getMultiphaseUFields()) {
+                    buildFieldPanel(field.getName());
+                }
+                buildFieldPanel(K);
+                buildFieldPanel(EPSILON);
+                buildFieldPanel(OMEGA);
+                buildFieldPanel(NU_TILDA);
+                buildFieldPanel(T);
+                buildFieldPanel(W);
+                buildFieldPanel(ILAMBDA);
+                buildFieldPanel(CO2);
+                buildFieldPanel(AOA);
+                buildFieldPanel(SMOKE);
+            }
+        }
+    }
+
+    private void buildFieldPanel(String fieldName) {
+        Fields fields = getModel().getFields();
+        if (fields.containsKey(fieldName)) {
+            SchemePanel schemePanel = new SchemePanel(model, schemes, fieldName);
+            schemePanel.load();
+            schemePanelsMap.put(fieldName, schemePanel);
+            advectionBuilder.addComponent(fieldName, schemePanel.getPanel());
+        }
+    }
+
+    private class LaplacianFieldHandler implements PropertyChangeListener, DictionaryListener {
         private String key;
         private DoubleField field;
 
@@ -222,16 +203,16 @@ public class NumericalSchemesPanel extends DefaultGUIPanel {
                 double value = field.getDoubleValue();
                 if (value == 0) {
                     laplacianValue = GAUSS_LINEAR_UNCORRECTED;
-                    snGradValue = "uncorrected";
+                    snGradValue = UNCORRECTED;
                 } else if (value == 1) {
                     laplacianValue = GAUSS_LINEAR_CORRECTED;
-                    snGradValue = "corrected";
+                    snGradValue = CORRECTED;
                 } else {
                     laplacianValue = GAUSS_LINEAR_LIMITED + " " + Double.toString(value);
-                    snGradValue = "limited" + " " + Double.toString(value);
+                    snGradValue = LIMITED + " " + Double.toString(value);
                 }
-                laplaceModel.getDictionary().add("default", laplacianValue);
-                snGradModel.getDictionary().add("default", snGradValue);
+                laplaceModel.getDictionary().add(DEFAULT, laplacianValue);
+                snGradModel.getDictionary().add(DEFAULT, snGradValue);
             }
         }
 

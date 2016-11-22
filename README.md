@@ -1,10 +1,17 @@
 # HELYX-OS
-[HELYX-OS](http://engys.com/products/helyx-os) is an open-source Graphical User Interface designed to work natively with OpenFOAM [version 2.4.0](http://www.openfoam.org/archive/2.4.0/download/source.php). The GUI is developed by [ENGYS](http://engys.com/) using Java+[VTK](http://www.vtk.org/) and delivered to the public under the GNU General Public License.
+[HELYX-OS](http://engys.com/products/helyx-os) is an open-source Graphical User Interface designed to work natively with OpenFOAM [version 4.1](http://www.openfoam.org/archive/4.1/download/source.php) and OpenFOAM [v1606+](http://openfoam.com/download/install-binary.php). The GUI is developed by [ENGYS](http://engys.com/) using Java+[VTK](http://www.vtk.org/) and delivered to the public under the GNU General Public License.
  
 HELYX-OS has been created to facilitate the usage of the standard OpenFOAM libraries, by removing the complexity of text based case definition in favour of an intuitive easy-to-use graphical user interface. The GUI is focused on pre-processing tasks, including meshing, case definition and solver execution.  Visit the [HELYX-OS Project Page](http://engys.github.io/HELYX-OS/) for more information.
 
 ## Installing the latest binary file for 64 bit linux
 Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to download the latest HELYX-OS binary and view [installation instructions](http://engys.github.io/HELYX-OS/installation/). 
+
+## Configuring HELYX-OS for OpenFOAM v1606+
+To use OpenFOAM v1606+ installed via Docker following the instructions detailed [here](http://openfoam.com/download/install-binary.php) you need to do the following:
+ - Open HELYX-OS
+ - Go to Edit>Preferences
+ - In the "Misc" section check the "Use Docker" tick box and then type "openfoamplus/of_v1606plus_centos66" in the "Docker Image" textbox
+ - Press "OK" to apply settings
 
 ## Compiling HELYX-OS on your own
 

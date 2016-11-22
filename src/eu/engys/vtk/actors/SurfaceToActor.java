@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.vtk.actors;
 
@@ -43,9 +42,11 @@ import eu.engys.core.project.geometry.surface.MultiPlane;
 import eu.engys.core.project.geometry.surface.Plane;
 import eu.engys.core.project.geometry.surface.PlaneRegion;
 import eu.engys.core.project.geometry.surface.Ring;
+import eu.engys.core.project.geometry.surface.RotatedBox;
 import eu.engys.core.project.geometry.surface.Solid;
 import eu.engys.core.project.geometry.surface.Sphere;
 import eu.engys.core.project.geometry.surface.Stl;
+import eu.engys.core.project.geometry.surface.StlArea;
 import eu.engys.gui.view3D.Actor;
 import eu.engys.util.progress.ProgressMonitor;
 
@@ -73,6 +74,9 @@ public class SurfaceToActor {
             case BOX:
                 Box box = (Box) surface;
                 return getBoxActor(box);
+            case RBOX:
+                RotatedBox rbox = (RotatedBox) surface;
+                return getRotatedBoxActor(rbox);
             case CYLINDER:
                 Cylinder cyl = (Cylinder) surface;
                 return getCylinderActor(cyl);
@@ -95,6 +99,9 @@ public class SurfaceToActor {
             case STL:
                 Stl stl = (Stl) surface;
                 return getSTLActor(stl);
+            case STL_AREA:
+                StlArea stlArea = (StlArea) surface;
+                return getSTLAreaActor(stlArea);
             case MULTI:
                 MultiPlane multi = (MultiPlane) surface;
                 return getMultiPlaneActor(multi);
@@ -126,6 +133,11 @@ public class SurfaceToActor {
         return actors.toArray(new Actor[0]);
     }
 
+    private Actor[] getSTLAreaActor(StlArea stlArea) {
+        logger.info("[ADD STL AREA] name: {}", stlArea.getPatchName());
+        return new Actor[] { new StlAreaActor(stlArea) };
+    }
+
     private Actor[] getSolidActor(Solid solid) {
         logger.info("[ADD SOLID] name: {}", solid.getPatchName());
         return new Actor[] { new SolidActor(solid) };
@@ -141,13 +153,18 @@ public class SurfaceToActor {
         return new SurfaceActor[] { new BoxActor(box) };
     }
 
+    private SurfaceActor[] getRotatedBoxActor(RotatedBox box) {
+        logger.info("[ADD BOX] origin: {}, i: {}, j: {}, k: {}", format(box.getOrigin()).toCents(), format(box.getI()).toCents(), format(box.getJ()).toCents(), format(box.getK()).toCents());
+        return new SurfaceActor[] { new RotatedBoxActor(box) };
+    }
+
     private SurfaceActor[] getCylinderActor(Cylinder cylinder) {
         logger.info("[ADD CYLINDER] point1: {}, point2: {}, radius: {}", format(cylinder.getPoint1()).toCents(), format(cylinder.getPoint2()).toCents(), format(cylinder.getRadius()).toCents());
         return new SurfaceActor[] { new CylinderActor(cylinder) };
     }
 
     private SurfaceActor[] getSphereActor(Sphere sphere) {
-        logger.info("[ADD SPHERE] center: {}, radius: {}", format(sphere.getCenter()).toCents(), sphere.getRadius());
+        logger.info("[ADD SPHERE] center: {}, radius: {}", format(sphere.getCentre()).toCents(), sphere.getRadius());
         return new SurfaceActor[] { new SphereActor(sphere) };
     }
 
@@ -171,13 +188,13 @@ public class SurfaceToActor {
     }
 
     private SurfaceActor[] getPlaneActor(Plane plane) {
-        if (plane.getCenter() == null) {
-            plane.setCenter(boundingBox.getCenter());
+        if (plane.getBasePoint() == null) {
+            plane.setBasePoint(boundingBox.getCenter());
         }
-        if (plane.getNormal() == null) {
-            plane.setNormal(new double[] {0, 0, 1});
+        if (plane.getNormalVector() == null) {
+            plane.setNormalVector(new double[] {0, 0, 1});
         }
-        logger.info("[ADD PLANE] origin: {}, normal: {}", format(plane.getCenter()).toCents(), format(plane.getNormal()).toCents());
+        logger.info("[ADD PLANE] origin: {}, normal: {}", format(plane.getBasePoint()).toCents(), format(plane.getNormalVector()).toCents());
         return new SurfaceActor[] { new PlaneActor(plane) };
     }
 }

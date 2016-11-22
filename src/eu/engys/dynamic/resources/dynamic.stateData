@@ -1,0 +1,104 @@
+states
+{
+    pimpleFoamRAS  (PIMPLE incompressible ras);
+    pimpleFoamLES  (PIMPLE incompressible les);
+
+    rhoPimpleFoamRAS  (PIMPLE compressible ras);
+    rhoPimpleFoamLES  (PIMPLE compressible les);
+    
+    interFoamRAS  (PIMPLE incompressible ras VOF);
+    interFoamLES  (PIMPLE incompressible les VOF);
+    
+    siCoupled (steady COUPLED incompressible ras);
+    tiCoupled (transient COUPLED incompressible ras);
+    tiCoupled2 (transient COUPLED incompressible les);
+}
+
+"pimpleFoam.*"                  {$dynamic;}
+"rhoPimpleFoam.*"               {$dynamic;}
+"rhoCentralFoam.*"              {$dynamic;}
+"interFoam.*"                   {$dynamic;}
+"siCoupled.*"                   {$dynamic;}
+"tiCoupled.*"                   {$dynamic;}
+
+dynamic
+{
+    fieldMaps
+    {
+        pointMotionU motion;
+        pointDisplacement displacement;
+        p_rgh pmultiphaseDyM;
+    }
+
+    system
+    {
+        fvSchemes
+        {
+            laplacianSchemes
+            {
+                laplacian(diffusivity,cellDisplacement) Gauss linear uncorrected;
+                laplacian(diffusivity,cellMotionU) Gauss linear uncorrected;
+            }
+            fluxRequired
+            {
+                pcorr           ;
+            }
+        }
+        fvSolution
+        {
+            solvers 
+            {
+                pcorr
+                {
+                    solver          GAMG;
+                    agglomerator    faceAreaPair;
+                    mergeLevels     1;
+                    cacheAgglomeration true;
+                    nCellsInCoarsestLevel 200;
+                    tolerance       1e-10;
+                    relTol          0.01;
+                    smoother        GaussSeidel;
+                    nPreSweeps      0;
+                    nPostSweeps     2;
+                    nFinestSweeps   2;
+                    minIter         1;
+                }
+                cellMotionU
+                {
+                    solver          PCG;
+                    preconditioner  DIC;    
+                    tolerance       1e-08;
+                    relTol          0;
+                    minIter         1;
+                }
+                cellDisplacement
+                {
+                    solver          GAMG;
+                    tolerance       1e-08;
+                    relTol          0;
+                    smoother        GaussSeidel;
+                    cacheAgglomeration true;
+                    nCellsInCoarsestLevel 10;
+                    agglomerator    faceAreaPair;
+                    mergeLevels     1;
+                    minIter         1;
+                }
+
+            }
+            
+            PIMPLE
+            {
+                correctPhi      true;
+                turbOnFinalIterOnly false;
+                //ddtPhiCorr      true;
+            }
+        }
+
+        controlDict
+        {
+        }
+    }
+    
+    constant {}
+
+}

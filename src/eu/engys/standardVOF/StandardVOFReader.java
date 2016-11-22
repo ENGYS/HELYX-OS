@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.standardVOF;
 
 import static eu.engys.core.project.constant.ThermophysicalProperties.MATERIAL_NAME_KEY;
@@ -38,6 +37,7 @@ import eu.engys.core.project.constant.ConstantFolder;
 import eu.engys.core.project.constant.TransportProperties;
 import eu.engys.core.project.materials.Material;
 import eu.engys.core.project.materials.Materials;
+import eu.engys.gui.casesetup.materials.StandardMaterialsReader;
 
 public class StandardVOFReader {
 
@@ -54,14 +54,14 @@ public class StandardVOFReader {
     }
 
     public void loadState() {
-        if (isVOF()) {
+        if (isMultiphaseVOF()) {
             model.getState().setMultiphaseModel(StandardVOFModule.VOF_MODEL);
             model.getState().setPhases(2);
         }
     }
 
     public void loadMaterials() {
-        if (isVOF()) {
+        if (isMultiphaseVOF()) {
             if (model.getState().isIncompressible()) {
                 readIncompressibleMaterials();
             } else {
@@ -70,7 +70,7 @@ public class StandardVOFReader {
         }
     }
 
-    boolean isVOF() {
+    private boolean isMultiphaseVOF() {
         ConstantFolder constantFolder = model.getProject().getConstantFolder();
         TransportProperties transportProperties = constantFolder.getTransportProperties();
         if (transportProperties != null) {
@@ -101,7 +101,8 @@ public class StandardVOFReader {
                 }
                 String name1 = dict1.lookup(MATERIAL_NAME_KEY);
                 dict1.setName(name1);
-                materials.add(new Material(name1, dict1));
+                Material m1 = new StandardMaterialsReader().readIncompressibleMaterial(dict1);
+                materials.add(m1);
             }
 
             Dictionary dict2 = new Dictionary(transportProperties.subDict(phases.split(" ")[1]));
@@ -111,7 +112,8 @@ public class StandardVOFReader {
                 }
                 String name2 = dict2.lookup(MATERIAL_NAME_KEY);
                 dict2.setName(name2);
-                materials.add(new Material(name2, dict2));
+                Material m2 = new StandardMaterialsReader().readIncompressibleMaterial(dict2);
+                materials.add(m2);
             }
 
             if (transportProperties.found(SIGMA_KEY)) {

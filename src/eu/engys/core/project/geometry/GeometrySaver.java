@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.geometry;
 
 import static eu.engys.core.dictionary.DictionaryUtils.copyIfFound;
@@ -30,7 +29,7 @@ import static eu.engys.core.project.system.SnappyHexMeshDict.ADD_LAYERS_CONTROLS
 import static eu.engys.core.project.system.SnappyHexMeshDict.BAFFLE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.BOUNDARY_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.CASTELLATED_MESH_CONTROLS_KEY;
-import static eu.engys.core.project.system.SnappyHexMeshDict.CELL_ZONE_INSIDE;
+import static eu.engys.core.project.system.SnappyHexMeshDict.CELL_ZONE_INSIDE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.CELL_ZONE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.DISTANCE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.EXPANSION_RATIO_KEY;
@@ -42,7 +41,7 @@ import static eu.engys.core.project.system.SnappyHexMeshDict.FINAL_LAYER_THICKNE
 import static eu.engys.core.project.system.SnappyHexMeshDict.GEOMETRY_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.GROWN_UP_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.INSIDE;
-import static eu.engys.core.project.system.SnappyHexMeshDict.IS_CELL_ZONE;
+import static eu.engys.core.project.system.SnappyHexMeshDict.IS_CELL_ZONE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.LAYERS_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.LEVELS_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.LEVEL_KEY;
@@ -66,7 +65,6 @@ import org.slf4j.LoggerFactory;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.ListField;
 import eu.engys.core.project.Model;
-import eu.engys.core.project.geometry.stl.AffineTransform;
 import eu.engys.core.project.geometry.surface.Region;
 import eu.engys.core.project.geometry.surface.Stl;
 import eu.engys.core.project.system.SnappyHexMeshDict;
@@ -107,15 +105,17 @@ public class GeometrySaver {
 
     private void initDictionaries(SnappyHexMeshDict snappyHexMeshDict) {
         geometryDict = snappyHexMeshDict.subDict(GEOMETRY_KEY);
-        castellatedDict = snappyHexMeshDict.subDict(CASTELLATED_MESH_CONTROLS_KEY);
-        refinementSurfaces = castellatedDict.subDict(REFINEMENTS_SURFACES_KEY);
-        refinementRegions = castellatedDict.subDict(REFINEMENTS_REGIONS_KEY);
         layers = snappyHexMeshDict.subDict(ADD_LAYERS_CONTROLS_KEY).subDict(LAYERS_KEY);
-
         geometryDict.clear();
-        refinementSurfaces.clear();
-        refinementRegions.clear();
         layers.clear();
+        
+        castellatedDict = snappyHexMeshDict.subDict(CASTELLATED_MESH_CONTROLS_KEY);
+        if(castellatedDict != null){
+            refinementSurfaces = castellatedDict.subDict(REFINEMENTS_SURFACES_KEY);
+            refinementRegions = castellatedDict.subDict(REFINEMENTS_REGIONS_KEY);
+            refinementSurfaces.clear();
+            refinementRegions.clear();
+        }
     }
 
     private void saveFeatureLines(Model model) {
@@ -128,9 +128,6 @@ public class GeometrySaver {
 
     private void saveSurfaces(Model model) {
         for (Surface surface : geometry.getSurfaces()) {
-            if (surface.getType().isStl()) {
-                saveSTL((Stl) surface);
-            }
             saveToGeometry(surface);
             if (isACellZone(surface)) {
                 saveToRefinementSurfacesAsCellZone(surface);
@@ -145,18 +142,8 @@ public class GeometrySaver {
         }
     }
 
-    private void saveSTL(Stl stl) {
-        AffineTransform transformation = stl.getTransformation();
-        if (stl.getTransformMode() == TransfromMode.TO_DICTIONARY) {
-            if (!transformation.isIdentity()) {
-                ListField transforms = transformation.toDictionary();
-                stl.getGeometryDictionary().add(transforms);
-            }
-        }
-    }
-
     private void saveToGeometry(Surface surface) {
-        Dictionary geometryDictionary = surface.getGeometryDictionary();
+        Dictionary geometryDictionary = surface.toGeometryDictionary();
         if (geometryDictionary != null && geometryDictionary.found(Dictionary.TYPE)) {
             geometryDict.add(geometryDictionary);
         }
@@ -173,9 +160,9 @@ public class GeometrySaver {
             copyIfFound(sd, surfaceDictionary, MAX_CELLS_ACROSS_GAP_KEY);
 
             if (sd.found(FACE_ZONE_KEY)) {
-                sd.add(CELL_ZONE_INSIDE, INSIDE);
-                if (sd.found(IS_CELL_ZONE)) {
-                    if (sd.lookup(IS_CELL_ZONE).equals("true")) {
+                sd.add(CELL_ZONE_INSIDE_KEY, INSIDE);
+                if (sd.found(IS_CELL_ZONE_KEY)) {
+                    if (sd.lookup(IS_CELL_ZONE_KEY).equals("true")) {
                         if (sd.found(CELL_ZONE_KEY)) {
                             sd.add(CELL_ZONE_KEY, sd.lookup(CELL_ZONE_KEY));
                         } else {
@@ -184,7 +171,7 @@ public class GeometrySaver {
                     } else {
                         sd.remove(CELL_ZONE_KEY);
                     }
-                    sd.remove(IS_CELL_ZONE);
+                    sd.remove(IS_CELL_ZONE_KEY);
                 }
                 sd.remove(REGIONS_KEY);
             }

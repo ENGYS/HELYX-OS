@@ -1,37 +1,35 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.materials;
 
-import static eu.engys.core.project.constant.ThermophysicalProperties.CONSTANT_CP_KEY;
-import static eu.engys.core.project.constant.ThermophysicalProperties.CONST_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.CP_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.ENERGY_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.EQUATION_OF_STATE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.HE_PSI_THERMO_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.HF_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.MATERIAL_NAME_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.MIXTURE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.MOL_WEIGHT_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.MU_KEY;
@@ -42,10 +40,11 @@ import static eu.engys.core.project.constant.ThermophysicalProperties.PURE_MIXTU
 import static eu.engys.core.project.constant.ThermophysicalProperties.SENSIBLE_ENTHALPY_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.SPECIE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMODYNAMICS_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_CONST_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_TYPE_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.TRANSPORT_CONST_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.TRANSPORT_KEY;
-import static eu.engys.core.project.constant.TransportProperties.MATERIAL_NAME_KEY;
 import static eu.engys.util.Symbols.CP;
 import static eu.engys.util.Symbols.HF;
 import static eu.engys.util.Symbols.MU_MEASURE;
@@ -54,6 +53,7 @@ import javax.swing.JPanel;
 
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.Model;
+import eu.engys.core.project.materials.compressible.CompressibleMaterial;
 import eu.engys.core.project.state.State;
 import eu.engys.util.ui.textfields.StringField;
 
@@ -64,6 +64,7 @@ public interface CompressibleMaterialsPanel {
     static final String NAME_LABEL = "Name";
     static final String EQUATION_OF_STATE_LABEL = "Equation Of State";
     static final String PERFECT_GAS_LABEL = "Perfect Gas";
+    static final String PERFECT_FLUID_LABEL = "Perfect Fluid";
     static final String SUTHERLAND_TEMPERATURE_TS_LABEL = "Sutherland Temperature (Ts)";
     static final String SUTHERLAND_COEFFICIENT_AS_LABEL = "Sutherland Coefficient (As)";
     static final String PRANDTL_NUMBER_LABEL = "Prandtl Number";
@@ -86,8 +87,8 @@ public interface CompressibleMaterialsPanel {
                 {
                     add(TYPE, HE_PSI_THERMO_KEY);
                     add(MIXTURE_KEY, PURE_MIXTURE_KEY);
-                    add(TRANSPORT_KEY, CONST_KEY);
-                    add(THERMO_KEY, CONSTANT_CP_KEY);
+                    add(TRANSPORT_KEY, TRANSPORT_CONST_KEY);
+                    add(THERMO_KEY, THERMO_CONST_KEY);
                     add(EQUATION_OF_STATE_KEY, PERFECT_GAS_KEY);
                     add(SPECIE_KEY, SPECIE_KEY);
                     add(ENERGY_KEY, SENSIBLE_ENTHALPY_KEY);
@@ -119,11 +120,9 @@ public interface CompressibleMaterialsPanel {
         }
     };
 
-    Dictionary getEmptyMaterial();
+    CompressibleMaterial getMaterial(Model model);
 
-    Dictionary getMaterial(Model model);
-
-    void setMaterial(Dictionary material);
+    void setMaterial(CompressibleMaterial material);
 
     JPanel getPanel();
 

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.dictionary.model;
 
 import static eu.engys.util.ui.ComponentsFactory.checkBoxControllerField;
@@ -39,6 +38,7 @@ import static eu.engys.util.ui.ComponentsFactory.selectField;
 import static eu.engys.util.ui.ComponentsFactory.spinnerField;
 import static eu.engys.util.ui.ComponentsFactory.stringField;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -54,7 +54,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.ListModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +64,10 @@ import org.slf4j.LoggerFactory;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.DictionaryUtils;
 import eu.engys.core.dictionary.DimensionedScalar;
-import eu.engys.core.dictionary.FieldChangeListener;
 import eu.engys.core.project.zero.patches.Patches;
 import eu.engys.util.filechooser.util.SelectionMode;
 import eu.engys.util.ui.ComponentsFactory;
+import eu.engys.util.ui.FieldChangeListener;
 import eu.engys.util.ui.FileFieldPanel;
 import eu.engys.util.ui.ListBuilder;
 import eu.engys.util.ui.ListFieldPanel;
@@ -91,8 +93,8 @@ public class DictionaryModel {
         public void dictionaryChanged() throws DictionaryError;
     }
 
-    private List<DictionaryListener> listeners = new CopyOnWriteArrayList<DictionaryModel.DictionaryListener>();
-    private Map<String, DictionaryModel> subModels = new HashMap<String, DictionaryModel>();
+    private List<DictionaryListener> listeners = new CopyOnWriteArrayList<>();
+    private Map<String, DictionaryModel> subModels = new HashMap<>();
 
     public static class DictionaryError extends Exception {
         private String[] messages;
@@ -222,26 +224,34 @@ public class DictionaryModel {
     }
 
     public JCheckBox bindBoolean(String key) {
-        JCheckBox field = checkField();
-        field.addActionListener(new BooleanFieldHandler(key, field, false));
-        return field;
+        return bindBoolean(key, false);
     }
 
     public JCheckBox bindBoolean(String key, boolean def) {
-        JCheckBox field = checkField(def);
-        field.addActionListener(new BooleanFieldHandler(key, field, def));
-        return field;
+        return bindBoolean(key, def, true);
+    }
+
+    public JCheckBox bindBoolean(String key, boolean def, boolean fireEvent) {
+    	JCheckBox field = checkField(def);
+    	field.addActionListener(new BooleanFieldHandler(key, field, def, fireEvent));
+    	return field;
     }
 
     public JCheckBox bindBoolean(String key, String trueValue, String falseValue) {
         JCheckBox field = checkField();
-        field.addActionListener(new BooleanValuesFieldHandler(key, field, trueValue, falseValue));
+        field.addActionListener(new BooleanValuesFieldHandler(key, field, trueValue, falseValue, false));
         return field;
     }
 
     public JCheckBox bindBoolean(String key, String trueValue, String falseValue, boolean def) {
         JCheckBox field = checkField(def);
-        field.addActionListener(new BooleanValuesFieldHandler(key, field, trueValue, falseValue));
+        field.addActionListener(new BooleanValuesFieldHandler(key, field, trueValue, falseValue, false));
+        return field;
+    }
+
+    public JCheckBox bindBoolean(String key, String trueValue, String falseValue, boolean def, boolean lightEvent) {
+        JCheckBox field = checkField(def);
+        field.addActionListener(new BooleanValuesFieldHandler(key, field, trueValue, falseValue, lightEvent));
         return field;
     }
 
@@ -291,7 +301,6 @@ public class DictionaryModel {
 
     // public IntegerField bindInteger(String key, String name) {
     // IntegerField field = bindInteger(key);
-    // field.setName(name);
     // return field;
     // }
 
@@ -334,7 +343,6 @@ public class DictionaryModel {
 
     // public DoubleField bindUniformDoubleWithName(String key, String name) {
     // DoubleField field = doubleField();
-    // field.setName(name);
     // field.addPropertyChangeListener(new DoubleUniformFieldHandler(key,
     // field));
     // return field;
@@ -377,6 +385,13 @@ public class DictionaryModel {
         return field;
     }
 
+    public DoubleField bindDoubleAndUniformDouble(String key1, String key2) {
+        DoubleField field = doubleField();
+        field.addPropertyChangeListener(new DoubleFieldHandler(key1, field, null));
+        field.addPropertyChangeListener(new DoubleUniformFieldHandler(key2, field));
+        return field;
+    }
+
     public DoubleField bindDouble(String key) {
         return bindDouble(key, (FieldChangeListener) null);
     }
@@ -391,6 +406,42 @@ public class DictionaryModel {
         DoubleField field = doubleField(places);
         field.addPropertyChangeListener(new DoubleFieldHandler(key, field, listener));
         return field;
+    }
+    
+    public JComponent bindCheckAndDouble(final String key, Double def) {
+        final JCheckBox checkBox = checkField();
+        final DoubleField field = doubleField(def);
+        field.addPropertyChangeListener(new DoubleFieldHandler(key, field, null));
+        field.setEnabled(false);
+        checkBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (checkBox.isSelected()) {
+                    field.setEnabled(true);
+                } else {
+                    field.setValue(null);
+                    field.setEnabled(false);
+                }
+            }
+        });
+        DictionaryModel.this.addDictionaryListener(new DictionaryListener() {
+            @Override
+            public void dictionaryChanged() throws DictionaryError {
+                checkBox.setSelected(dictionary.found(key));
+                field.setEnabled(checkBox.isSelected());
+            }
+        });
+        JPanel panel = new JPanel(new BorderLayout()) {
+            @Override
+            public void setName(String name) {
+                super.setName(name);
+                checkBox.setName(name);
+                field.setName(name);
+            }
+        };
+        panel.add(checkBox, BorderLayout.WEST);
+        panel.add(field, BorderLayout.CENTER);
+        return panel;
     }
     
     public DoubleField bindDouble(String key, Double def) {
@@ -435,7 +486,6 @@ public class DictionaryModel {
         DoubleField[] field = doublePointField();
         for (int i = 0; i < field.length; i++) {
             DoubleField f = field[i];
-            f.setName(key + "." + i);
             f.addPropertyChangeListener(new PointFieldHandler(key, field, listener));
         }
         return field;
@@ -445,8 +495,17 @@ public class DictionaryModel {
         DoubleField[] field = doublePointField(places);
         for (int i = 0; i < field.length; i++) {
             DoubleField f = field[i];
-            f.setName(key + "." + i);
             f.addPropertyChangeListener(new PointFieldHandler(key, field, listener));
+        }
+        return field;
+    }
+
+    public DoubleField[] bindPointAndUniformPoint(String key1, String key2) {
+        DoubleField[] field = doublePointField();
+        for (int i = 0; i < field.length; i++) {
+            DoubleField f = field[i];
+            f.addPropertyChangeListener(new PointFieldHandler(key1, field, null));
+            f.addPropertyChangeListener(new PointUniformFieldHandler(key2, field));
         }
         return field;
     }
@@ -479,16 +538,6 @@ public class DictionaryModel {
         return field;
     }
 
-    // public DoubleField[] bindUniformPointWithName(String key, String name) {
-    // DoubleField[] field = doublePointField();
-    // for (int i = 0; i < field.length; i++) {
-    // DoubleField f = field[i];
-    // f.setName(name + "." + i);
-    // f.addPropertyChangeListener(new PointUniformFieldHandler(key, field));
-    // }
-    // return field;
-    // }
-
     public DoubleField[] bindUniformPoint(String key1, String key2) {
         DoubleField[] field = doublePointField();
         for (int i = 0; i < field.length; i++) {
@@ -513,7 +562,6 @@ public class DictionaryModel {
         for (int i = 0; i < field.length; i++) {
             DoubleField f = field[i];
             f.setColumns(1);
-            f.setName(key + "." + i);
             f.addPropertyChangeListener(new PointFieldHandler(key, field, null));
         }
         return field;
@@ -543,6 +591,12 @@ public class DictionaryModel {
         return combo;
     }
 
+    public JComboBox<String> bindSelection(String key, ListModel<String> listModel) {
+        JComboBox<String> combo = selectField(listModel);
+        combo.addActionListener(new SelectFieldHandler(key, combo, null));
+        return combo;
+    }
+
     public JComboBox<String> bindSelection(String key, String... keys) {
         JComboBox<String> combo = selectField(keys, keys);
         combo.addActionListener(new SelectFieldHandler(key, combo, null));
@@ -567,7 +621,7 @@ public class DictionaryModel {
 
     public JCheckBoxController bindCheckBoxController(String key, String name) {
         JCheckBoxController combo = checkBoxControllerField(name);
-        combo.addActionListener(new BooleanFieldHandler(key, combo, false));
+        combo.addActionListener(new BooleanFieldHandler(key, combo, false, true));
         return combo;
     }
 
@@ -647,7 +701,7 @@ public class DictionaryModel {
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("(");
+                sb.append("( ");
                 for (int i = 0; i < field.length; i++) {
                     sb.append(field[i].getDoubleValue());
                     sb.append(" ");
@@ -767,19 +821,15 @@ public class DictionaryModel {
 
     class SpinnerFieldHandler implements PropertyChangeListener, DictionaryListener {
         public SpinnerFieldHandler(String key, SpinnerField field) {
-            // TODO Auto-generated constructor stub
         }
 
         @Override
         public void dictionaryChanged() throws DictionaryError {
-            // TODO Auto-generated method stub
 
         }
 
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            // TODO Auto-generated method stub
-
         }
     }
 
@@ -899,7 +949,7 @@ public class DictionaryModel {
                 dictionary.add(key, sb.toString());
                 logger.trace("PointFieldHandler -> value: {}", dictionary.lookup(key));
                 if (listener != null) {
-                    listener.fieldChanged();
+                    listener.fieldChanged(evt.getSource());
                 }
             }
         }
@@ -949,7 +999,7 @@ public class DictionaryModel {
                     dictionary.add(key, Double.toString(field.getDoubleValue()));
                     logger.trace("DoubleFieldHandler -> value: {}", dictionary.lookup(key));
                     if (listener != null) {
-                        listener.fieldChanged();
+                        listener.fieldChanged(evt.getSource());
                     }
                 }
             }
@@ -986,7 +1036,7 @@ public class DictionaryModel {
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
                 if (!Double.isInfinite(field.getDoubleValue())) {
-                    dictionary.add(key, "uniform " + Double.toString(field.getDoubleValue()));
+                    dictionary.addUniform(key, field.getDoubleValue());
                     logger.trace("DoubleUniformFieldHandler -> value: {}", dictionary.lookup(key));
                 }
             }
@@ -1022,7 +1072,7 @@ public class DictionaryModel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
-                dictionary.add(key, "uniform " + Double.toString(-Math.abs(field.getDoubleValue())));
+                dictionary.addUniform(key, -Math.abs(field.getDoubleValue()));
                 logger.trace("DoubleUniformFieldHandler -> " + dictionary.toString());
             }
         }
@@ -1053,7 +1103,7 @@ public class DictionaryModel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
-                dictionary.add(key, "uniform " + Double.toString(Math.abs(field.getDoubleValue())));
+                dictionary.addUniform(key, Math.abs(field.getDoubleValue()));
                 logger.trace("DoubleUniformFieldHandler -> " + dictionary.toString());
             }
         }
@@ -1084,7 +1134,7 @@ public class DictionaryModel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
-                dictionary.add(key, "constant " + Double.toString(field.getDoubleValue()));
+                dictionary.addConstant(key, field.getDoubleValue());
                 logger.trace("DoubleUniformFieldHandler -> value: {}", dictionary.lookup(key));
             }
         }
@@ -1107,11 +1157,13 @@ public class DictionaryModel {
         private JCheckBox check;
         private String key;
         private final boolean def;
+		private boolean fireEvent;
 
-        public BooleanFieldHandler(String key, JCheckBox check, boolean def) {
+        public BooleanFieldHandler(String key, JCheckBox check, boolean def, boolean fireEvent) {
             this.check = check;
             this.key = key;
             this.def = def;
+			this.fireEvent = fireEvent;
             DictionaryModel.this.addDictionaryListener(this);
         }
 
@@ -1128,7 +1180,9 @@ public class DictionaryModel {
             String correctedForYesNo = value == null ? String.valueOf(def) : value.equals("yes") ? "true" : value.equals("no") ? "false" : value;
             boolean b = Boolean.parseBoolean(correctedForYesNo);
             if (b != check.isSelected()) {
-                check.doClick();
+            	if(fireEvent){
+            		check.doClick();
+            	}
                 check.setSelected(b);
             }
             logger.trace("BooleanFieldHandler ->  value: {}", value);
@@ -1141,12 +1195,14 @@ public class DictionaryModel {
         private String key;
         private final String trueValue;
         private final String falseValue;
+        private boolean lightEvent;
 
-        public BooleanValuesFieldHandler(String key, JCheckBox check, String trueValue, String falseValue) {
+        public BooleanValuesFieldHandler(String key, JCheckBox check, String trueValue, String falseValue, boolean lightEvent) {
             this.check = check;
             this.key = key;
             this.trueValue = trueValue;
             this.falseValue = falseValue;
+            this.lightEvent = lightEvent;
             DictionaryModel.this.addDictionaryListener(this);
         }
 
@@ -1162,7 +1218,11 @@ public class DictionaryModel {
             String value = dictionary.lookup(key);
             boolean selected = value != null && value.equals(trueValue);
             if (shouldClick(selected, check.isSelected())) {
-                check.doClick();
+                if(lightEvent){
+                    check.setSelected(!check.isSelected());
+                } else {
+                    check.doClick();
+                }
             }
             logger.trace("BooleanValuesFieldHandler ->  value: {}", value);
         }
@@ -1232,11 +1292,10 @@ public class DictionaryModel {
         public void propertyChange(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("value")) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("(");
+                sb.append("( ");
                 for (int i = 0; i < field.length; i++) {
                     if (field[i].getValue() != null) {
-                        sb.append(field[i].getDoubleValue());
-                        sb.append(" ");
+                        sb.append(field[i].getDoubleValue() + " ");
                     } else {
                         sb.append("0 ");
                     }
@@ -1245,7 +1304,7 @@ public class DictionaryModel {
                 dictionary.add(key, sb.toString());
                 logger.trace("PointFieldHandler -> value: {}", dictionary.lookup(key));
                 if (listener != null) {
-                    listener.fieldChanged();
+                    listener.fieldChanged(evt.getSource());
                 }
             }
         }
@@ -1292,14 +1351,7 @@ public class DictionaryModel {
                         return;
                     }
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append("uniform (");
-                for (int i = 0; i < field.length; i++) {
-                    sb.append(field[i].getDoubleValue());
-                    sb.append(" ");
-                }
-                sb.append(")");
-                dictionary.add(key, sb.toString());
+                dictionary.addUniform(key, DoubleField.toArray(field));
                 logger.trace("PointFieldHandler -> value: {}", dictionary.lookup(key));
             }
         }

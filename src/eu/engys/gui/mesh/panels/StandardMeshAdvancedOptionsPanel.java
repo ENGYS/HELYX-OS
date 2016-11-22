@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.gui.mesh.panels;
 
@@ -114,12 +113,12 @@ public class StandardMeshAdvancedOptionsPanel extends DefaultMeshAdvancedOptions
     protected JPanel createGeneralPanel() {
         PanelBuilder builder = new PanelBuilder("options.general.panel");
 
-        builder.addComponent(CASTELLATED_MESH_LABEL, snappyHexMeshModel.bindBoolean(CASTELLATED_MESH_KEY), CASTELLATED_MESH_TOOLTIP);
-        builder.addComponent(SNAPPING_LABEL, snappyHexMeshModel.bindBoolean(SNAP_KEY), SNAPPING_TOOLTIP);
-        builder.addComponent(LAYERS_ADDITION_LABEL, snappyHexMeshModel.bindBoolean(ADD_LAYERS_KEY), LAYERS_ADDITION_TOOLTIP);
+        builder.addComponent(CASTELLATED_MESH_LABEL, CASTELLATED_MESH_TOOLTIP, snappyHexMeshModel.bindBoolean(CASTELLATED_MESH_KEY));
+        builder.addComponent(SNAPPING_LABEL, SNAPPING_TOOLTIP, snappyHexMeshModel.bindBoolean(SNAP_KEY));
+        builder.addComponent(LAYERS_ADDITION_LABEL, LAYERS_ADDITION_TOOLTIP, snappyHexMeshModel.bindBoolean(ADD_LAYERS_KEY));
 
-        builder.addComponent(DEBUG_LABEL, snappyHexMeshModel.bindInteger(DEBUG_KEY, 0, 2), DEBUG_TOOLTIP);
-        builder.addComponent(MERGE_TOLERANCE_LABEL, snappyHexMeshModel.bindDouble(MERGE_TOLERANCE_KEY), MERGE_TOLERANCE_TOOLTIP);
+        builder.addComponent(DEBUG_LABEL, DEBUG_TOOLTIP, snappyHexMeshModel.bindInteger(DEBUG_KEY, 0, 2));
+        builder.addComponent(MERGE_TOLERANCE_LABEL, MERGE_TOLERANCE_TOOLTIP, snappyHexMeshModel.bindDouble(MERGE_TOLERANCE_KEY));
 
         return builder.getPanel();
     }
@@ -127,51 +126,51 @@ public class StandardMeshAdvancedOptionsPanel extends DefaultMeshAdvancedOptions
     @Override
     protected JPanel createRefinementsPanel() {
         PanelBuilder builder = new PanelBuilder("options.geometry.panel");
-        builder.addComponent(MAX_LOCAL_CELLS_LABEL, castellatedMeshControlsModel.bindIntegerPositive(MAX_LOCAL_CELLS_KEY), MAX_LOCAL_CELLS_TOOLTIP);
-        builder.addComponent(MAX_GLOBAL_CELLS_LABEL, castellatedMeshControlsModel.bindIntegerPositive(MAX_GLOBAL_CELLS_KEY), MAX_GLOBAL_CELLS_TOOLTIP);
-        builder.addComponent(MIN_REFINEMENT_CELLS_LABEL, castellatedMeshControlsModel.bindIntegerPositive(MIN_REFINEMENT_CELLS_KEY), MIN_REFINEMENT_CELLS_TOOLTIP);
-        builder.addComponent(CELLS_BETWEEN_LEVELS_LABEL, castellatedMeshControlsModel.bindInteger(N_CELLS_BETWEEN_LEVELS_KEY, 1, Integer.MAX_VALUE), CELLS_BETWEEN_LEVELS_TOOLTIP);
-        builder.addComponent(RESOLVE_FEATURE_ANGLE_LABEL, castellatedMeshControlsModel.bindDoubleAngle_360(RESOLVE_FEATURE_ANGLE_KEY), RESOLVE_FEATURE_ANGLE_TOOLTIP);
-        builder.addComponent(ALLOW_FREE_STANDING_ZONE_FACES_LABEL, castellatedMeshControlsModel.bindBoolean(ALLOW_FREE_STANDING_ZONE_FACES_KEY), ALLOW_FREE_STANDING_ZONE_FACES_TOOLTIP);
-        builder.addComponent(PLANAR_ANGLE_LABEL, castellatedMeshControlsModel.bindDoubleAngle_360(PLANAR_ANGLE_KEY), PLANAR_ANGLE_TOOLTIP);
-        builder.addComponent(MAX_LOAD_UNBALANCE_LABEL, castellatedMeshControlsModel.bindDoublePositive(MAX_LOAD_UNBALANCE_KEY), MAX_LOAD_UNBALANCE_TOOLTIP);
+        builder.addComponent(MAX_LOCAL_CELLS_LABEL, MAX_LOCAL_CELLS_TOOLTIP, castellatedMeshControlsModel.bindIntegerPositive(MAX_LOCAL_CELLS_KEY));
+        builder.addComponent(MAX_GLOBAL_CELLS_LABEL, MAX_GLOBAL_CELLS_TOOLTIP, castellatedMeshControlsModel.bindIntegerPositive(MAX_GLOBAL_CELLS_KEY));
+        builder.addComponent(MIN_REFINEMENT_CELLS_LABEL, MIN_REFINEMENT_CELLS_TOOLTIP, castellatedMeshControlsModel.bindIntegerPositive(MIN_REFINEMENT_CELLS_KEY));
+        builder.addComponent(CELLS_BETWEEN_LEVELS_LABEL, CELLS_BETWEEN_LEVELS_TOOLTIP, castellatedMeshControlsModel.bindInteger(N_CELLS_BETWEEN_LEVELS_KEY, 1, Integer.MAX_VALUE));
+        builder.addComponent(RESOLVE_FEATURE_ANGLE_LABEL, RESOLVE_FEATURE_ANGLE_TOOLTIP, castellatedMeshControlsModel.bindDoubleAngle_360(RESOLVE_FEATURE_ANGLE_KEY));
+        builder.addComponent(ALLOW_FREE_STANDING_ZONE_FACES_LABEL, ALLOW_FREE_STANDING_ZONE_FACES_TOOLTIP, castellatedMeshControlsModel.bindBoolean(ALLOW_FREE_STANDING_ZONE_FACES_KEY));
+        builder.addComponent(PLANAR_ANGLE_LABEL, PLANAR_ANGLE_TOOLTIP, castellatedMeshControlsModel.bindDoubleAngle_360(PLANAR_ANGLE_KEY));
+        builder.addComponent(MAX_LOAD_UNBALANCE_LABEL, MAX_LOAD_UNBALANCE_TOOLTIP, castellatedMeshControlsModel.bindDoublePositive(MAX_LOAD_UNBALANCE_KEY));
         return builder.getPanel();
     }
 
     @Override
     protected JPanel createLayersPanel() {
         PanelBuilder builder = new PanelBuilder("options.layers.panel");
-        builder.addComponent(EXPANSION_RATIO_LABEL, layersControlsModel.bindDouble(EXPANSION_RATIO_KEY), EXPANSION_RATIO_TOOLTIP);
-        builder.addComponent(FINAL_LAYER_THICKNESS_LABEL, layersControlsModel.bindDouble(FINAL_LAYER_THICKNESS_KEY), FINAL_LAYER_THICKNESS_TOOLTIP);
+        builder.addComponent(EXPANSION_RATIO_LABEL, EXPANSION_RATIO_TOOLTIP, layersControlsModel.bindDouble(EXPANSION_RATIO_KEY));
+        builder.addComponent(FINAL_LAYER_THICKNESS_LABEL, FINAL_LAYER_THICKNESS_TOOLTIP, layersControlsModel.bindDouble(FINAL_LAYER_THICKNESS_KEY));
 //        builder.addComponent(RELATIVE_SIZES_LABEL, layersControlsModel.bindBoolean(RELATIVE_SIZES_KEY), RELATIVE_SIZES_TOOLTIP);
-        builder.addComponent(MIN_THICKNESS_LABEL, layersControlsModel.bindDouble(MIN_THICKNESS_KEY), MIN_THICKNESS_TOOLTIP);
-        builder.addComponent(FEATURE_ANGLE_LABEL, layersControlsModel.bindDoubleAngle_360(FEATURE_ANGLE_KEY), FEATURE_ANGLE_TOOLTIP);
-        builder.addComponent(SLIP_FEATURE_ANGLE_LABEL, layersControlsModel.bindDoubleAngle_360(SLIP_FEATURE_ANGLE_KEY), SLIP_FEATURE_ANGLE_TOOLTIP);
-        builder.addComponent(RELAX_ITERATIONS_LAYERS_LABEL, layersControlsModel.bindIntegerPositive(N_RELAX_ITER_LAYERS_KEY), RELAX_ITERATIONS_LAYERS_TOOLTIP);
-        builder.addComponent(RELAXED_ITERATIONS_LABEL, layersControlsModel.bindIntegerPositive(N_RELAXED_ITER_KEY), RELAXED_ITERATIONS_TOOLTIP);
-        builder.addComponent(SURFACE_NORMALS_SMOOTHING_ITERATIONS_LABEL, layersControlsModel.bindIntegerPositive(N_SMOOTH_SURFACE_NORMALS_KEY), SURFACE_NORMALS_SMOOTHING_ITERATIONS_TOOLTIP);
-        builder.addComponent(INTERIOR_MESH_SMOOTHING_ITERATIONS_LABEL, layersControlsModel.bindIntegerPositive(N_SMOOTH_NORMALS_KEY), INTERIOR_MESH_SMOOTHING_ITERATIONS_TOOLTIP);
-        builder.addComponent(SMOOTH_LAYER_THICKNESS_LABEL, layersControlsModel.bindIntegerPositive(N_SMOOTH_THICKNESS_KEY), SMOOTH_LAYER_THICKNESS_TOOLTIP);
-        builder.addComponent(MAX_FACE_THICKNESS_RATIO_LABEL, layersControlsModel.bindDouble(MAX_FACE_THICKNESS_RATIO_KEY), MAX_FACE_THICKNESS_RATIO_TOOLTIP);
-        builder.addComponent(MAX_THICKNESS_TO_MEDIAL_RATIO_LABEL, layersControlsModel.bindDouble(MAX_THICKNESS_TO_MEDIAL_RATIO_KEY), MAX_THICKNESS_TO_MEDIAL_RATIO_TOOLTIP);
-        builder.addComponent(MIN_MEDIAL_AXIS_ANGLE_LABEL, layersControlsModel.bindIntegerAngle_360(MIN_MEDIAL_AXIS_ANGLE_KEY), MIN_MEDIAL_AXIS_ANGLE_TOOLTIP);
-        builder.addComponent(NUMBER_OF_BUFFER_CELLS_LABEL, layersControlsModel.bindIntegerPositive(N_BUFFER_CELLS_NO_EXTRUDE_KEY), NUMBER_OF_BUFFER_CELLS_TOOLTIP);
-        builder.addComponent(LAYER_ADDITION_ITERATIONS_LABEL, layersControlsModel.bindIntegerPositive(N_LAYER_ITER_KEY), LAYER_ADDITION_ITERATIONS_TOOLTIP);
-        builder.addComponent(NUMBER_OF_LAYERS_NOT_GROWN_LABEL, layersControlsModel.bindIntegerPositive(N_GROW_KEY), NUMBER_OF_LAYERS_NOT_GROWN_TOOLTIP);
+        builder.addComponent(MIN_THICKNESS_LABEL, MIN_THICKNESS_TOOLTIP, layersControlsModel.bindDouble(MIN_THICKNESS_KEY));
+        builder.addComponent(FEATURE_ANGLE_LABEL, FEATURE_ANGLE_TOOLTIP, layersControlsModel.bindDoubleAngle_360(FEATURE_ANGLE_KEY));
+        builder.addComponent(SLIP_FEATURE_ANGLE_LABEL, SLIP_FEATURE_ANGLE_TOOLTIP, layersControlsModel.bindDoubleAngle_360(SLIP_FEATURE_ANGLE_KEY));
+        builder.addComponent(RELAX_ITERATIONS_LAYERS_LABEL, RELAX_ITERATIONS_LAYERS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_RELAX_ITER_LAYERS_KEY));
+        builder.addComponent(RELAXED_ITERATIONS_LABEL, RELAXED_ITERATIONS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_RELAXED_ITER_KEY));
+        builder.addComponent(SURFACE_NORMALS_SMOOTHING_ITERATIONS_LABEL, SURFACE_NORMALS_SMOOTHING_ITERATIONS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_SMOOTH_SURFACE_NORMALS_KEY));
+        builder.addComponent(INTERIOR_MESH_SMOOTHING_ITERATIONS_LABEL, INTERIOR_MESH_SMOOTHING_ITERATIONS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_SMOOTH_NORMALS_KEY));
+        builder.addComponent(SMOOTH_LAYER_THICKNESS_LABEL, SMOOTH_LAYER_THICKNESS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_SMOOTH_THICKNESS_KEY));
+        builder.addComponent(MAX_FACE_THICKNESS_RATIO_LABEL, MAX_FACE_THICKNESS_RATIO_TOOLTIP, layersControlsModel.bindDouble(MAX_FACE_THICKNESS_RATIO_KEY));
+        builder.addComponent(MAX_THICKNESS_TO_MEDIAL_RATIO_LABEL, MAX_THICKNESS_TO_MEDIAL_RATIO_TOOLTIP, layersControlsModel.bindDouble(MAX_THICKNESS_TO_MEDIAL_RATIO_KEY));
+        builder.addComponent(MIN_MEDIAL_AXIS_ANGLE_LABEL, MIN_MEDIAL_AXIS_ANGLE_TOOLTIP, layersControlsModel.bindIntegerAngle_360(MIN_MEDIAL_AXIS_ANGLE_KEY));
+        builder.addComponent(NUMBER_OF_BUFFER_CELLS_LABEL, NUMBER_OF_BUFFER_CELLS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_BUFFER_CELLS_NO_EXTRUDE_KEY));
+        builder.addComponent(LAYER_ADDITION_ITERATIONS_LABEL, LAYER_ADDITION_ITERATIONS_TOOLTIP, layersControlsModel.bindIntegerPositive(N_LAYER_ITER_KEY));
+        builder.addComponent(NUMBER_OF_LAYERS_NOT_GROWN_LABEL, NUMBER_OF_LAYERS_NOT_GROWN_TOOLTIP, layersControlsModel.bindIntegerPositive(N_GROW_KEY));
         return builder.getPanel();
     }
 
     @Override
     protected JPanel createSnappingPanel() {
         PanelBuilder builder = new PanelBuilder("options.snapping.panel");
-        builder.addComponent(SOLVER_ITERATIONS_LABEL, snapControlsModel.bindIntegerPositive(N_SOLVER_ITER_KEY), SOLVER_ITERATIONS_TOOLTIP);
-        builder.addComponent(SMOOTH_PATCH_LABEL, snapControlsModel.bindIntegerPositive(N_SMOOTH_PATCH_KEY), SMOOTH_PATCH_TOOLTIP);
-        builder.addComponent(TOLERANCE_LABEL, snapControlsModel.bindDoublePositive(TOLERANCE_KEY), TOLERANCE_TOOLTIP);
-        builder.addComponent(RELAX_ITERATIONS_SNAP_LABEL, snapControlsModel.bindIntegerPositive(N_RELAX_ITER_SNAP_KEY), RELAX_ITERATIONS_SNAP_TOOLTIP);
-        builder.addComponent(SNAP_FEATURE_ITERATIONS_LABEL, snapControlsModel.bindIntegerPositive(N_FEATURE_SNAP_ITER_KEY), SNAP_FEATURE_ITERATIONS_TOOLTIP);
-        builder.addComponent(IMPLICIT_SNAP_FEATURE_LABEL, snapControlsModel.bindBoolean(IMPLICIT_FEATURE_SNAP_KEY), IMPLICIT_SNAP_FEATURE_TOOLTIP);
-        builder.addComponent(EXPLICIT_SNAP_FEATURE_LABEL, snapControlsModel.bindBoolean(EXPLICIT_FEATURE_SNAP_KEY), EXPLICIT_SNAP_FEATURE_TOOLTIP);
-        builder.addComponent(MULTI_REGION_FEATURE_LABEL, snapControlsModel.bindBoolean(MULTI_REGION_FEATURE_SNAP_KEY), MULTI_REGION_FEATURE_TOOLTIP);
+        builder.addComponent(SOLVER_ITERATIONS_LABEL, SOLVER_ITERATIONS_TOOLTIP, snapControlsModel.bindIntegerPositive(N_SOLVER_ITER_KEY));
+        builder.addComponent(SMOOTH_PATCH_LABEL, SMOOTH_PATCH_TOOLTIP, snapControlsModel.bindIntegerPositive(N_SMOOTH_PATCH_KEY));
+        builder.addComponent(TOLERANCE_LABEL, TOLERANCE_TOOLTIP, snapControlsModel.bindDoublePositive(TOLERANCE_KEY));
+        builder.addComponent(RELAX_ITERATIONS_SNAP_LABEL, RELAX_ITERATIONS_SNAP_TOOLTIP, snapControlsModel.bindIntegerPositive(N_RELAX_ITER_SNAP_KEY));
+        builder.addComponent(SNAP_FEATURE_ITERATIONS_LABEL, SNAP_FEATURE_ITERATIONS_TOOLTIP, snapControlsModel.bindIntegerPositive(N_FEATURE_SNAP_ITER_KEY));
+        builder.addComponent(IMPLICIT_SNAP_FEATURE_LABEL, IMPLICIT_SNAP_FEATURE_TOOLTIP, snapControlsModel.bindBoolean(IMPLICIT_FEATURE_SNAP_KEY));
+        builder.addComponent(EXPLICIT_SNAP_FEATURE_LABEL, EXPLICIT_SNAP_FEATURE_TOOLTIP, snapControlsModel.bindBoolean(EXPLICIT_FEATURE_SNAP_KEY));
+        builder.addComponent(MULTI_REGION_FEATURE_LABEL, MULTI_REGION_FEATURE_TOOLTIP, snapControlsModel.bindBoolean(MULTI_REGION_FEATURE_SNAP_KEY));
         return builder.getPanel();
     }
 

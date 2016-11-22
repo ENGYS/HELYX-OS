@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.vtk;
 
 import java.awt.AlphaComposite;
@@ -56,9 +55,9 @@ import eu.engys.gui.view3D.Controller3D;
 import eu.engys.gui.view3D.Geometry3DController;
 import eu.engys.gui.view3D.LayerInfo;
 import eu.engys.gui.view3D.Mesh3DController;
-import eu.engys.gui.view3D.QualityInfo;
 import eu.engys.gui.view3D.RenderPanel;
 import eu.engys.gui.view3D.Selection;
+import eu.engys.gui.view3D.quality.QualityInfo;
 import eu.engys.gui.view3D.widget.Widget;
 import eu.engys.util.ApplicationInfo;
 import eu.engys.util.progress.ProgressMonitor;
@@ -158,9 +157,12 @@ public class VTKEmptyView3D extends JPanel implements CanvasPanel {
     }
 
     @Override
-    public void load() {
+    public void load(boolean loadMesh) {
         for (Controller3D context : controllers) {
-            logger.info("[LOAD] {}", context.getClass().getSimpleName());
+            logger.info("[LOAD 3D] {}", context.getClass().getSimpleName());
+            if (context instanceof Mesh3DController && !loadMesh) {
+                continue;
+            }
             context.loadActors();
         }
     }
@@ -189,20 +191,36 @@ public class VTKEmptyView3D extends JPanel implements CanvasPanel {
     }
 
     @Override
-    public void showPoint(DoubleField[] point, String key, EventActionType action, Color color) {
+    public void showRotatedBox(DoubleField[] center, DoubleField[] delta, DoubleField[] rotation, EventActionType actions) {
     }
 
     @Override
-    public void showPlane(DoubleField[] origin, DoubleField[] normal, EventActionType actions) {
+    public void showPoint(String key, DoubleField[] point, EventActionType action, Color color) {
     }
 
     @Override
-    public void showPlaneDisplay(DoubleField[] origin, DoubleField[] normal, EventActionType actions) {
+    public void showPlane(String key, DoubleField[] origin, DoubleField[] normal, EventActionType actions) {
     }
 
     @Override
-    public void showAxis(DoubleField[] origin, DoubleField[] normal, EventActionType actions) {
+    public void showPlaneDisplay(String key, DoubleField[] origin, DoubleField[] normal, EventActionType actions) {
     }
+
+    @Override
+    public void showAxis(DoubleField[] origin, DoubleField[] normal, double magnitude, EventActionType actions) {
+    }
+
+    @Override
+    public void showAxis(DoubleField[] origin, DoubleField angle1, DoubleField angle2, double magnitude, int sign, EventActionType actions) {
+    }
+
+    // @Override
+    // public void activateCOR(EventActionType action) {
+    // }
+    //
+    // @Override
+    // public void activateLocation(EventActionType action) {
+    // }
 
     @Override
     public void activateSelection(Selection selection, EventActionType action) {

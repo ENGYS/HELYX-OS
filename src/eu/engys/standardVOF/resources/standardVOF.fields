@@ -1,6 +1,6 @@
 U
 {
-    allowedFieldInitialisationMethods (default fixedValue );
+    allowedFieldInitialisationMethods (default fixedValue potentialFlow);
     
     initialisation 
     {
@@ -38,7 +38,7 @@ U
 
 pmultiphase
 {
-    allowedFieldInitialisationMethods (default fixedValue );
+    allowedFieldInitialisationMethods (default fixedValue potentialFlow);
     
     initialisation 
     {

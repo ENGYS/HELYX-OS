@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.solver.panels;
 
 import static eu.engys.core.project.system.ControlDict.MAX_ALPHA_CO_KEY;
@@ -85,6 +84,7 @@ public class PimpleSettingsPanel implements SolverPanel {
 
     private JComponent maxCourantNumber;
     private JComponent maxAlphaCourant;
+    private JPanel mainPanel;
 
     public PimpleSettingsPanel() {
         relaxationFactorsDictModel = new DictionaryModel(new Dictionary(RELAXATION_FACTORS_KEY));
@@ -121,11 +121,14 @@ public class PimpleSettingsPanel implements SolverPanel {
         relaxationFactorsPanel.setBorder(BorderFactory.createTitledBorder(RELAXATION_FACTORS_LABEL));
         relaxationFactorsPanel.setName(RELAXATION_FACTORS_LABEL);
         builder.addFill(relaxationFactorsPanel);
+        
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(builder.removeMargins().getPanel(), BorderLayout.NORTH);
     }
 
     @Override
     public String getKey() {
-        return SolverFamily.PIMPLE.getKey();
+        return SolverFamily.PIMPLE.key();
     }
 
     @Override
@@ -145,7 +148,7 @@ public class PimpleSettingsPanel implements SolverPanel {
 
     @Override
     public JPanel getPanel() {
-        return builder.removeMargins().getPanel();
+        return mainPanel;
     }
 
     @Override
@@ -192,7 +195,7 @@ public class PimpleSettingsPanel implements SolverPanel {
                     finalField = relaxationFactorsDictModel.bindDouble(fieldName + FINAL, 0.0, 1.0);
                 }
                 finalField.setName(fieldName + FINAL);
-                relaxationBuilder.addComponent(new JLabel(fieldName), normalField, finalLabel, finalField);
+                relaxationBuilder.addComponent(fieldName, normalField, finalLabel, finalField);
             }
 
             if (PIMPLEDict != null && PIMPLEDict.found(RESIDUAL_CONTROL_KEY)) {

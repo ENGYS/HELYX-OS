@@ -1,47 +1,44 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.vtk.widgets.shapes;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import vtk.vtkActor;
-import vtk.vtkBoxRepresentation;
-import vtk.vtkBoxWidget2;
-import vtk.vtkTransform;
 import eu.engys.core.dictionary.model.EventActionType;
 import eu.engys.gui.view3D.RenderPanel;
 import eu.engys.util.ui.textfields.DoubleField;
+import vtk.vtkBoxRepresentation;
+import vtk.vtkBoxWidget2;
+import vtk.vtkTransform;
 
 public class BoxWidget {
 
     private RenderPanel renderPanel;
 	private vtkBoxWidget2 widget;
-	private vtkActor actor;
 	private BoxFieldListener listener;
 	private DoubleField[] currentPoint1 = null;
 	private DoubleField[] currentPoint2 = null;
@@ -55,12 +52,6 @@ public class BoxWidget {
 		vtkTransform trasform = new vtkTransform();
 
 		public void run() {
-			if (actor != null) {
-				vtkBoxRepresentation rep = (vtkBoxRepresentation) widget.GetRepresentation();
-				rep.GetTransform(trasform);
-				actor.SetUserTransform(trasform);
-			}
-			
 			removeListener();
 			double[] position = widget.GetRepresentation().GetBounds();
 			if (currentPoint1 != null) {
@@ -77,8 +68,7 @@ public class BoxWidget {
 		}
 	};
 
-	public void showBox(vtkActor actor, DoubleField[] point1, DoubleField[] point2, EventActionType action) {
-		this.actor = actor;
+	public void showBox(DoubleField[] point1, DoubleField[] point2, EventActionType action) {
 		renderPanel.lock();
 		if (action.equals(EventActionType.HIDE)) {
 			if (widget != null) {
@@ -105,11 +95,7 @@ public class BoxWidget {
 	private void createWidget() {
 		final vtkBoxRepresentation representation = new vtkBoxRepresentation();
 		representation.SetPlaceFactor(1);
-		if (actor != null) {
-		    representation.PlaceWidget(actor.GetBounds());
-		} else {
-		    representation.PlaceWidget(new double[]{ 0.0,1.0,0.0,1.0,0.0,1.0});
-		}
+		representation.PlaceWidget(new double[]{ 0.0,1.0,0.0,1.0,0.0,1.0});
 
 		widget = new vtkBoxWidget2();
 		renderPanel.getInteractor().addObserver(widget);

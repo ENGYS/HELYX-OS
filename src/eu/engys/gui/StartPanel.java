@@ -1,33 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui;
+
+import static eu.engys.gui.view.View.EXIT;
+import static eu.engys.gui.view.View.NEW_CASE;
+import static eu.engys.gui.view.View.OPEN_CASE;
+import static eu.engys.util.SystemEnv.LICENSE_ERROR_MESSAGE;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -48,8 +52,11 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import eu.engys.application.Application;
+import eu.engys.core.controller.Controller.OpenMode;
+import eu.engys.core.controller.OpenOptions;
 import eu.engys.core.presentation.ActionManager;
 import eu.engys.gui.view.View;
 import eu.engys.util.ApplicationInfo;
@@ -75,15 +82,19 @@ public class StartPanel extends JPanel {
 
     private List<Action> createActions() {
         List<Action> actions = new ArrayList<Action>();
-
-        actions.add(ActionManager.getInstance().get("application.create"));
-        actions.add(ActionManager.getInstance().get("application.open"));
-        actions.add(ActionManager.getInstance().get("application.exit"));
+        if(ActionManager.getInstance().contains(NEW_CASE)){
+            actions.add(ActionManager.getInstance().get(NEW_CASE));
+        }
+        actions.add(ActionManager.getInstance().get(OPEN_CASE));
+        
+        if(ActionManager.getInstance().contains(EXIT)){
+            actions.add(ActionManager.getInstance().get(EXIT));
+        }
 
         return actions;
     }
 
-    private void layoutComponents() {
+    public void layoutComponents() {
         JPanel topPanel = new JPanel(new BorderLayout()); 
         JPanel bottomPanel = new JPanel(new BorderLayout()); 
         
@@ -147,7 +158,8 @@ public class StartPanel extends JPanel {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if (view.getController().allowActionsOnRunning(false)) {
-                            view.getController().openCase(new File(item));
+                            SwingUtilities.getWindowAncestor((Component) e.getSource()).dispose();
+                            view.getController().openCase(OpenOptions.file(new File(item), OpenMode.CHECK_FOLDER_ASK_USER));
                         }
                     }
                 }));
@@ -170,7 +182,7 @@ public class StartPanel extends JPanel {
     }
 
     private JLabel getDemoLabel() {
-        String licenseErrorMessage = System.getProperty("license.error.message", null);
+        String licenseErrorMessage = System.getProperty(LICENSE_ERROR_MESSAGE, null);
         if (licenseErrorMessage != null && !licenseErrorMessage.isEmpty()) {
             JLabel label = new JLabel("<html>" + licenseErrorMessage + "<br>" + DEMO_START + "</html>");
             label.setForeground(new Color(0xff0000));

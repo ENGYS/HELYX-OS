@@ -1,0 +1,179 @@
+displacement
+{
+    allowedFieldInitialisationMethods (fixedValue);
+
+    initialisation
+    {
+        type fixedValue; 
+        value uniform (0 0 0);
+    }
+
+
+    fieldDefinition
+    {
+        type vector;
+        meshType point;
+        dimensions [ 0 1 0 0 0 0 0 ];
+        internalField uniform (0 0 0);
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall 
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+                
+                mappedWall
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+
+                outlet
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+
+                inlet
+                {
+                    type fixedValue;
+                    value uniform (0 0 0);
+                }
+
+                patch
+                {
+                    type fixedValue;
+                    value uniform (0 0 0);
+                }
+            }
+
+            partialNamed {}
+
+            exactNamed{}
+        }
+    }
+}
+motion
+{
+    allowedFieldInitialisationMethods (fixedValue);
+    
+    initialisation 
+    {
+        type fixedValue; 
+        value uniform (0 0 0);
+    }
+    
+
+    fieldDefinition
+    {
+        type point;
+        meshType point;
+        dimensions [ 0 1 -1 0 0 0 0 ];
+        internalField uniform (0 0 0);
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall 
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+                
+                mappedWall
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+
+                outlet
+                {
+                    type fixedValue; 
+                    value uniform (0 0 0);
+                }
+
+                inlet
+                {
+                    type fixedValue;
+                    value uniform (0 0 0);
+                }
+
+                patch
+                {
+                    type fixedValue;
+                    value uniform (0 0 0);
+                }
+            }
+
+            partialNamed {}
+            
+            exactNamed{}
+        }
+    }
+}
+pmultiphaseDyM
+{
+    allowedFieldInitialisationMethods (default fixedValue potentialFlow boundaryValue cellSet );
+
+    initialisation
+    {
+        type default;
+    }
+
+
+    fieldDefinition
+    {
+        type scalar;
+        dimensions [ 1 -1 -2 0 0 0 0 ];
+        internalField uniform 0;
+
+        boundaryConditions
+        {
+            regionDefaults
+            {
+                wall
+                {
+                    type            zeroGradient; 
+                    //type            fixedFluxPressure;
+                    //value           uniform 0;
+                    //phi phiAbs;
+                }
+                mappedWall
+                {
+                    type            zeroGradient;
+                    //type            fixedFluxPressure;
+                    //value           uniform 0;
+                    //phi phiAbs;
+                }
+
+                outlet {type fixedValue; value uniform 0;}
+
+                inlet
+                {
+                    type            zeroGradient;
+                    //type            fixedFluxPressure;
+                    //value           uniform 0;
+                    //phi phiAbs;
+                }
+
+                patch
+                {
+                    type            totalPressure;
+                    p0              uniform 0;
+                    U               U;
+                    value           uniform 0;
+                    gamma   	    1.4;
+                }
+            }
+
+            partialNamed {}
+            
+            exactNamed{}
+        }
+    }
+}

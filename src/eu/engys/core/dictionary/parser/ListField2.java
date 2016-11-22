@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.dictionary.parser;
 
 import static eu.engys.core.dictionary.Dictionary.SPACER;
@@ -32,9 +30,12 @@ import static eu.engys.core.dictionary.Dictionary.TAB;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.common.primitives.Doubles;
@@ -83,7 +84,7 @@ public class ListField2 extends DefaultElement {
             StringTokenizer tokenizer = new StringTokenizer(name, SPACER);
             if (tokenizer.countTokens() == 1) { // internalField (...); oppure
                                                 // 10 (...);
-//                System.out.println("ListField2.decodeName() 1");
+                                                // System.out.println("ListField2.decodeName() 1");
                 String token = tokenizer.nextToken();
                 try {
                     this.size = Integer.parseInt(token);
@@ -97,29 +98,29 @@ public class ListField2 extends DefaultElement {
             } else if (tokenizer.countTokens() == 2) {// internalField 10 (...);
                 String token1 = tokenizer.nextToken();
                 String token2 = tokenizer.nextToken();
-//                System.out.println("ListField2.decodeName() token1: [" + token1 + "], token2: [" + token2 + "]");
-                
+                // System.out.println("ListField2.decodeName() token1: [" + token1 + "], token2: [" + token2 + "]");
+
                 try {
                     this.size = Integer.parseInt(token2);
                 } catch (NumberFormatException ex) {
                     this.size = -1;
                 }
-                if(size < 0){
-                	setName(token1 + " " + token2);
+                if (size < 0) {
+                    setName(token1 + " " + token2);
                 } else {
-                	setName(token1);
+                    setName(token1);
                 }
                 this.uniformity = "";
                 this.identifier = "";
             } else if (tokenizer.countTokens() == 3) {// internalField
                                                       // nonuniform 0()
-//                System.out.println("ListField2.decodeName() 3");
+                                                      // System.out.println("ListField2.decodeName() 3");
                 String token1 = tokenizer.nextToken();
                 String token2 = tokenizer.nextToken();
                 String token3 = tokenizer.nextToken();
-//                System.out.println("ListField2.decodeName() token1 = '" + token1 + "'");
-//                System.out.println("ListField2.decodeName() token2 = '" + token2 + "'");
-//                System.out.println("ListField2.decodeName() token3 = '" + token3 + "'");
+                // System.out.println("ListField2.decodeName() token1 = '" + token1 + "'");
+                // System.out.println("ListField2.decodeName() token2 = '" + token2 + "'");
+                // System.out.println("ListField2.decodeName() token3 = '" + token3 + "'");
                 try {
                     this.size = Integer.parseInt(token3);
                 } catch (NumberFormatException ex) {
@@ -131,7 +132,7 @@ public class ListField2 extends DefaultElement {
             } else if (tokenizer.countTokens() == 4) { // internalField
                                                        // nonuniform
                                                        // List<scalar> 10
-//                System.out.println("ListField2.decodeName() 4");
+                                                       // System.out.println("ListField2.decodeName() 4");
                 String token1 = tokenizer.nextToken();
                 String token2 = tokenizer.nextToken();
                 String token3 = tokenizer.nextToken();
@@ -148,7 +149,9 @@ public class ListField2 extends DefaultElement {
         } else {
             try {
                 this.size = Integer.parseInt(name);
-                setName(Integer.toString(hashCode()));
+                // Need to call hashcode method from Object class because we can have to ListFields
+                // With all the parameters equals (like in a eMesh file)
+                setName(Integer.toString(System.identityHashCode(this)));
             } catch (NumberFormatException ex) {
                 this.size = -1;
                 setName(name);
@@ -174,12 +177,22 @@ public class ListField2 extends DefaultElement {
         return Collections.unmodifiableList(listElements);
     }
 
+    public List<ListField2> getListFields2() {
+        List<ListField2> l = new LinkedList<>();
+        for (DefaultElement e : listElements) {
+            if(e instanceof ListField2){
+                l.add((ListField2) e);
+            }
+        }
+        return Collections.unmodifiableList(l);
+    }
+
     public void removeTopElements(int n) {
         for (int i = 0; i < n; i++) {
             listElements.remove(0);
         }
     }
-    
+
     public void merge(ListField2 l) {
         for (DefaultElement el : l.getListElements()) {
             if (!containsElement(el)) {
@@ -201,24 +214,8 @@ public class ListField2 extends DefaultElement {
         return false;
     }
 
-    protected boolean haveSameName(DefaultElement element, DefaultElement e) {
-        return e.getName().equals(element.getName());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof ListField2) {
-            ListField2 list = (ListField2) obj;
-            boolean haveSameName = haveSameName(this, list);
-//            boolean equalCollection = CollectionUtils.isEqualCollection(list.getListElements(), listElements);
-            boolean equalCollection = list.getListElements().containsAll(listElements) && listElements.containsAll(list.getListElements());
-            return haveSameName && equalCollection;
-        }
-        return false;
-    }
-
     public void writeListField(StringBuffer sb, String rowHeader) {
-//        System.out.println("ListField2.writeListField() name: "+getName()+", size: "+size+", uniformity: "+uniformity+", identifier: "+identifier);
+        // System.out.println("ListField2.writeListField() name: "+getName()+", size: "+size+", uniformity: "+uniformity+", identifier: "+identifier);
         sb.append("\n");
         sb.append(rowHeader);
         sb.append(TAB);
@@ -258,7 +255,7 @@ public class ListField2 extends DefaultElement {
         String name = getName();
         return NumberUtils.isNumber(name);
     }
-    
+
     private void writeName(StringBuffer sb) {
         String name = getName();
         if (NumberUtils.isNumber(name)) {
@@ -313,25 +310,25 @@ public class ListField2 extends DefaultElement {
     public boolean isNonuniform() {
         return uniformity.equals("nonuniform");
     }
-    
+
     public static String convertToString(ListField2 listField) {
-    	StringBuilder sb = new StringBuilder();
-    	convertToString(listField, sb);
-    	return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        convertToString(listField, sb);
+        return sb.toString();
     }
-    
+
     private static void convertToString(ListField2 listField, StringBuilder sb) {
-		sb.append("(");
-		for (DefaultElement el : listField.getListElements()) {
-			if(el instanceof FieldElement){
-				sb.append(((FieldElement) el).getValue());
-				sb.append(" ");
-			} else if(el instanceof ListField2){
-				convertToString((ListField2)el, sb);
-			}
-		}
-		sb.append(")");
-	}
+        sb.append("(");
+        for (DefaultElement el : listField.getListElements()) {
+            if (el instanceof FieldElement) {
+                sb.append(((FieldElement) el).getValue());
+                sb.append(" ");
+            } else if (el instanceof ListField2) {
+                convertToString((ListField2) el, sb);
+            }
+        }
+        sb.append(")");
+    }
 
     public List<Double> getElementsAsScalarList() {
         List<Double> list = new ArrayList<>();
@@ -356,6 +353,45 @@ public class ListField2 extends DefaultElement {
             }
         }
         return list;
+    }
+    
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj instanceof ListField2) {
+//            ListField2 list = (ListField2) obj;
+//            boolean haveSameName = haveSameName(this, list);
+////            boolean equalCollection = CollectionUtils.isEqualCollection(list.getListElements(), listElements);
+//            boolean equalCollection = list.getListElements().containsAll(listElements) && listElements.containsAll(list.getListElements());
+//            return haveSameName && equalCollection;
+//        }
+//        return false;
+//    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ListField2)) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        ListField2 lf = (ListField2) obj;
+        return new EqualsBuilder()
+        .appendSuper(super.equals(obj))
+        .append(getListElements(), lf.getListElements())
+        .isEquals();
+    }
+    
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 31)
+        .appendSuper(super.hashCode())
+        .append(getListElements())
+        .toHashCode();
+    }
+
+    protected boolean haveSameName(DefaultElement element, DefaultElement e) {
+        return e.getName().equals(element.getName());
     }
 
 }

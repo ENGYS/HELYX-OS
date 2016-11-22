@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.util.progress;
 
@@ -118,7 +117,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 	@Override
 	public void setTotal(int total) {
 		this.total = total;
-		dialog().update();
+		dialog().update("setTotal");
 	}
 
 	private Future<?> currentTask = null;
@@ -213,7 +212,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 	@Override
 	public void setIndeterminate(boolean indeterminate) {
 		this.indeterminate = indeterminate;
-		dialog().update();
+		dialog().update("setIndeterminate");
 	}
 	
 	@Override
@@ -223,7 +222,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 		this.current = current;
 		if (msg != null)
 			info(msg);
-		dialog().update();
+		dialog().update("setCurrent");
 	}
 	
 	@Override
@@ -233,7 +232,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 		this.current = current;
 		if (msg != null)
 			info(msg, indentLevel);
-		dialog().update();
+		dialog().update("setCurrent");
 	}
 
 	@Override
@@ -247,7 +246,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 			sb.append(addIndentation(msg, indentLevel));
 			sb.append(END_INFO);
 		}
-		dialog().update();
+		dialog().update("setCurrent");
 	}
 
 	@Override
@@ -270,7 +269,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 		sb.append(START_INFO);
 		sb.append(message);
 		sb.append(END_INFO);
-		dialog().update();
+		dialog().update("info: " + message);
 	}
 
 	@Override
@@ -278,7 +277,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 	    sb.append(START_INFO);
 	    sb.append(message);
 	    sb.append(END_INFO_N);
-	    dialog().update();
+	    dialog().update("infoN: " + message);
 	}
 	
 	@Override
@@ -301,7 +300,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 //        sb.append(START_INFO);
         sb.append(message);
 //        sb.append(END_INFO);
-        dialog().update();
+        dialog().update("debug");
     }
     
 	@Override
@@ -310,7 +309,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 		sb.append(START_WARING);
 		sb.append(message);
 		sb.append(END_WARNING);
-		dialog().update();
+		dialog().update("warning");
 	}
 
 	@Override
@@ -336,7 +335,7 @@ public class ProgressMonitorImpl implements ProgressMonitor {
 		sb.append(START_ERROR);
 		sb.append(message);
 		sb.append(END_ERROR);
-		dialog().update();
+		dialog().update("error");
 	}
 
 	private void error(Throwable t) {

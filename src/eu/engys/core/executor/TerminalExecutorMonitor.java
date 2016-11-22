@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.executor;
 
 import static eu.engys.util.ui.UiUtil.createToolBarButton;
@@ -68,9 +67,9 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
 
     private static final String RUNNING_LABEL = "Running...";
     public static final String TERMINAL_PANEL_AREA = "terminal.panel.area";
+    public static final String TERMINAL_TOOLBAR = "terminal.toolbar";
 
     protected JTextArea area;
-    private JScrollPane scroll;
     private JToolBar toolbar;
     private JPanel panel;
 
@@ -94,13 +93,16 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
         }
     };
 
-    public TerminalExecutorMonitor() {
+    private TerminalManager terminalManager;
+
+    public TerminalExecutorMonitor(TerminalManager terminalManager) {
         super();
+        this.terminalManager = terminalManager;
         layoutComponents();
     }
 
-    public TerminalExecutorMonitor(File logFile) {
-        this();
+    public TerminalExecutorMonitor(TerminalManager terminalManager, File logFile) {
+        this(terminalManager);
         setLogFile(logFile);
     }
 
@@ -109,8 +111,9 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
             @Override
             public void run() {
                 area = new JTextArea();
-                scroll = new JScrollPane(area);
+                JScrollPane scroll = new JScrollPane(area);
                 toolbar = new JToolBar();
+                toolbar.setName(TERMINAL_TOOLBAR);
                 panel = new JPanel(new BorderLayout());
 
                 scroll.setName("terminal.panel.scroll");
@@ -155,9 +158,9 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
         });
     }
 
-    protected void configureFrameActions(JToolBar toolbar) {
-        maxAction = new MaximiseMonitorAction(panel);
-        closeAction = new CloseMonitorAction(panel);
+    private void configureFrameActions(JToolBar toolbar) {
+        maxAction = new MaximiseMonitorAction(terminalManager, panel);
+        closeAction = new CloseMonitorAction(terminalManager, panel);
         closeAction.setEnabled(false);
         toolbar.add(createToolBarToggleButton(maxAction));
         toolbar.add(createToolBarButton(closeAction));
@@ -191,8 +194,10 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
         });
     }
 
-    public void show() {
-        TerminalManager.getInstance().addTerminal(panel, TerminalExecutorMonitor.this);
+    private void show() {
+        if (terminalManager != null) {
+            terminalManager.addTerminal(panel, TerminalExecutorMonitor.this);
+        }
     }
 
     @Override
@@ -201,7 +206,7 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
     }
 
     private String getTime() {
-        return new SimpleDateFormat("'['HH:mm:ss']'").format(startTime);
+        return startTime == null ? "" : new SimpleDateFormat("'['HH:mm:ss']'").format(startTime);
     }
 
     private void setupFont() {
@@ -214,10 +219,10 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
     @Override
     public void error(final int returnValue, final String msg) {
         super.error(returnValue, msg);
-        refresh();
         ExecUtil.invokeLater(new Runnable() {
             @Override
             public void run() {
+                _refresh();
                 stateLabel.setText("");
                 stopAction.setEnabled(false);
                 if (closeAction != null) {
@@ -253,15 +258,19 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
         });
     }
 
-    protected void _refresh() {
+    private void _refresh() {
+        String lines = getOutputStream().flushLinesBuffer();
+        String errors = getErrorStream().flushLinesBuffer();
+        _refresh(lines, errors);
+    }
+    
+    protected void _refresh(String lines, String errors) {
         int maxLines = PrefUtil.getInt(PrefUtil.BATCH_MONITOR_DIALOG_MAX_ROW, 10000);
 
-        String lines = getOutputStream().flushLinesBuffer();
         if (!lines.isEmpty()) {
             area.append(lines);
         }
 
-        String errors = getErrorStream().flushLinesBuffer();
         if (!errors.isEmpty()) {
             area.append(errors);
         }
@@ -281,7 +290,6 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
     }
 
     private boolean stopExecutor() {
-        // if (getState() == ExecutorState.START || getState() == ExecutorState.RUNNING) {
         if (executor != null) {
             int retVal = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), "Stop execution?", "Close Monitor", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (retVal == JOptionPane.YES_OPTION) {
@@ -292,15 +300,12 @@ public class TerminalExecutorMonitor extends ExecutorTerminal {
         } else {
             return true;
         }
-        // } else {
-        // return true;
-        // }
     }
 
     public JPopupMenu createMenu(Component component) {
         JPopupMenu pMenu = new JPopupMenu();
         pMenu.add(UiUtil.createMenuItem(new StopCommandAction(true)));
-        pMenu.add(UiUtil.createMenuItem(new CloseMonitorAction(panel, true)));
+        pMenu.add(UiUtil.createMenuItem(new CloseMonitorAction(terminalManager, panel, true)));
         return pMenu;
     }
 

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels;
 
 import java.awt.BorderLayout;
@@ -56,10 +55,10 @@ import eu.engys.gui.events.view3D.AddSurfaceEvent;
 import eu.engys.gui.events.view3D.ChangeSurfaceEvent;
 import eu.engys.gui.events.view3D.RenameSurfaceEvent;
 import eu.engys.gui.mesh.GeometryPanel;
-import eu.engys.gui.mesh.actions.AddIGES;
 import eu.engys.gui.mesh.actions.AddSTL;
 import eu.engys.gui.tree.TreeNodeManager;
 import eu.engys.util.Util;
+import eu.engys.util.progress.ProgressMonitor;
 import eu.engys.util.ui.UiUtil;
 import eu.engys.util.ui.builder.JComboBoxController;
 import eu.engys.util.ui.builder.PanelBuilder;
@@ -103,14 +102,12 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
     public static final String OUTSIDE_LABEL = "Outside";
     public static final String DISTANCE_LABEL = "Distance";
 
-    private GeometryBuilder surfaceRegionsBuilder;
-
     protected DictionaryModel surfaceModel;
     protected DictionaryModel volumeModel;
     protected DictionaryModel layerModel;
     protected DictionaryModel zoneModel;
 
-    private GeometriesPanelBuilder geometriesPanel;
+    private ShapesPanel shapesPanel;
 
     protected PanelBuilder layersBuilder;
     protected PanelBuilder surfaceBuilder;
@@ -120,15 +117,21 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
     private JTabbedPane tabbedPane;
 
     protected final GeometryTreeNodeManager treeNodeManager;
+    private Controller controller;
+    private ProgressMonitor monitor;
 
-    public AbstractGeometryPanel(Model model, Controller controller) {
+    public AbstractGeometryPanel(Model model, Controller controller, ProgressMonitor monitor) {
         super(GEOMETRY, model);
+        this.controller = controller;
+        this.monitor = monitor;
         this.treeNodeManager = new GeometryTreeNodeManager(model, controller, this, getGeometryActions(controller));
         model.addObserver(treeNodeManager);
         ActionManager.getInstance().parseActions(this);
     }
 
     protected abstract DefaultGeometryActions getGeometryActions(Controller controller);
+
+    public abstract JButton[] getShapeButtons();
 
     @Override
     protected JComponent layoutComponents() {
@@ -137,8 +140,7 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
         layerModel = new DictionaryModel();
         zoneModel = new DictionaryModel();
 
-        geometriesPanel = new GeometriesPanelBuilder(this);
-        surfaceRegionsBuilder = new GeometryBuilder(geometriesPanel, surfaceModel, volumeModel, layerModel, zoneModel);
+        shapesPanel = new ShapesPanel(this);
 
         tabbedPane = new JTabbedPane();
         tabbedPane.setName("geometry.tabbed.pane");
@@ -156,13 +158,8 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
         tabbedPane.addTab(LAYERS_LABEL, layersPanel);
         tabbedPane.addTab(ZONES_LABEL, zonesPanel);
 
-        PanelBuilder builder = new PanelBuilder();
-        builder.addButtons(getShapeButtons());
-        builder.addSeparator("");
-        geometriesPanel.addComponents(builder);
-
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(builder.removeMargins().getPanel(), BorderLayout.NORTH);
+        mainPanel.add(shapesPanel, BorderLayout.NORTH);
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
         tabbedPane.addChangeListener(new ChangeListener() {
@@ -175,8 +172,6 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
 
         return mainPanel;
     }
-
-    protected abstract JButton[] getShapeButtons();
 
     private JPanel getRefinemetPanel() {
         PanelBuilder builder = new PanelBuilder();
@@ -261,17 +256,29 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
     @Override
     public void stop() {
         super.stop();
-        geometriesPanel.stop();
+        shapesPanel.stop();
     }
 
-    public void saveSurfaces(Surface[] surfaces) {
-        surfaceRegionsBuilder.buildSurfaces(surfaces);
+    public void saveSurfaces(Surface... surfaces) {
+        Surface delegate = shapesPanel.getSelectedSurface();
+        if (delegate != null) {
+            delegate.setSurfaceDictionary(surfaceModel.getDictionary());
+            delegate.setVolumeDictionary(volumeModel.getDictionary());
+            delegate.setLayerDictionary(layerModel.getDictionary());
+            delegate.setZoneDictionary(zoneModel.getDictionary());
+
+            new SurfacesSaver().saveSurfaces(delegate, surfaces);
+        }
     }
 
     @Override
-    public void changeSurface(Surface surface) {
-        surfaceRegionsBuilder.buildSurfaces(surface);
-        EventManager.triggerEvent(this, new ChangeSurfaceEvent(surface, false));
+    public void changeSurface() {
+        Surface[] selection = treeNodeManager.getSelectedValues();
+        if (selection.length == 1) {
+            Surface surface = selection[0];
+            saveSurfaces(surface);
+            EventManager.triggerEvent(this, new ChangeSurfaceEvent(surface, false));
+        }
     }
 
     @Override
@@ -288,7 +295,7 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
             String oldPatchName = surface.getPatchName();
             surface.rename(newName);
 
-            surfaceRegionsBuilder.buildSurfaces(surface);
+            saveSurfaces(surface);
 
             treeNodeManager.refreshNode(surface);
 
@@ -311,19 +318,12 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
         }.execute();
     }
 
-    @Action(key = "mesh.igs")
-    public void addIGES() {
-        new AddIGES(model, monitor) {
-            @Override
-            public void postLoad(List<Stl> stls) {
-                addSTL(stls.toArray(new Stl[0]));
-            }
-        }.execute();
-    }
-
     public void addSTL(Stl... stls) {
         if (Util.isVarArgsNotNull(stls)) {
             for (Stl stl : stls) {
+                String name = Util.replaceForbiddenCharacters(stl.getName());
+                String newName = getModel().getGeometry().getAName(name);
+                stl.rename(newName);
                 getModel().getGeometry().addSurface(stl);
                 getModel().geometryChanged(stl);
             }
@@ -401,7 +401,7 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
 
     public void selectSurface(Surface[] surfaces) {
         if (Util.isVarArgsNotNull(surfaces)) {
-            geometriesPanel.showPanel(surfaces);
+            shapesPanel.showPanel(surfaces);
 
             updateGUIOnSelection(surfaces[0]);
 
@@ -424,7 +424,7 @@ public abstract class AbstractGeometryPanel extends AbstractGUIPanel implements 
     }
 
     public void deselectAll() {
-        geometriesPanel.showPanel(null);
+        shapesPanel.showPanel(null);
 
         surfaceModel.setDictionary(new Dictionary(""));
         volumeModel.setDictionary(new Dictionary(""));

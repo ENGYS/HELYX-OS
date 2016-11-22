@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project;
 
 import java.util.ArrayList;
@@ -89,12 +87,10 @@ public class TurbulenceModels {
     }
 
     public static TurbulenceModel dictToTurbulenceModel(Dictionary m) {
-        TurbulenceModel tm = new TurbulenceModel();
-        tm.setName(nameFromDictionary(m));
-        tm.setDescription(descriptionFromDictionary(m));
-        tm.setType(typeFromDictionary(m));
-
-        return tm;
+        String name = nameFromDictionary(m);
+        String description = descriptionFromDictionary(m);
+        TurbulenceModelType type = typeFromDictionary(m, name);
+        return new TurbulenceModel(name, description, type);
     }
 
     private static String nameFromDictionary(Dictionary m) {
@@ -105,7 +101,7 @@ public class TurbulenceModels {
         return m.found("label") ? fromUnicode(m.lookup("label").replace("\"", "")) : m.getName();
     }
 
-    private static TurbulenceModelType typeFromDictionary(Dictionary m) {
+    private static TurbulenceModelType typeFromDictionary(Dictionary m, String name) {
         Dictionary fieldMaps = m.subDict("fieldMaps");
         if (fieldMaps == null) {
             return TurbulenceModelType.LAMINAR;
@@ -117,6 +113,8 @@ public class TurbulenceModels {
             return TurbulenceModelType.Spalart_Allmaras;
         } else if (fieldMaps.isField(Fields.K) && fieldMaps.isField(Fields.NU_SGS)) {
             return TurbulenceModelType.K_Equation_Eddy;
+        } else if (name.contains("Smagorinsky")) {
+            return TurbulenceModelType.Smagorinsky;
         } else {
             return TurbulenceModelType.LAMINAR;
         }
@@ -124,11 +122,8 @@ public class TurbulenceModels {
 
     public List<TurbulenceModel> getModelsForState(SolverType solverType, Method method, Flow flow) {
         if (solverType.isCoupled()) {
-            if (moduleModels.containsKey("coupled")) {
-                return moduleModels.get("coupled");
-            } else {
-                return Collections.emptyList();
-            }
+            String key = "coupled" + method.key();
+            return moduleModels.containsKey(key) ? moduleModels.get(key) : Collections.<TurbulenceModel> emptyList();
         } else if (solverType.isSegregated()) {
             if (flow.isCompressible()) {
                 if (method.isRans()) {
@@ -136,7 +131,7 @@ public class TurbulenceModels {
                 } else if (method.isLes()) {
                     return compressibleLES;
                 } else {
-                    return Collections.emptyList();
+                    return Collections.<TurbulenceModel> emptyList();
                 }
             } else if (flow.isIncompressible()) {
                 if (method.isRans()) {
@@ -144,17 +139,16 @@ public class TurbulenceModels {
                 } else if (method.isLes()) {
                     return incompressibleLES;
                 } else {
-                    return Collections.emptyList();
+                    return Collections.<TurbulenceModel> emptyList();
                 }
             } else {
-                return Collections.emptyList();
+                return Collections.<TurbulenceModel> emptyList();
             }
         } else {
-            return Collections.emptyList();
+            return Collections.<TurbulenceModel> emptyList();
         }
-
     }
-    
+
     private static final char[] NUMBERS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
     private static final char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f' };
     private static final char[] LETTERS = { 'A', 'B', 'C', 'D', 'E', 'F' };

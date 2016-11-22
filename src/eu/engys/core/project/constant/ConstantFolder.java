@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.constant;
 
@@ -65,10 +64,9 @@ public class ConstantFolder implements Folder {
     private Dictionary g;
 
     private TurbulenceProperties turbulenceProperties;
-    private Dictionary RASProperties;
-    private Dictionary LESProperties;
     private TransportProperties transportProperties;
     private ThermophysicalProperties thermophysicalProperties;
+    private MRFProperties mrfProperties;
 
     private final FileManager fileManager;
 
@@ -87,13 +85,9 @@ public class ConstantFolder implements Folder {
 
         setG(constantFolder.g);
         setTurbulenceProperties(constantFolder.turbulenceProperties);
-        setRASProperties(constantFolder.RASProperties);
-        setLESProperties(constantFolder.LESProperties);
+        setMrfProperties(constantFolder.mrfProperties);
         setTransportProperties(constantFolder.transportProperties);
         setThermophysicalProperties(constantFolder.thermophysicalProperties);
-
-        // setPorousZones(constantFolder.porousZones);
-        // setMRFZones(constantFolder.MRFZones);
     }
 
     @Override
@@ -108,6 +102,14 @@ public class ConstantFolder implements Folder {
     public void setG(Dictionary g) {
         this.g = g;
     }
+    
+    public MRFProperties getMrfProperties() {
+        return mrfProperties;
+    }
+    
+    public void setMrfProperties(Dictionary mrfProperties) {
+        this.mrfProperties = new MRFProperties(mrfProperties);
+    }
 
     public TurbulenceProperties getTurbulenceProperties() {
         return turbulenceProperties;
@@ -115,22 +117,6 @@ public class ConstantFolder implements Folder {
 
     public void setTurbulenceProperties(Dictionary turbulenceProperties) {
         this.turbulenceProperties = new TurbulenceProperties(turbulenceProperties);
-    }
-
-    public Dictionary getRASProperties() {
-        return RASProperties;
-    }
-
-    public void setRASProperties(Dictionary rASProperties) {
-        RASProperties = rASProperties;
-    }
-
-    public Dictionary getLESProperties() {
-        return LESProperties;
-    }
-
-    public void setLESProperties(Dictionary lESProperties) {
-        LESProperties = lESProperties;
     }
 
     public TransportProperties getTransportProperties() {
@@ -160,31 +146,23 @@ public class ConstantFolder implements Folder {
     public List<Dictionary> getAllDictionaries() {
         List<Dictionary> dictionaries = new ArrayList<>();
         dictionaries.add(getG());
-        dictionaries.add(getLESProperties());
-        dictionaries.add(getRASProperties());
         dictionaries.add(getThermophysicalProperties());
         dictionaries.add(getTransportProperties());
         dictionaries.add(getTurbulenceProperties());
+        dictionaries.add(getMrfProperties());
         return dictionaries;
     }
 
     public void write(Model model, MaterialsWriter materialsWriter, ProgressMonitor monitor) {
-        model.getMaterials().saveMaterials(model, materialsWriter);
-
         File constDir = fileManager.getFile();
         if (!constDir.exists())
             constDir.mkdir();
 
         DictionaryUtils.writeDictionary(constDir, DictionaryUtils.header(CONSTANT, turbulenceProperties), monitor);
 
+        DictionaryUtils.writeDictionary(constDir, DictionaryUtils.header(CONSTANT, mrfProperties), monitor);
+
         State state = model.getState();
-        if (state.isLES()) {
-            DictionaryUtils.writeDictionary(constDir, DictionaryUtils.header(CONSTANT, LESProperties), monitor);
-            DictionaryUtils.removeDictionary(constDir, DictionaryUtils.header(CONSTANT, RASProperties), monitor);
-        } else if (state.isRANS()) {
-            DictionaryUtils.writeDictionary(constDir, DictionaryUtils.header(CONSTANT, RASProperties), monitor);
-            DictionaryUtils.removeDictionary(constDir, DictionaryUtils.header(CONSTANT, LESProperties), monitor);
-        }
 
         if (state.isCompressible() && !state.getMultiphaseModel().isMultiphase()) {
             DictionaryUtils.writeDictionary(constDir, DictionaryUtils.header(CONSTANT, thermophysicalProperties), monitor);
@@ -204,11 +182,10 @@ public class ConstantFolder implements Folder {
 
     }
 
-    public void load(Model model, ProgressMonitor monitor) {
+    public void read(Model model, ProgressMonitor monitor) {
         if (fileManager.getFile().exists() && fileManager.getFile().isDirectory()) {
+            setMrfProperties(DictionaryUtils.readDictionary(fileManager.getFile(MRFProperties.MRF_PROPERTIES), monitor));
             setTurbulenceProperties(DictionaryUtils.readDictionary(fileManager.getFile(TurbulenceProperties.TURBULENCE_PROPERTIES), monitor));
-            setRASProperties(DictionaryUtils.readDictionary(fileManager.getFile(RAS_PROPERTIES), monitor));
-            setLESProperties(DictionaryUtils.readDictionary(fileManager.getFile(LES_PROPERTIES), monitor));
             setThermophysicalProperties(DictionaryUtils.readDictionary(fileManager.getFile(ThermophysicalProperties.THERMOPHYSICAL_PROPERTIES), monitor));
             setTransportProperties(DictionaryUtils.readDictionary(fileManager.getFile(TransportProperties.TRANSPORT_PROPERTIES), monitor));
             setG(DictionaryUtils.readDictionary(fileManager.getFile(G), monitor));

@@ -1,61 +1,57 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.geometry;
 
-import static eu.engys.core.project.geometry.Surface.MAX_KEY;
-import static eu.engys.core.project.geometry.Surface.MIN_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.BLOCKS_KEY;
-import static eu.engys.core.project.system.BlockMeshDict.ELEMENTS_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.HEX_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.PATCHES_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.SIMPLE_GRADING_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.VERTICES_KEY;
 import static eu.engys.core.project.system.BlockMeshDict.WALL_KEY;
-import eu.engys.core.dictionary.Dictionary;
+import static java.lang.String.valueOf;
+
 import eu.engys.core.dictionary.FieldElement;
 import eu.engys.core.dictionary.parser.ListField2;
 import eu.engys.core.project.Model;
+import eu.engys.core.project.geometry.surface.MultiPlane;
 import eu.engys.core.project.geometry.surface.PlaneRegion;
 import eu.engys.core.project.system.BlockMeshDict;
 
 public class BlockSaver {
 
     private Model model;
-    private Geometry geometry;
 
-    public BlockSaver(Model model, Geometry geometry) {
+    public BlockSaver(Model model) {
         this.model = model;
-        this.geometry = geometry;
     }
 
-    public void saveAutomaticBlock() {
+    public void saveAutomaticBlock(double spacing, boolean shouldConsiderSpacing) {
         BlockMeshDict blockMeshDict = model.getProject().getSystemFolder().getBlockMeshDict();
         if(blockMeshDict != null){
-            blockMeshDict.setBoundingBox(model.getGeometry().computeBoundingBox());
+            blockMeshDict.setBoundingBox(model.getGeometry().computeBoundingBox(), spacing, shouldConsiderSpacing);
         }
     }
     /*
@@ -64,18 +60,18 @@ public class BlockSaver {
      * imported from external file I need to clean its data because there can be
      * stuff I cannot visualise in the GUI
      */
-    public void saveUserDefinedBlock(Dictionary userDefinedDictionary) {
+    public void saveUserDefinedBlock(MultiPlane block) {
         BlockMeshDict blockMeshDict = model.getProject().getSystemFolder().getBlockMeshDict();
         if (blockMeshDict.isFromFile()) {
             blockMeshDict = new BlockMeshDict();
         }
-        saveBlocks(blockMeshDict, userDefinedDictionary);
-        saveVertices(blockMeshDict, userDefinedDictionary);
-        savePatches(blockMeshDict);
+        saveBlocks(blockMeshDict, block);
+        saveVertices(blockMeshDict, block);
+        savePatches(blockMeshDict, block);
     }
     
 
-    private void saveBlocks(BlockMeshDict blockMeshDict, Dictionary userDefinedDictionary) {
+    private void saveBlocks(BlockMeshDict blockMeshDict, MultiPlane block) {
         ListField2 blocksList = new ListField2(BLOCKS_KEY);
 
         // 1
@@ -88,7 +84,7 @@ public class BlockSaver {
 
         // 3
         ListField2 elementsList = new ListField2("");
-        int[] elements = userDefinedDictionary.lookupIntArray(ELEMENTS_KEY);
+        int[] elements = block.getElements();
         for (int el : elements) {
             elementsList.add(new FieldElement("", String.valueOf(el)));
         }
@@ -105,8 +101,8 @@ public class BlockSaver {
         blockMeshDict.add(blocksList);
     }
 
-    private void savePatches(BlockMeshDict blockMeshDict) {
-        PlaneRegion[] regions = geometry.getBlock().getPlanes();
+    private void savePatches(BlockMeshDict blockMeshDict, MultiPlane block) {
+        PlaneRegion[] regions = block.getPlanes();
 
         ListField2 patchesList = new ListField2(PATCHES_KEY);
 
@@ -131,9 +127,9 @@ public class BlockSaver {
         blockMeshDict.add(patchesList);
     }
 
-    private void saveVertices(BlockMeshDict blockMeshDict, Dictionary d) {
-        String[] min = d.lookupArray(MIN_KEY);
-        String[] max = d.lookupArray(MAX_KEY);
+    private void saveVertices(BlockMeshDict blockMeshDict, MultiPlane block) {
+        double[] min = block.getMin();
+        double[] max = block.getMax();
 
         ListField2 verticesList = new ListField2(VERTICES_KEY);
         verticesList.add(getPointList(min[0], min[1], min[2]));
@@ -160,9 +156,9 @@ public class BlockSaver {
         return valuesContainerList;
     }
 
-    private ListField2 getPointList(String x, String y, String z) {
+    private ListField2 getPointList(double x, double y, double z) {
         ListField2 list = new ListField2("");
-        list.add(x, y, z);
+        list.add(valueOf(x), valueOf(y), valueOf(z));
         return list;
     }
 

@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.executor;
 
 import java.awt.BorderLayout;
@@ -40,12 +38,16 @@ import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import eu.engys.util.ApplicationInfo;
 import eu.engys.util.ui.ExecUtil;
@@ -53,32 +55,28 @@ import eu.engys.util.ui.ResourcesUtil;
 import eu.engys.util.ui.UiUtil;
 import eu.engys.util.ui.ViewAction;
 
-public class TerminalManager {
+public class TerminalManager implements ChangeListener {
 
-    private static TerminalManager instance = null;
     private Map<Component, JFrame> frames = new HashMap<>();
     private Map<Component, TerminalExecutorMonitor> monitors = new HashMap<>();
 
     public static final String TERMINAL_MANAGER = "terminal.manager";
 
-    private CollapseManager collapseManager;
+    private JSplitPane parent;
     private JTabbedPane tabbedPane;
 
-    public static TerminalManager getInstance() {
-        if (instance == null) {
-            instance = new TerminalManager();
-        }
-        return instance;
-    }
-
-    private TerminalManager() {
+    public TerminalManager() {
         this.tabbedPane = new JTabbedPane();
         this.tabbedPane.setName(TERMINAL_MANAGER);
-        this.collapseManager = new CollapseManager(tabbedPane);
+        this.tabbedPane.addChangeListener(this);
     }
 
-    public void toggleVisibility() {
-        collapseManager.toggle();
+    public void setParent(JSplitPane parent) {
+        this.parent = parent;
+    }
+
+    public JComponent getComponent() {
+        return tabbedPane;
     }
 
     public void addTerminal(Component component, TerminalExecutorMonitor monitor) {
@@ -188,7 +186,7 @@ public class TerminalManager {
             }
         }
     }
-    
+
     public static JFrame createTerminalFrame(final Component component, final String title, boolean removeMinMax) {
         final JFrame frame = new JFrame(title) {
             /**
@@ -205,11 +203,11 @@ public class TerminalManager {
             }
 
         };
-        
+
         if (removeMinMax) {
             removeMinMaxClose(frame);
         }
-        
+
         frame.setIconImage(((ImageIcon) ResourcesUtil.getIcon(ApplicationInfo.getVendor().toLowerCase() + ".logo")).getImage());
         frame.setAlwaysOnTop(false);
         frame.getContentPane().setLayout(new BorderLayout());
@@ -234,6 +232,42 @@ public class TerminalManager {
         }
     }
 
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        ExecUtil.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (tabbedPane.getTabCount() == 0) {
+                    collapse();
+                } else if (tabbedPane.getTabCount() >= 1) {
+                    expand();
+                }
+            }
+        });
+    }
+
+    public void toggleVisibility() {
+        if (parent != null) {
+            if (UiUtil.isCollapsed(parent) && tabbedPane.getTabCount() > 0) {
+                expand();
+            } else {
+                collapse();
+            }
+        }
+    }
+
+    public void collapse() {
+        if (parent != null) {
+            UiUtil.collapseSplitPane(parent);
+        }
+    }
+
+    public void expand() {
+        if (parent != null) {
+            UiUtil.expandSplitPane(parent, tabbedPane, 0.7, 300);
+        }
+    }
+
     class CloseAllAction extends ViewAction {
 
         public CloseAllAction() {
@@ -250,7 +284,4 @@ public class TerminalManager {
         }
     }
 
-    public Component getComponent() {
-        return tabbedPane;
-    }
 }

@@ -1,33 +1,32 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.materials.panels;
 
-import static eu.engys.core.project.constant.TransportProperties.MATERIAL_NAME_KEY;
 import static eu.engys.gui.casesetup.materials.panels.MaterialsDatabasePanel.COPY_OF_SUFFIX;
+import static eu.engys.util.ui.UiUtil.DIALOG_CANCEL_LABEL;
+import static eu.engys.util.ui.UiUtil.DIALOG_OK_LABEL;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -49,7 +48,6 @@ import javax.swing.SwingUtilities;
 
 import com.google.inject.Inject;
 
-import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.modules.ApplicationModule;
 import eu.engys.core.modules.ModulesUtil;
 import eu.engys.core.project.Model;
@@ -69,7 +67,9 @@ import eu.engys.util.ui.builder.PanelBuilder;
 public class MaterialsPanel extends AbstractGUIPanel {
 
     public static final String MATERIALS = "Materials";
+    public static final String CHANGE_MATERIAL = "Change Material";
     private static final String MATERIAL_CHANGED_WARNING = "A material has been changed.\nAll fields default settings are going to be reset now.\nContinue?";
+    public static final String MATERIALS_DATABASE_DIALOG_NAME = "materials.database.dialog";
 
     private JDialog dialog;
 
@@ -111,9 +111,8 @@ public class MaterialsPanel extends AbstractGUIPanel {
         parametersPanel = new MaterialParametersPanel(compressiblePanel, incompressiblePanel);
 
         parametersBuilder = new PanelBuilder();
-        parametersBuilder.addComponent(parametersPanel);
-
         ModulesUtil.configureMaterialsView(modules, parametersBuilder);
+        parametersBuilder.addComponent(parametersPanel);
 
         centerPanel.add(parametersBuilder.removeMargins().getPanel(), "material");
 
@@ -127,7 +126,7 @@ public class MaterialsPanel extends AbstractGUIPanel {
     private JComponent createButtonsPanel() {
         List<JComponent> actionsList = new ArrayList<JComponent>();
         changeMaterialButton = new JButton(new ChangeMaterialAction());
-        changeMaterialButton.setName("Change Material");
+        changeMaterialButton.setName(CHANGE_MATERIAL);
         changeMaterialButton.setEnabled(false);
         actionsList.add(changeMaterialButton);
 
@@ -138,23 +137,22 @@ public class MaterialsPanel extends AbstractGUIPanel {
 
     private void buildDialog() {
         JButton okButton = new JButton(new OkDialogAction());
-        okButton.setName("OK");
+        okButton.setName(DIALOG_OK_LABEL);
 
         JButton cancelButton = new JButton(new CancelDialogAction());
-        cancelButton.setName("Cancel");
-        
+        cancelButton.setName(DIALOG_CANCEL_LABEL);
+
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonsPanel.add(okButton);
         buttonsPanel.add(cancelButton);
-        
+
         dialog = new JDialog(UiUtil.getActiveWindow(), "Materials Database", JDialog.DEFAULT_MODALITY_TYPE);
-        dialog.setName("materials.database.dialog");
+        dialog.setName(MATERIALS_DATABASE_DIALOG_NAME);
         dialog.setSize(700, 500);
         dialog.setLocationRelativeTo(null);
         dialog.getContentPane().setLayout(new BorderLayout());
         dialog.getContentPane().add(materialsDatabasePanel, BorderLayout.CENTER);
         dialog.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
-        dialog.getRootPane().setDefaultButton(okButton);
     }
 
     @Override
@@ -187,16 +185,11 @@ public class MaterialsPanel extends AbstractGUIPanel {
                 Materials materials = model.getMaterials();
                 if (!materials.isEmpty()) {
                     for (Material material : materials) {
-                        for (ApplicationModule module : modules) {
-                            if (module.getMaterialsView() != null) {
-                                module.getMaterialsView().updateDefaultMaterial(material);
-                            }
-                        }
+                        ModulesUtil.updateMaterialFromDefaults(modules, material);
                         updateSelection(material);
                         saveMaterials(material);
                     }
                 }
-
             }
         });
     }
@@ -205,11 +198,8 @@ public class MaterialsPanel extends AbstractGUIPanel {
         if (ms.length == 1) {
             Material material = ms[0];
             centerPanelLayout.show(centerPanel, "material");
-            parametersPanel.setMaterial(material.getDictionary());
-            for (ApplicationModule module : modules) {
-                if (module.getMaterialsView() != null)
-                    module.getMaterialsView().updateGUIFromModel(material);
-            }
+            parametersPanel.setMaterial(material);
+            ModulesUtil.updateGUIFromMaterial(modules, material);
         } else {
             centerPanelLayout.show(centerPanel, "none");
         }
@@ -219,14 +209,9 @@ public class MaterialsPanel extends AbstractGUIPanel {
     public void saveMaterials(Material... selection) {
         if (selection != null && selection.length == 1) {
             Material material = selection[0];
-            Dictionary d = new Dictionary(parametersPanel.getMaterial(model));
-            material.setDictionary(d);
-
-            for (ApplicationModule module : modules) {
-                if (module.getMaterialsView() != null) {
-                    module.getMaterialsView().updateModelFromGUI(material);
-                }
-            }
+//            Dictionary d = new Dictionary(parametersPanel.getMaterial(model).getDictionary());
+//            material.setDictionary(d);
+//            ModulesUtil.updateMaterialFromGUI(modules, material);
         }
     }
 
@@ -237,7 +222,7 @@ public class MaterialsPanel extends AbstractGUIPanel {
     private final class ChangeMaterialAction extends AbstractAction {
 
         public ChangeMaterialAction() {
-            super("Change Material");
+            super(CHANGE_MATERIAL);
         }
 
         @Override
@@ -300,27 +285,23 @@ public class MaterialsPanel extends AbstractGUIPanel {
                 materialToChange = null;
             }
 
-            Dictionary dictionary = materialsDatabasePanel.getMaterial();
-            
-            Material material = null;
+            Material material = materialsDatabasePanel.getMaterial();
 
-            if (modelAlreadyContainsMaterial(dictionary.getName())) {
-                Dictionary newDict = new Dictionary(dictionary);
-                String newName = dictionary.getName() + COPY_OF_SUFFIX;
-                newDict.setName(newName);
-                newDict.add(MATERIAL_NAME_KEY, newName);
-                material = new Material(newName, newDict);
-                dictionary = newDict;
+            if (modelAlreadyContainsMaterial(material.getName())) {
+                String newName = material.getName() + COPY_OF_SUFFIX;
+                material = Material.newMaterial(newName, material);
             } else {
-                material = new Material(dictionary.getName(), dictionary);
+                material = Material.newMaterial(material);
             }
+
+            ModulesUtil.updateMaterialFromGUI(modules, material);
 
             if (index != -1) {
                 model.getMaterials().add(index, material);
             } else {
                 model.getMaterials().add(material);
             }
-            parametersPanel.setMaterial(dictionary);
+            parametersPanel.setMaterial(material);
             return material;
         }
 

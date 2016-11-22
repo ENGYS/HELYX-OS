@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project;
 
@@ -41,8 +40,6 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.engys.core.Arguments;
-import eu.engys.core.Arguments.CaseType;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.DictionaryUtils;
 import eu.engys.core.project.system.DecomposeParDict;
@@ -56,6 +53,9 @@ import eu.engys.util.ui.UiUtil;
 
 public class ProjectFolderAnalyzer {
 	
+	public static final String PARALLEL_CHOICE = "Parallel";
+	public static final String SERIAL_CHOICE = "Serial";
+
 	private static final Logger logger = LoggerFactory.getLogger(ProjectFolderAnalyzer.class);
 
 //    parallel   parallel    serial      serial 
@@ -82,26 +82,36 @@ public class ProjectFolderAnalyzer {
 //    F          F           F           F           -> N
     
 
+	public enum WhenInDoubt {READ_PARALLEL, ASK_USER};
+	
     private static final String PROCESSOR = "processor";
 
     private final File baseDir;
 
     private int processors;
 
-    private boolean parallel_constant;/* whether boudary is in 0 or in constant */
-    private boolean parallel_zero;/* whether boudary is in 0 or in constant */
+    /* whether boundary file is in 0 or in constant */
+    private boolean parallel_constant;
+    private boolean parallel_constant_multiregion;
+    private boolean parallel_zero_multiregion;
+    private boolean parallel_zero;
 
-    private boolean serial_constant;/* whether boudary is in 0 or in constant */
-    private boolean serial_zero;/* whether boudary is in 0 or in constant */
+    private boolean serial_constant;
+    private boolean serial_zero;
+    private boolean serial_constant_multiregion;
+    private boolean serial_zero_multiregion;
 
     private final ProgressMonitor monitor;
+
+    private WhenInDoubt wid;
 
     public ProjectFolderAnalyzer(File baseDir, ProgressMonitor monitor) {
         this.baseDir = baseDir;
         this.monitor = monitor;
     }
 
-    public ProjectFolderStructure checkAll() {
+    public ProjectFolderStructure checkAll(WhenInDoubt wid) {
+        this.wid = wid;
         checkSerialOrParallel();
         return populateStructure();
     }
@@ -188,6 +198,8 @@ public class ProjectFolderAnalyzer {
 
         parallel_zero = structure.isBoundaryFieldInZero();
         parallel_constant = structure.isBoundaryFieldInConstant();
+        parallel_zero_multiregion = structure.isBoundaryFieldInZeroMultiRegion();
+        parallel_constant_multiregion = structure.isBoundaryFieldInConstantMultiRegion();
     }
 
     void checkSerialBoundary() {
@@ -196,24 +208,18 @@ public class ProjectFolderAnalyzer {
 
         serial_zero = structure.isBoundaryFieldInZero();
         serial_constant = structure.isBoundaryFieldInConstant();
+        serial_zero_multiregion = structure.isBoundaryFieldInZeroMultiRegion();
+        serial_constant_multiregion = structure.isBoundaryFieldInConstantMultiRegion();
     }
 
     private void askToUser(ProjectFolderStructure checkList) {
-        if (Arguments.isBatch()) {
-            if (Arguments.caseType == CaseType.SERIAL) {
-            	logger.debug("Is Batch, case type is SERIAL");
-                checkList.setParallel(false);
-                checkList.setProcessors(-1);
-            } else if (Arguments.caseType == CaseType.PARALLEL) {
-            	logger.debug("Is Batch, case type is PARALLEL");
-                checkList.setParallel(true);
-                checkList.setProcessors(processors);
-            } else {
-                System.err.println("Case folder contains a serial AND a parallel case.\nPlease select which case to load: use '-serial' or '-parallel' option");
-                System.exit(-1);
-            }
-        } else {
-            Object[] options = { "Serial", "Parallel" };
+        if (wid == WhenInDoubt.READ_PARALLEL) {
+            System.err.println("Case folder contains a serial AND a parallel case.\nSwitch to parallel!");//Please select which case to load: use '-serial' or '-parallel' option");
+            logger.debug("Is Batch, case type is PARALLEL");
+            checkList.setParallel(true);
+            checkList.setProcessors(processors);
+        } else if (wid == WhenInDoubt.ASK_USER) {
+            Object[] options = { SERIAL_CHOICE, PARALLEL_CHOICE };
             Window parentComponent = monitor != null ? monitor.getDialog() : UiUtil.getActiveWindow();
             int answer = JOptionPane.showOptionDialog(parentComponent, "Project contains serial AND parallel case.\nPlease select which case to load", "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
             logger.debug("Asking user");
@@ -242,22 +248,38 @@ public class ProjectFolderAnalyzer {
         }
     }
 
-    public boolean isParallel_constant() {
+    public boolean isParallel_Constant() {
         return parallel_constant;
     }
 
-    public boolean isParallel_zero() {
+    public boolean isParallel_Constant_MultiRegion() {
+        return parallel_constant_multiregion;
+    }
+
+    public boolean isParallel_Zero() {
         return parallel_zero;
     }
 
-    public boolean isSerial_constant() {
+    public boolean isParallel_Zero_MultiRegion() {
+        return parallel_zero_multiregion;
+    }
+
+    public boolean isSerial_Constant() {
         return serial_constant;
     }
 
-    public boolean isSerial_zero() {
+    public boolean isSerial_Zero() {
         return serial_zero;
     }
 
+    public boolean isSerial_Constant_MultiRegion() {
+        return serial_constant_multiregion;
+    }
+    
+    public boolean isSerial_Zero_MultiRegion() {
+        return serial_zero_multiregion;
+    }
+    
     public static boolean isSuitable(File file) {
         if (file != null && file.exists() && file.isDirectory()) {
             File constant = new File(file, CONSTANT);

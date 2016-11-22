@@ -1,34 +1,32 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.system;
 
 import java.io.File;
 
-import eu.engys.core.dictionary.DefaultElement;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.DictionaryException;
 import eu.engys.core.dictionary.FoamFile;
@@ -79,6 +77,8 @@ public class ControlDict extends Dictionary {
 	public static final String STOP_AT_KEY = "stopAt";
 	public static final String RUNTIME_MODIFIABLE_KEY = "runTimeModifiable";
 	public static final String INCLUDE_KEY = "include";
+	public static final String LIBS_KEY = "libs";
+	
 	public static final String[] START_FROM_VALUES = { FIRST_TIME_VALUE, LATEST_TIME_VALUE, START_TIME_VALUE };
 	public static final String[] WRITE_CONTROL_VALUES = { TIME_STEP_VALUE, RUN_TIME_VALUE, CPU_TIME_VALUE, CLOCK_TIME_VALUE };
 //	public static final String[] WRITE_FORMAT_VALUES = { ASCII_VALUE, BINARY_VALUE };
@@ -121,10 +121,12 @@ public class ControlDict extends Dictionary {
 	public ControlDict() {
 		super(CONTROL_DICT);
 		setFoamFile(FoamFile.getDictionaryFoamFile(SystemFolder.SYSTEM, CONTROL_DICT));
+//		add("libs", "( \"libLEMOS-2.2.x.so\" \"libHelyxAdjointPlus.so\" )");
 	}
 
 	public ControlDict(ControlDict controlDict) {
 		super(controlDict);
+//		add("libs", "( \"libLEMOS-2.2.x.so\" \"libHelyxAdjointPlus.so\" )");
 	}
 
 	public ControlDict(File controlDictFile) {
@@ -137,41 +139,6 @@ public class ControlDict extends Dictionary {
 
 	public boolean isBinary() {
 		return found("writeFormat") && lookup("writeFormat").equals("binary");
-	}
-
-	@Override
-	public void merge(Dictionary dict) {
-	    if (dict instanceof ControlDict) { 
-	        ((ControlDict) dict).functionObjectsToDict();
-	    }
-		functionObjectsToDict();
-		super.merge(dict);
-		functionObjectsToList();
-		if (dict instanceof ControlDict) { 
-		    ((ControlDict) dict).functionObjectsToList();
-		}
-	}
-
-	public void functionObjectsToDict() {
-		if (found(FUNCTIONS_KEY) && isList(FUNCTIONS_KEY)) {
-			ListField functionsList = getList(FUNCTIONS_KEY);
-			Dictionary functionsDict = new Dictionary(FUNCTIONS_KEY);
-			for (DefaultElement el : functionsList.getListElements()) {
-				functionsDict.add(el);
-			}
-			remove(FUNCTIONS_KEY);
-			add(functionsDict);
-		}
-	}
-
-	public void functionObjectsToList() {
-		if (found(FUNCTIONS_KEY) && isDictionary(FUNCTIONS_KEY)) {
-			Dictionary functionsDict = subDict(FUNCTIONS_KEY);
-			remove(FUNCTIONS_KEY);
-			for (Dictionary dict : functionsDict.getDictionaries()) {
-				addToList(FUNCTIONS_KEY, dict);
-			}
-		}
 	}
 
 	public String getValueOnFunctionObject(String foName, String key) {
@@ -197,6 +164,6 @@ public class ControlDict extends Dictionary {
 
     public void startFromZero() {
         add(START_FROM_KEY, START_TIME_VALUE);
-        add(START_TIME_KEY, "0");
+        add(START_TIME_KEY, 0);
     }
 }

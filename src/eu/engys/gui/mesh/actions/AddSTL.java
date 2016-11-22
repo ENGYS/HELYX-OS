@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.actions;
 
 import java.io.File;
@@ -54,7 +52,7 @@ public abstract class AddSTL {
     }
 
     public void execute() {
-        STLFileChooserWrapper fc = new STLFileChooserWrapper();
+        STLFileChooserWrapper fc = new STLFileChooserWrapper(true);
         ReturnValue returnedValue = fc.showOpenDialog();
 
         if (returnedValue.isApprove()) {
@@ -63,20 +61,20 @@ public abstract class AddSTL {
 
             boolean filesOK = files != null && files.length > 0;
             boolean transformationsOK = transformations != null && transformations.length > 0;
-            boolean sameLength = transformations.length == files.length;
-            if (filesOK && transformationsOK && sameLength) {
-            	monitor.setIndeterminate(false);
-            	monitor.start("Loading STL Files", false, new Runnable() {
+            boolean sameLength = filesOK && transformationsOK && transformations.length == files.length;
+
+            if (sameLength) {
+                monitor.setIndeterminate(false);
+                monitor.start("Loading STL Files", false, new Runnable() {
                     @Override
                     public void run() {
                         List<Stl> stls = new ArrayList<>();
                         for (int i = 0; i < files.length; i++) {
                             File file = files[i];
                             AffineTransform transform = transformations[i];
-                                
+
                             if (ArchiveUtils.isArchive(file)) {
                                 File tmpFolder = TempFolder.get(AddSTL.class.getSimpleName());
-                                
                                 List<File> extractedFiles = ArchiveUtils.unarchive(file, tmpFolder);
                                 for (File target : extractedFiles) {
                                     monitor.info(String.format("Loading %s-%s ", file.getAbsolutePath(), target.getName()));

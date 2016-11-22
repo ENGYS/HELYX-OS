@@ -1,53 +1,51 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.ui.builder;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import eu.engys.util.TooltipUtils;
+import eu.engys.util.ui.UiUtil;
 import net.java.dev.designgridlayout.DesignGridLayout;
 import net.java.dev.designgridlayout.INonGridRow;
 import net.java.dev.designgridlayout.IRowCreator;
 import net.java.dev.designgridlayout.ISpannableGridRow;
 import net.java.dev.designgridlayout.RowGroup;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.engys.util.TooltipUtils;
-import eu.engys.util.ui.UiUtil;
 
 /**
  * <code><pre>
@@ -105,22 +103,17 @@ import eu.engys.util.ui.UiUtil;
  * endGroup();//marvel
  * endChoice();//autore
  * </pre></code>
- * 
  */
 public class PanelBuilder {
 
-    private static final Logger logger = LoggerFactory.getLogger(PanelBuilder.class);
-
-    private DesignGridLayout layout;
     private final JPanel parent;
+    protected Stack<KeydRowGroup> groups = new Stack<>();
+    protected Stack<GroupController> controllers = new Stack<>();
+    protected Stack<ShowHideAction> actions = new Stack<>();
+    private DesignGridLayout layout;
     private int level = 0;
     private int indent = 0;
-
-    protected Stack<KeydRowGroup> groups = new Stack<KeydRowGroup>();
-    protected Stack<GroupController> controllers = new Stack<GroupController>();
-    protected Stack<ShowHideAction> actions = new Stack<ShowHideAction>();
-
-    private HashMap<String, HideController> hideables = new HashMap<String, HideController>();
+    private HashMap<String, HideController> hideables = new HashMap<>();
 
     private String prefix = "";
 
@@ -139,12 +132,32 @@ public class PanelBuilder {
         this.parent.setName(name);
     }
 
+    public void update() {
+        parent.revalidate();
+        parent.repaint();
+    }
+
     public JPanel getPanel() {
-        return (JPanel) parent;
+        return parent;
     }
 
     public PanelBuilder removeMargins() {
         layout.margins(0, 0, 0, 0);
+        return this;
+    }
+
+    public PanelBuilder withTitle(String title) {
+        parent.setBorder(BorderFactory.createTitledBorder(title));
+        return this;
+    }
+
+    public PanelBuilder withName(String name) {
+        parent.setName(name);
+        return this;
+    }
+
+    public PanelBuilder nonOpaque() {
+        parent.setOpaque(false);
         return this;
     }
 
@@ -195,6 +208,10 @@ public class PanelBuilder {
         newLeftRow().add(c).fill();
     }
 
+    public void emptyRow() {
+        newLeftRow().add(new JLabel(" ")).fill();
+    }
+
     public void addSeparator(String string) {
         addSeparator(boldlabel(string));
     }
@@ -240,11 +257,15 @@ public class PanelBuilder {
 
     public JComponent addComponent(String label, JComponent c) {
         newGridRow(label, null).add(c);
-        c.setName(prefix + label);
+        if (prefix.isEmpty() && label.isEmpty() && c.getName() != null) {
+            // if a name already in place do nothing
+        } else {
+            c.setName(prefix + label);
+        }
         return c;
     }
 
-    public JComponent addComponent(String label, JComponent c, String tooltip) {
+    public JComponent addComponent(String label, String tooltip, JComponent c) {
         newGridRow(label, tooltip).add(c);
         c.setName(prefix + label);
         c.setToolTipText(TooltipUtils.format(tooltip));
@@ -258,7 +279,7 @@ public class PanelBuilder {
     }
 
     public JComponent addComponentAndSpan(String label, JComponent c, int span) {
-        newGridRow(label, null).add(c,span).spanRow();
+        newGridRow(label, null).add(c, span).spanRow();
         c.setName(prefix + label);
         return c;
     }
@@ -284,9 +305,24 @@ public class PanelBuilder {
         return c;
     }
 
-    public JComponent[] addComponent(JLabel label, JComponent... c) {
-        newGridRow(label, null).add(c);
-        setNames(prefix + label.getName());
+    public JComponent[] addComponent2Columns(String l1, JComponent c1, String l2, JComponent c2) {
+        newGridRow(l1, null).add(c1).grid(label(l2)).add(c2);
+        c1.setName(l1);
+        c2.setName(l2);
+        return new JComponent[] { c1, c2 };
+    }
+
+    public JComponent[] addComponent3Columns(String l1, JComponent c1, String l2, JComponent c2, String l3, JComponent c3) {
+        newGridRow(l1, null).add(c1).grid(label(l2)).add(c2).grid(label(l3)).add(c3);
+        c1.setName(l1);
+        c2.setName(l2);
+        c3.setName(l3);
+        return new JComponent[] { c1, c2, c3 };
+    }
+
+    public JComponent[] addComponent(String label, String tooltip, JComponent... c) {
+        newGridRow(label, tooltip).add(c);
+        setNames(label, c);
         return c;
     }
 
@@ -320,10 +356,14 @@ public class PanelBuilder {
 
     private void setNames(String label, JComponent... c) {
         if (c.length == 1) {
-            c[0].setName(prefix + label);
+            if (c[0].getName() == null) {
+                c[0].setName(prefix + label);
+            }
         } else {
             for (int i = 0; i < c.length; i++) {
-                c[i].setName(prefix + label + "." + i);
+                if (c[i].getName() == null) {
+                    c[i].setName(prefix + label + "." + i);
+                }
             }
         }
     }
@@ -353,37 +393,44 @@ public class PanelBuilder {
         layout.emptyRow();
     }
 
-    public GroupController startChoice(String choiceName, GroupController groupController) {
-
-        ShowHideAction action = new ShowHideAction();
-
-        actions.push(action);
-        controllers.push(groupController);
-
-        addComponent(choiceName, controllers.peek().getComponent());
-
-        level++;
-
-        return groupController;
-    }
-
     public GroupController startChoice(String choiceName) {
         return startChoice(choiceName, (String) null);
     }
 
     public GroupController startChoice(String choiceName, String tooltip) {
-        ShowHideAction action = new ShowHideAction();
+        return startChoice(choiceName, new JComboBoxController(), tooltip);
+    }
 
-        GroupController comboBox = comboBox();
+    public GroupController startChoice(String choiceName, GroupController comboBox) {
+        return startChoice(choiceName, comboBox, (String) null);
+    }
+
+    public GroupController startChoiceNoLabel(String name, GroupController comboBox) {
+        ShowHideAction action = new ShowHideAction();
 
         actions.push(action);
         controllers.push(comboBox);
 
-        addComponent(choiceName, controllers.peek().getComponent());
+        JComponent c = controllers.peek().getComponent();
+        c.setName(name);
+        addFill(c);
 
         level++;
 
-        ((JComboBoxController) comboBox).setToolTipText(TooltipUtils.format(tooltip));
+        return comboBox;
+    }
+
+    public GroupController startChoice(String choiceName, GroupController comboBox, String tooltip) {
+        ShowHideAction action = new ShowHideAction();
+
+        actions.push(action);
+        controllers.push(comboBox);
+
+        addComponent(choiceName, tooltip, controllers.peek().getComponent());
+
+        level++;
+
+        ((JComponent) comboBox).setToolTipText(TooltipUtils.format(tooltip));
 
         return comboBox;
     }
@@ -392,7 +439,7 @@ public class PanelBuilder {
         level--;
         GroupController combo = controllers.pop();
         combo.addActionListener(actions.pop());
-        combo.setSelectedIndex(0);
+        combo.setSelectedKey(combo.getKeys().get(0));
     }
 
     public void startHidable(String key) {
@@ -411,7 +458,7 @@ public class PanelBuilder {
         // indent--;
         GroupController check = controllers.pop();
         check.addActionListener(actions.pop());
-        check.setSelectedIndex(0);
+        check.setSelectedKey(check.getKeys().get(0));
     }
 
     public void setShowing(String hideable, String group) {
@@ -466,6 +513,23 @@ public class PanelBuilder {
         return checkBox;
     }
 
+    public GroupController startCheck2(String checkName, JCheckBoxController checkBox, String tooltip) {
+        ShowHideAction action = new ShowHideAction();
+
+        actions.push(action);
+        controllers.push(checkBox);
+
+        addSeparator(controllers.peek().getComponent());
+
+        level++;
+        indent();
+        startGroup(checkName);
+
+        checkBox.setToolTipText(TooltipUtils.format(tooltip));
+
+        return checkBox;
+    }
+
     public void endCheck() {
         endCheck(true);
     }
@@ -476,11 +540,24 @@ public class PanelBuilder {
         outdent();
         GroupController check = controllers.pop();
         check.addActionListener(actions.pop());
-        check.setSelectedIndex(0);
+        check.setSelectedKey(check.getKeys().get(0));
         if (enable)
             return; // questo significa che se voglio inizialmente deselezionato
-                    // devo fare click due volte
-        check.setSelectedIndex(0);
+        // devo fare click due volte
+        check.setSelectedKey(check.getKeys().get(0));
+    }
+
+    public void endCheck2(boolean enable) {
+        endGroup();
+        level--;
+        outdent();
+        GroupController check = controllers.pop();
+        check.addItemListener(actions.pop());
+        check.setSelectedKey(check.getKeys().get(0));
+        if (enable)
+            return; // questo significa che se voglio inizialmente deselezionato
+        // devo fare click due volte
+        check.setSelectedKey(check.getKeys().get(0));
     }
 
     public RowGroup startGroup(String groupName) {
@@ -490,7 +567,7 @@ public class PanelBuilder {
     public RowGroup startGroup(String groupKey, String groupName) {
         RowGroup group = new RowGroup();
         actions.peek().addItem(groupKey, group); // prima questo altrimenti
-                                                 // scassa
+        // scassa
         controllers.peek().addGroup(groupKey, groupName);
         groups.push(new KeydRowGroup(groupKey, group));
 
@@ -546,20 +623,53 @@ public class PanelBuilder {
         return new JCheckBoxController(name);
     }
 
-    private GroupController comboBox() {
-        return new JComboBoxController();
-    }
-
     private GroupController hider() {
         return new HideController();
     }
 
-    class ShowHideAction implements ActionListener {
+    protected void beforeSelection(String selectedKey) {
+
+    }
+
+    protected void afterSelection(String selectedKey) {
+
+    }
+
+    /* set a prefix for naming component */
+    public void prefix(String name) {
+        this.prefix = name;
+    }
+
+    class ShowHideAction implements ActionListener, ItemListener {
         Map<String, RowGroup> groups = new HashMap<String, RowGroup>();
         String previousKey = null;
 
         public void addItem(String groupKey, RowGroup group) {
             groups.put(groupKey, group);
+        }
+
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+            Object source = e.getSource();
+            if (source instanceof GroupController) {
+                GroupController controller = (GroupController) e.getSource();
+                String selectedKey = controller.getSelectedKey();
+                handleSelection(selectedKey);
+                GroupController childController = controller.getChildController(selectedKey);
+                if (childController != null) {
+                    String childSelectedKey = childController.getSelectedKey();
+                    childController.setSelectedKey(childSelectedKey);
+                }
+            } else {
+                if (previousKey != null) {
+                    groups.get(previousKey).hide();
+                    previousKey = null;
+                } else {
+                    String selectedKey = groups.keySet().iterator().next();
+                    groups.get(selectedKey).show();
+                    previousKey = selectedKey;
+                }
+            }
         }
 
         @Override
@@ -573,11 +683,6 @@ public class PanelBuilder {
                 if (childController != null) {
                     String childSelectedKey = childController.getSelectedKey();
                     childController.setSelectedKey(childSelectedKey);
-                    // GroupController grandChildController = childController.getChildController(childSelectedKey);
-                    // if (grandChildController != null) {
-                    // String grandChildSelectedKey = childController.getSelectedKey();
-                    // grandChildController.setSelectedKey(grandChildSelectedKey);
-                    // }
                 }
             } else {
                 if (previousKey != null) {
@@ -601,13 +706,6 @@ public class PanelBuilder {
             previousKey = selectedKey;
             afterSelection(selectedKey);
         }
-    }
-
-    protected void beforeSelection(String selectedKey) {
-
-    }
-
-    protected void afterSelection(String selectedKey) {
 
     }
 
@@ -619,10 +717,5 @@ public class PanelBuilder {
             this.group = group;
             this.groupKey = groupKey;
         }
-    }
-
-    /* set a prefix for naming component */
-    public void prefix(String name) {
-        this.prefix = name;
     }
 }

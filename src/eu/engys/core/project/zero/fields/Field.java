@@ -1,35 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.zero.fields;
+
+import static eu.engys.core.project.zero.fields.Fields.U;
 
 import java.io.File;
 import java.util.Arrays;
 
 import eu.engys.core.dictionary.Dictionary;
+import eu.engys.core.project.state.State;
 import eu.engys.util.progress.ProgressMonitor;
 
 public class Field {
@@ -40,43 +42,11 @@ public class Field {
 	public static final String DIMENSIONS = "dimensions";
 	public static final String INTERNAL_FIELD = "internalField";
 
-	public enum FieldType {
-
-		SCALAR, VECTOR, POINT;
-
-		public static FieldType getType(String string) {
-			switch (string) {
-			case "scalar":
-				return SCALAR;
-			case "vector":
-				return VECTOR;
-			case "point":
-				return POINT;
-			default:
-				return null;
-			}
-		}
-
-		public boolean isScalar() {
-			return this == SCALAR;
-		}
-
-		public boolean isVector() {
-			return this == VECTOR;
-		}
-
-		public boolean isPoint() {
-			return this == POINT;
-		}
-	}
-
 	private InternalField internalField;
 	private Dictionary boundaryField;
 	
-
-	private FieldType fieldType;
 	private String[] initialisationMethods;
-	private Dictionary initialisation = new Dictionary(INITIALISATION_KEY);
+	private Initialisation initialisation = new DefaultInitialisation();
 	private Dictionary definition = new Dictionary(FIELD_DEFINITION_KEY);
 	private String name;
 	private String dimensions;
@@ -106,24 +76,16 @@ public class Field {
         this.name = name;
     }
 
-	public String getInitialisationType() {
-		return initialisation.lookup(Dictionary.TYPE);
-	}
-
-	public FieldType getFieldType() {
-		return fieldType;
-	}
-
-	public void setFieldType(FieldType fieldType) {
-		this.fieldType = fieldType;
-	}
-
-	public Dictionary getInitialisation() {
+	public Initialisation getInitialisation() {
 		return initialisation;
 	}
 
-	public void setInitialisation(Dictionary initialisation) {
+	public void setInitialisation(Initialisation initialisation) {
 		this.initialisation = initialisation;
+	}
+	
+	public boolean isScalar(){
+	    return !name.startsWith(U);
 	}
 
 	public void setInitialisationMethods(String[] initMethods) {
@@ -200,14 +162,11 @@ public class Field {
         if (field.dimensions != null) {
             setDimensions(field.dimensions);
         }
-        if (field.fieldType != null) {
-            setFieldType(field.fieldType);
-        }
         if (field.initialisation != null) {
 //            if (this.initialisation != null) {
 //                this.initialisation.merge(field.initialisation);
 //            } else {
-                setInitialisation(new Dictionary(field.initialisation));
+                setInitialisation(field.initialisation);
 //            }
         }
         if (field.initialisationMethods != null) {
@@ -218,12 +177,35 @@ public class Field {
         }
         
         setVisible(field.visible);
-        
+    }
+    
+    public double getInternalFieldScalarValue(State state) {
+        if (state.isCompressible() || state.isBuoyant()) {
+            if (getInternalField() instanceof ScalarInternalField) {
+                return ((ScalarInternalField) getInternalField()).getValue()[0][0];
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    public double[] getInternalFieldArrayValue(State state) {
+        if (state.isCompressible() || state.isBuoyant()) {
+            if (getInternalField() instanceof ArrayInternalField) {
+                return ((ArrayInternalField) getInternalField()).getValue()[0];
+            } else {
+                return new double[] { 0, 0, 0 };
+            }
+        } else {
+            return new double[] { 0, 0, 0 };
+        }
     }
     
     @Override
     public String toString() {
-        return name + " " + fieldType + " " + Arrays.toString(initialisationMethods) + " " + initialisation + definition;
+        return name + " " + Fields.getFieldTypeByName(name) + " " + Arrays.toString(initialisationMethods) + " " + initialisation + definition;
     }
 
 	public static void main(String[] args) {

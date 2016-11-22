@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.vtk.actions;
 
 import java.util.HashSet;
@@ -33,6 +32,9 @@ import javax.vecmath.Vector3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.engys.gui.view3D.PickInfo;
+import eu.engys.gui.view3D.Selection;
+import eu.engys.gui.view3D.Selection.SelectionMode;
 import vtk.vtkCellData;
 import vtk.vtkDataArray;
 import vtk.vtkDataSet;
@@ -47,9 +49,6 @@ import vtk.vtkPolyData;
 import vtk.vtkPolyDataNormals;
 import vtk.vtkSelection;
 import vtk.vtkSelectionNode;
-import eu.engys.gui.view3D.PickInfo;
-import eu.engys.gui.view3D.Selection;
-import eu.engys.gui.view3D.Selection.SelectionMode;
 
 public class ExtractSelection {
 
@@ -143,7 +142,6 @@ public class ExtractSelection {
 
     private void pickByArea(PickInfo pi) {
         if (pi.frustum != null && pi.dataSet != null) {
-
             vtkDataSet input = selection.getDataSet();//pi.dataSet;
             vtkIdFilter idFilter = new vtkIdFilter();
             idFilter.CellIdsOn();
@@ -188,12 +186,15 @@ public class ExtractSelection {
 
     private void pickByFeature(PickInfo pi) {
         double[] normal = pi.normal;
-        vtkDataSet input = pi.dataSet;
-        int cellId = pi.cellId;
-
+        
+        vtkDataSet input = selection.getDataSet();//pi.dataSet;
         if (input == null)
             return;
 
+        int cellId = pi.cellId;
+        if (cellId < 0)
+            return;
+        
         vtkPolyData output = getNormalsDataSet(normal, input);
         Set<Integer> cells = new HashSet<>();
 
@@ -206,7 +207,41 @@ public class ExtractSelection {
                 performSelection(id);
             }
         }
+        output.Delete();
+    }
 
+    private vtkPolyData getNormalsDataSet(double[] normal, vtkDataSet dataSet) {
+        vtkPolyDataNormals normalsFilter = new vtkPolyDataNormals();
+        normalsFilter.SetInputData(dataSet);
+        normalsFilter.SplittingOff();
+        normalsFilter.SetFeatureAngle(60);
+        normalsFilter.ComputeCellNormalsOn();
+        normalsFilter.FlipNormalsOff();
+        normalsFilter.AutoOrientNormalsOff();
+        normalsFilter.ConsistencyOff();
+        normalsFilter.Update();
+
+        vtkPolyData output = normalsFilter.GetOutput();
+        vtkCellData outputData = output.GetCellData();
+        vtkDataArray normals = outputData.GetVectors("Normals");
+
+        vtkFloatArray angles = new vtkFloatArray();
+        angles.SetName("Angles");
+
+        if (normals != null) {
+            for (int i = 0; i < normals.GetNumberOfTuples(); i++) {
+                double[] t = normals.GetTuple3(i);
+                double a = computeAngle(t, normal);
+                angles.InsertNextValue(a);
+            }
+        }
+        outputData.AddArray(angles);
+        
+        normalsFilter.Delete();
+        angles.Delete();
+        normals.Delete();
+        
+        return output;
     }
 
     private void analyseNeighbours(int cellId, vtkPolyData output, Set<Integer> cells) {
@@ -239,7 +274,7 @@ public class ExtractSelection {
 
             for (int j = 0; j < neighborCellIds.GetNumberOfIds(); j++) {
                 int id = neighborCellIds.GetId(j);
-                double angle = angles.GetComponent(id, 0);
+                double angle = angles.GetComponent(id, 0)%180;
                 if (angle < selection.getFeatureAngle()) {
                     neighbors.add(id);
                 }
@@ -259,33 +294,6 @@ public class ExtractSelection {
                 analyseNeighbours(newCell, output, cells);
             }
         }
-    }
-
-    private vtkPolyData getNormalsDataSet(double[] normal, vtkDataSet dataSet) {
-        vtkPolyDataNormals normalsFilter = new vtkPolyDataNormals();
-        normalsFilter.SetInputData(dataSet);
-        normalsFilter.SplittingOff();
-        normalsFilter.SetFeatureAngle(60);
-        normalsFilter.ComputeCellNormalsOn();
-        // normalsFilter.AutoOrientNormalsOn();
-        normalsFilter.Update();
-
-        vtkPolyData output = normalsFilter.GetOutput();
-        vtkCellData outputData = output.GetCellData();
-        vtkDataArray normals = outputData.GetVectors("Normals");
-
-        vtkFloatArray angles = new vtkFloatArray();
-        angles.SetName("Angles");
-
-        if (normals != null) {
-            for (int i = 0; i < normals.GetNumberOfTuples(); i++) {
-                double[] t = normals.GetTuple3(i);
-                double a = computeAngle(t, normal);
-                angles.InsertNextValue(a);
-            }
-        }
-        outputData.AddArray(angles);
-        return output;
     }
 
     private double computeAngle(double[] t, double[] normal) {

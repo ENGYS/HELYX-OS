@@ -1,40 +1,37 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project;
-
-import static eu.engys.core.project.system.RunDict.RUN_DICT;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Observable;
 
 import eu.engys.core.controller.Command;
-import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.DictionaryUtils;
 import eu.engys.core.project.state.ServerState;
+import eu.engys.core.project.system.ProjectDict;
 import eu.engys.util.connection.QueueParameters;
 import eu.engys.util.connection.SshParameters;
 import eu.engys.util.progress.SilentMonitor;
@@ -126,14 +123,13 @@ public class SolverModel extends Observable implements Serializable {
         return remote;
     }
 
-    private void read(Model model) {
-        File file = model.getProject().getSystemFolder().getFileManager().getFile(RUN_DICT);
-        new SolverModelReader(model).loadFromRunDict(new Dictionary(file), this);
-    }
-
     // Called from Server, so you need to load runDict from disk
+    // state may be changed by an instance running in queue system
+    // need to refresh state before
     public void writeState(ServerState state, Model model) {
-        read(model);
+        File file = model.getProject().getSystemFolder().getFileManager().getFile(ProjectDict.PROJECT_DICT);
+        ProjectDict projectDict = new ProjectDict(file);
+        new SolverModelReader(this).load(projectDict);
         setServerState(state);
         write(model);
     }
@@ -143,9 +139,14 @@ public class SolverModel extends Observable implements Serializable {
         write(model);
     }
 
+    public void removeServerID(Model model) {
+        setServerID(null);
+        write(model);
+    }
+
     private void write(Model model) {
-        new SolverModelWriter(model).save();
-        DictionaryUtils.writeDictionary(model.getProject().getSystemFolder().getFileManager().getFile(), model.getProject().getSystemFolder().getRunDict(), new SilentMonitor());
+        new SolverModelWriter(this).save(model.getProject());
+        DictionaryUtils.writeDictionary(model.getProject().getSystemFolder().getFileManager().getFile(), model.getProject().getSystemFolder().getProjectDict(), new SilentMonitor());
     }
 
     @Override

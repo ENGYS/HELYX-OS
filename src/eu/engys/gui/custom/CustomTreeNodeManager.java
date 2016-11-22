@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.custom;
 
 import java.awt.Component;
@@ -34,6 +33,7 @@ import java.util.Observable;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -47,14 +47,15 @@ import eu.engys.core.project.custom.CustomUtils;
 import eu.engys.gui.tree.AbstractSelectionHandler;
 import eu.engys.gui.tree.DefaultTreeNodeManager;
 import eu.engys.gui.tree.SelectionHandler;
-import eu.engys.gui.view3D.Actor;
-import eu.engys.gui.view3D.Picker;
 import eu.engys.util.Symbols;
 import eu.engys.util.ui.ExecUtil;
+import eu.engys.util.ui.ResourcesUtil;
 import eu.engys.util.ui.TreeUtil;
-import eu.engys.util.ui.checkboxtree.VisibleItem;
 
 public class CustomTreeNodeManager extends DefaultTreeNodeManager<CustomFile> {
+
+    private static final Icon FILE_ICON = ResourcesUtil.getIcon("file.icon");
+    private static final Icon FOLDER_ICON = ResourcesUtil.getIcon("folder.icon");
 
     private SelectionHandler selectionHandler;
     private Map<DefaultMutableTreeNode, CustomFile> filesMap = new HashMap<>();
@@ -231,9 +232,9 @@ public class CustomTreeNodeManager extends DefaultTreeNodeManager<CustomFile> {
 
             private void icon(CustomFile item) {
                 if (item.getType().isDirectory()) {
-                    setIcon(getDefaultOpenIcon());
+                    setIcon(FOLDER_ICON);
                 } else {
-                    setIcon(getDefaultLeafIcon());
+                    setIcon(FILE_ICON);
                 }
             }
         };
@@ -272,18 +273,6 @@ public class CustomTreeNodeManager extends DefaultTreeNodeManager<CustomFile> {
             addFileAction.setEnabled(panel.canAddCustomFileToSelectedFile(getSelectedValues()));
             removeFileAction.setEnabled(panel.canRemoveSelectedCustomFile(getSelectedValues()));
             editFileAction.setEnabled(panel.canEditSelectedCustomFile(getSelectedValues()));
-        }
-
-        @Override
-        public void handleVisibility(VisibleItem item) {
-        }
-
-        @Override
-        public void process3DSelectionEvent(Picker picker, Actor actor, boolean keep) {
-        }
-
-        @Override
-        public void process3DVisibilityEvent(boolean selected) {
         }
 
         public void clear() {

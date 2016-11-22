@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.geometry.factory;
 
 import static eu.engys.core.dictionary.Dictionary.TYPE;
@@ -46,13 +44,14 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import vtk.vtkPolyData;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.geometry.FeatureLine;
 import eu.engys.core.project.geometry.Surface;
 import eu.engys.core.project.geometry.TransfromMode;
 import eu.engys.core.project.geometry.stl.AffineTransform;
+import eu.engys.core.project.geometry.stl.STLAreaReader;
+import eu.engys.core.project.geometry.stl.STLAreaWriter;
 import eu.engys.core.project.geometry.stl.STLReader;
 import eu.engys.core.project.geometry.stl.STLWriter;
 import eu.engys.core.project.geometry.surface.Box;
@@ -63,8 +62,10 @@ import eu.engys.core.project.geometry.surface.Ring;
 import eu.engys.core.project.geometry.surface.Solid;
 import eu.engys.core.project.geometry.surface.Sphere;
 import eu.engys.core.project.geometry.surface.Stl;
+import eu.engys.core.project.geometry.surface.StlArea;
 import eu.engys.util.ColorUtil;
 import eu.engys.util.progress.ProgressMonitor;
+import vtk.vtkPolyData;
 
 public class DefaultGeometryFactory implements GeometryFactory {
 
@@ -73,22 +74,24 @@ public class DefaultGeometryFactory implements GeometryFactory {
 
     @Override
     public void deleteSurface(Model model, Surface surface) {
-        if(surface instanceof Stl) {
-            File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(surface.getName()+".stl");
+        if (surface instanceof Stl) {
+            File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(surface.getName() + ".stl");
             if (file.exists()) {
-              FileUtils.deleteQuietly(file);
+                FileUtils.deleteQuietly(file);
             }
-            file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(surface.getName()+".STL");
+            file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(surface.getName() + ".STL");
             if (file.exists()) {
-              FileUtils.deleteQuietly(file);
+                FileUtils.deleteQuietly(file);
             }
         }
     }
-    
+
     @Override
     public void writeSurface(Surface surface, Model model, ProgressMonitor monitor) {
         if (surface.getType().isStl()) {
             writeSTL((Stl) surface, model, monitor);
+        } else if (surface.getType().isStlArea()) {
+            writeSTLArea((StlArea) surface, model, monitor);
         } else if (surface.getType().isLine()) {
             writeFeatureLine((FeatureLine) surface, model, monitor);
         }
@@ -97,7 +100,7 @@ public class DefaultGeometryFactory implements GeometryFactory {
     private void writeFeatureLine(FeatureLine line, Model model, ProgressMonitor monitor) {
         String fileName = line.getName() + ".eMesh";
         File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(fileName);
-        if (!file.exists()|| line.isModified()) {
+        if (!file.exists() || line.isModified()) {
             new EMESHWriter(file, line).run();
         }
     }
@@ -106,20 +109,34 @@ public class DefaultGeometryFactory implements GeometryFactory {
         String fileName = stl.getFileName();
         File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(fileName);
         AffineTransform transformation = stl.getTransformation();
-        
+
         if (stl.getTransformMode() == TransfromMode.TO_DICTIONARY) {
             if (!file.exists() || stl.isModified()) {
                 new STLWriter(file, stl, monitor).run();
             }
-        } else { 
+        } else {
             if (!file.exists() || !transformation.isIdentity() || stl.isModified()) {
                 new STLWriter(file, stl, monitor).run();
             }
         }
     }
-    
-    
-    
+
+    private void writeSTLArea(StlArea stlArea, Model model, ProgressMonitor monitor) {
+        String fileName = stlArea.getFile();
+        File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(fileName);
+        AffineTransform transformation = stlArea.getTransformation();
+
+        if (stlArea.getTransformMode() == TransfromMode.TO_DICTIONARY) {
+            if (!file.exists()) {
+                new STLAreaWriter(file, stlArea, monitor).run();
+            }
+        } else {
+            if (!file.exists() || !transformation.isIdentity()) {
+                new STLAreaWriter(file, stlArea, monitor).run();
+            }
+        }
+    }
+
     @Override
     public Surface loadSurface(Dictionary g, Model model, ProgressMonitor monitor) {
         Surface surface;
@@ -166,44 +183,44 @@ public class DefaultGeometryFactory implements GeometryFactory {
 
     @SuppressWarnings("deprecation")
     protected Surface loadBox(Dictionary g) {
-        Surface box = new Box(g.getName());
-        box.setGeometryDictionary(g);
+        Box box = new Box(g.getName());
+        box.fromGeometryDictionary(g);
         return box;
     }
 
     @SuppressWarnings("deprecation")
     protected Cylinder loadCylinder(Dictionary g) {
         Cylinder cyl = new Cylinder(g.getName());
-        cyl.setGeometryDictionary(g);
+        cyl.fromGeometryDictionary(g);
         return cyl;
     }
 
     @SuppressWarnings("deprecation")
     protected Plane loadPlane(Dictionary g) {
         Plane plane = new Plane(g.getName());
-        plane.setGeometryDictionary(g);
+        plane.fromGeometryDictionary(g);
         return plane;
     }
 
     @SuppressWarnings("deprecation")
     protected Ring loadRing(Dictionary g) {
         Ring ring = new Ring(g.getName());
-        ring.setGeometryDictionary(g);
+        ring.fromGeometryDictionary(g);
         return ring;
     }
 
     @SuppressWarnings("deprecation")
     protected Sphere loadSphere(Dictionary g) {
         Sphere sphere = new Sphere(g.getName());
-        sphere.setGeometryDictionary(g);
+        sphere.fromGeometryDictionary(g);
         return sphere;
     }
 
     @SuppressWarnings("deprecation")
     protected Stl loadSTL(Dictionary g, Model model, ProgressMonitor monitor) {
         Stl stl = new Stl(g.lookup("name"));
-        stl.setGeometryDictionary(g);
-        
+        stl.setFileName(g.getName());
+
         loadStl(stl, model, monitor);
 
         stl.setTransformation(AffineTransform.fromGeometryDictionary(g));
@@ -211,16 +228,15 @@ public class DefaultGeometryFactory implements GeometryFactory {
     }
 
     private void loadStl(Stl stl, Model model, ProgressMonitor monitor) {
-        String fileName = stl.getGeometryDictionary().getName();
+        String fileName = stl.getFileName();
         File file = model.getProject().getConstantFolder().getTriSurface().getFileManager().getFile(fileName);
-        stl.setFileName(file);
 
         if (STLCache.containsKey(fileName)) {
             Stl cached = STLCache.get(fileName);
             Solid[] cachedSolids = cached.getSolids();
             List<Solid> solids = new ArrayList<>();
             for (Solid cachedSolid : cachedSolids) {
-                solids.add((Solid)cachedSolid.cloneSurface());
+                solids.add((Solid) cachedSolid.cloneSurface());
             }
             stl.setSolids(solids);
         } else {
@@ -229,7 +245,7 @@ public class DefaultGeometryFactory implements GeometryFactory {
             List<Solid> solids = reader.getSolids();
             stl.setSolids(solids);
         }
-        
+
         if (!STLCache.containsKey(fileName)) {
             STLCache.put(fileName, stl);
         }
@@ -239,20 +255,32 @@ public class DefaultGeometryFactory implements GeometryFactory {
     public Stl readSTL(File file, ProgressMonitor monitor) {
         String fileName = file.getName();
         String name = FilenameUtils.removeExtension(fileName);
-        Dictionary g = new Dictionary(fileName, Surface.stl);
-        g.setName(fileName);
-        g.add("name", name);
 
         Stl stl = new Stl(name);
-        stl.setGeometryDictionary(g);
-        stl.setFileName(file);
-        
+        stl.setFileName(fileName);
+
         STLReader reader = new STLReader(file, monitor);
         reader.run();
         List<Solid> solids = reader.getSolids();
         stl.setSolids(solids);
-        
+
         return stl;
+    }
+
+    @Override
+    public StlArea readSTLArea(File file, ProgressMonitor monitor) {
+        String fileName = file.getName();
+        String name = FilenameUtils.removeExtension(fileName);
+
+        StlArea stlArea = new StlArea(name);
+        stlArea.setFile(fileName);
+
+        STLAreaReader reader = new STLAreaReader(file, monitor);
+        reader.run();
+        List<Solid> solids = reader.getSolids();
+        stlArea.setDataSet(solids.get(0).getDataSet());
+
+        return stlArea;
     }
 
     private FeatureLine loadLine(Dictionary g, Model model, ProgressMonitor monitor) {
@@ -262,17 +290,17 @@ public class DefaultGeometryFactory implements GeometryFactory {
         line.setColor(ColorUtil.getColor(model.getGeometry().getLines().size()));
         return line;
     }
-    
+
     @Override
     public FeatureLine readLine(File file) {
         FeatureLine featureLine = new FeatureLine(FilenameUtils.removeExtension(file.getName()));
         featureLine.setModified(false);
         vtkPolyData dataSet = new EMESHReader(file).run();
         featureLine.setDataSet(dataSet);
-        
+
         return featureLine;
     }
-    
+
     /*
      * IS
      */
@@ -304,7 +332,7 @@ public class DefaultGeometryFactory implements GeometryFactory {
     public static boolean isSTL(Dictionary g) {
         return g.isField(TYPE) && TRI_SURFACE_MESH_KEY.equals(g.lookup(TYPE));
     }
-    
+
     public static void clearSTLCache() {
         STLCache.clear();
     }

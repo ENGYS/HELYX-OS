@@ -1,33 +1,30 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util;
 
-import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+import static eu.engys.util.PrefUtil.USER_NAME;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -37,18 +34,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,6 +45,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +58,8 @@ import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
 
 public final class Util {
+
+    public static final String UTF_8 = "UTF-8";
 
     public enum ScriptStyle {
         WINDOWS, LINUX;
@@ -118,11 +110,15 @@ public final class Util {
         if (Character.isDigit(charArray[0]))
             charArray[0] = '_';
         for (int i = 0; i < charArray.length; i++) {
-            if (Util.isForbidden(charArray[i])) {
+            if (isForbidden(charArray[i])) {
                 charArray[i] = '_';
             }
         }
         return new String(charArray);
+    }
+
+    public static boolean isForbidden(char ch) {
+        return !Character.isLetterOrDigit(ch) && " \"/\\*#$;&".indexOf(ch) >= 0;
     }
 
     public static String padWithSpaces(String string, int lenght) {
@@ -138,48 +134,30 @@ public final class Util {
         }
     }
 
-    public static String[] fromKeystoLabels(String[] keys) {
-        String[] labels = new String[keys.length];
-        for (int i = 0; i < labels.length; i++) {
-            labels[i] = fromKeyToLabel(keys[i]);
-        }
-        return labels;
-    }
-
-    private static String fromKeyToLabel(String key) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(Character.toUpperCase(key.charAt(0)));
-        for (int i = 1; i < key.length(); i++) {
-            char c = key.charAt(i);
-            if (Character.isUpperCase(c))
-                sb.append(" ");
-            sb.append(c);
-        }
-        return sb.toString();
-    }
-
     public static boolean isWindows() {
         String os = System.getProperty("os.name").toLowerCase();
-        // windows
         return (os.indexOf("win") >= 0);
     }
 
     public static boolean isMac() {
         String os = System.getProperty("os.name").toLowerCase();
-        // Mac
         return (os.indexOf("mac") >= 0);
     }
 
     public static boolean isUnix() {
         String os = System.getProperty("os.name").toLowerCase();
-        // linux or unix
         return (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0);
     }
-
-    public static boolean isSolaris() {
-        String os = System.getProperty("os.name").toLowerCase();
-        // Solaris
-        return (os.indexOf("sunos") >= 0);
+    
+    public static boolean isCygwin() {
+        ProcessBuilder pb = new ProcessBuilder("uname", "-o");
+        try {
+            Process start = pb.start();
+            start.waitFor();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static int[] getFactorsFor(int np) {
@@ -227,12 +205,12 @@ public final class Util {
 
     public static int getWindowsProcessId(Process proc) throws Exception {
         if (proc.getClass().getName().equals("java.lang.Win32Process") || proc.getClass().getName().equals("java.lang.ProcessImpl")) {
-            /* determine the pid on windows plattforms */
             Field f = proc.getClass().getDeclaredField("handle");
             f.setAccessible(true);
             long handl = f.getLong(proc);
             Kernel32 kernel = Kernel32.INSTANCE;
             WinNT.HANDLE handle = new WinNT.HANDLE();
+
             handle.setPointer(Pointer.createConstant(handl));
             return kernel.GetProcessId(handle);
         }
@@ -253,7 +231,6 @@ public final class Util {
             }
         } else {
             String listOfProcesses = getCommandOutput("ps -f");
-            // System.err.println(listOfProcesses);
             if (listOfProcesses == null || listOfProcesses.isEmpty()) {
                 return false;
             } else {
@@ -266,7 +243,11 @@ public final class Util {
         }
     }
 
-    public static String getCommandOutput(String command) {
+    public static String getLastNChars(String string, int n) {
+        return string.length() > n ? string.substring(string.length() - n) : string;
+    }
+
+    private static String getCommandOutput(String command) {
         String output = null; // the string to return
 
         Process process = null;
@@ -277,23 +258,29 @@ public final class Util {
         try {
             process = Runtime.getRuntime().exec(command);
 
-            // Get stream of the console running the command
             stream = process.getInputStream();
             streamReader = new InputStreamReader(stream);
             reader = new BufferedReader(streamReader);
 
-            String currentLine = null; // store current line of output from the
-                                       // cmd
-            StringBuilder commandOutput = new StringBuilder(); // build up the
-                                                               // output from
-                                                               // cmd
+            String currentLine = null;
+            List<String> processes = new LinkedList<String>();
             while ((currentLine = reader.readLine()) != null) {
-                commandOutput.append(currentLine + "\n");
+                processes.add(currentLine);
             }
+            Collections.sort(processes, new Comparator<String>() {
+
+                @Override
+                public int compare(String o1, String o2) {
+                    return o1.compareToIgnoreCase(o2);
+                }
+            });
 
             int returnCode = process.waitFor();
             if (returnCode == 0) {
-                output = commandOutput.toString();
+                output = new String();
+                for (String p : processes) {
+                    output += p + "\n";
+                }
             }
             System.err.println(output);
         } catch (IOException e) {
@@ -304,8 +291,6 @@ public final class Util {
             System.err.println("Cannot retrieve output of command");
             System.err.println(e);
         } finally {
-            // Close all inputs / readers
-
             if (stream != null) {
                 try {
                     stream.close();
@@ -328,31 +313,7 @@ public final class Util {
                 }
             }
         }
-        // Return the output from the command - may be null if an error occured
         return output;
-    }
-
-    public static void deepCopy(double[] source, double[] target) {
-        if (source == null || target == null)
-            throw new IllegalArgumentException("Arrays should be not null");
-        if (source.length != target.length)
-            throw new IllegalArgumentException("Arrays should have same length");
-
-        for (int i = 0; i < source.length; i++) {
-            target[i] = source[i];
-        }
-    }
-
-    public static void deepCopy(int[] source, int[] target) {
-        if (source == null || target == null)
-            throw new IllegalArgumentException("Arrays should be not null");
-        if (source.length != target.length)
-            throw new IllegalArgumentException("Arrays should have same length");
-
-        for (int i = 0; i < source.length; i++) {
-            target[i] = source[i];
-        }
-
     }
 
     @SuppressWarnings("unchecked")
@@ -508,77 +469,11 @@ public final class Util {
         }
     }
 
-    public static void watchDirectoryPath(Path path) {
-        // Sanity check - Check if path is a folder
-        try {
-            Boolean isFolder = (Boolean) Files.getAttribute(path, "basic:isDirectory", NOFOLLOW_LINKS);
-            if (!isFolder) {
-                throw new IllegalArgumentException("Path: " + path + " is not a folder");
-            }
-        } catch (IOException ioe) {
-            // Folder does not exists
-            ioe.printStackTrace();
-        }
-
-        // System.out.println("Watching path: " + path);
-
-        // We obtain the file system of the Path
-        FileSystem fs = path.getFileSystem();
-
-        // We create the new WatchService using the new try() block
-        try (WatchService service = fs.newWatchService()) {
-
-            // We register the path to the service
-            // We watch for creation events
-            path.register(service, ENTRY_CREATE);
-
-            // Start the infinite polling loop
-            WatchKey key = null;
-            while (true) {
-                key = service.take();
-
-                // Dequeueing events
-                Kind<?> kind = null;
-                for (WatchEvent<?> watchEvent : key.pollEvents()) {
-                    // Get the type of the event
-                    kind = watchEvent.kind();
-                    if (OVERFLOW == kind) {
-                        continue; // loop
-                    } else if (ENTRY_CREATE == kind) {
-                        // A new Path was created
-                        // Path newPath = ((WatchEvent<Path>)
-                        // watchEvent).context();
-                        // Output
-                        // System.out.println("New path created: " + newPath);
-                    }
-                }
-
-                if (!key.reset()) {
-                    break; // loop
-                }
-            }
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
-        }
-
-    }
-
     public static String generateID() {
         byte[] foo = new byte[4];
         Util.rnd.fill(foo, 0, foo.length);
         String id = new String(Hex.encodeHex(foo)).toUpperCase();
         return id;
-    }
-
-    public static String getMachineName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            return "";
-        }
     }
 
     public static final Random rnd = new Random();
@@ -588,8 +483,35 @@ public final class Util {
         return b ? 1 : 0;
     }
 
-    public static boolean isForbidden(char ch) {
-        return !Character.isLetterOrDigit(ch) && " \"/\\*#$;".indexOf(ch) >= 0;
+    public static void round(double[] d) {
+        for (int i = 0; i < d.length; i++) {
+            d[i] = Math.round(d[i] * 100_000) / 100_000.0;
+        }
+    }
+
+    public static void printMatrix(Object[][] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                System.out.print(matrix[i][j] + " ");
+            }
+            System.out.print("\n");
+        }
+    }
+
+    public static String getUID() {
+        StringBuffer sb = new StringBuffer();
+        try {
+            Process proc = Runtime.getRuntime().exec("id -u " + USER_NAME);
+            InputStream in = proc.getInputStream();
+            int c;
+            while ((c = in.read()) != -1) {
+                sb.append((char) c);
+            }
+            in.close();
+        } catch (Exception e) {
+            return "1000";
+        }
+        return sb.toString();
     }
 
 }

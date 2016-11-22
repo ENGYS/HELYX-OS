@@ -1,48 +1,47 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.connection;
 
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -74,11 +73,13 @@ import eu.engys.util.ui.UiUtil;
 
 public class SshUtils {
 
-	public static final int TIMEOUT = 21000;
+	private static final String SOURCE_DOT_BASH_PROFILE = "[[ -e ~/.bash_profile ]] && source ~/.bash_profile; ";
+
+    private static final String SOURCE_DOT_PROFILE = "[[ -e ~/.profile ]] && source ~/.profile; ";
+
+    public static final int TIMEOUT = 21000;
 
 	private static final Logger logger = LoggerFactory.getLogger(SshUtils.class);
-
-	private static final URL PLINK_URL = SshUtils.class.getClassLoader().getResource("eu/engys/gui/vtk/depot/ssh/plink.exe");
 
 	public enum Terminal {
 		XTERM, GNOMETERMINAL, KONSOLE
@@ -176,7 +177,7 @@ public class SshUtils {
 		channel.cd(remoteDestination.toString());
 		String remoteFile = remoteDestination + getFilePathSeparator(remoteDestination) + localFile.getFileName();
 		if (remoteFileAlreadyExists(remoteFile, channel)) {
-			int res = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), "File " + remoteFile + " already exists. Override?");
+			int res = JOptionPane.showConfirmDialog(UiUtil.getActiveWindow(), "File " + remoteFile + " already exists. Overwrite?");
 			if (res == JOptionPane.OK_OPTION) {
 				if (localFile.toFile().isDirectory()) {
 					// channel.rmdir gives an error
@@ -203,7 +204,8 @@ public class SshUtils {
                 monitor.info("New folder: " + localFile.getFileName().toString());
 			}
 			for (File file : localFile.toFile().listFiles()) {
-				uploadFileOrFolder(Paths.get(file.toURI()), remoteDestination + getFilePathSeparator(remoteDestination) + localFile.getFileName(), channel, monitor);
+				String newRemoteFolder = remoteDestination + getFilePathSeparator(remoteDestination) + localFile.getFileName();
+				uploadFileOrFolder(Paths.get(file.toURI()), newRemoteFolder, channel, monitor);
 			}
 		} else {
 			if (monitor != null) {
@@ -254,6 +256,7 @@ public class SshUtils {
 		}
 	}
 
+
 	public static class UploadProgressMonitor implements SftpProgressMonitor {
 
 		private ProgressMonitor monitor;
@@ -266,8 +269,9 @@ public class SshUtils {
 
 		@Override
 		public void init(int op, String src, String dest, long max) {
+		    monitor.setIndeterminate(false);
 			monitor.setTotal(total);
-			monitor.setCurrent(null, 0);
+			monitor.setCurrent(null, 1);
 		}
 
 		@Override
@@ -316,42 +320,44 @@ public class SshUtils {
 		channel.get(remoteFile, localDestination.toString());
 	}
 
-	public static void exexRemoteScriptInLocalShell(String user, String host, String privateKeyPath, String scriptFile) throws IOException, InterruptedException {
-		String nameOS = System.getProperty("os.name");
-		String command = null;
-		if (nameOS.startsWith("Windows")) {
-			String openTerminalcommand = "cmd /C start cmd.exe /K";
-			String plinkPath = PLINK_URL.getFile().substring(1);
-			String sshCommand = "-ssh " + host + " -l " + user + " -i " + privateKeyPath + " -m";
-			File scriptLauncher = createScriptLauncher(scriptFile);
-			String scriptLauncherPath = scriptLauncher.getAbsolutePath();
-			command = openTerminalcommand + " " + plinkPath + " " + sshCommand + " " + scriptLauncherPath;
-		} else if (nameOS.startsWith("Linux")) {
-			Terminal terminal = getConsoleType();
-			String openTerminalcommand = null;
-			switch (terminal) {
-			case GNOMETERMINAL:
-				openTerminalcommand = "gnome-terminal -x";
-				break;
-			case KONSOLE:
-				openTerminalcommand = "konsole -e";
-				break;
-			case XTERM:
-				openTerminalcommand = "xterm -x";
-				break;
-			default:
-				break;
-			}
-
-			String sshCommand = "ssh " + user + "@" + host + " -i " + privateKeyPath.toString() + " " + scriptFile;
-			command = openTerminalcommand + " " + sshCommand;
-
-		} else {
-			System.out.println("OS NOT SUPPORTED!");
-		}
-		Process p = Runtime.getRuntime().exec(command);
-		p.waitFor();
-	}
+//	public static void exexRemoteScriptInLocalShell(String user, String host, String privateKeyPath, String scriptFile) throws IOException, InterruptedException {
+//		String nameOS = System.getProperty("os.name");
+//		String command = null;
+//		if (nameOS.startsWith("Windows")) {
+//			String openTerminalcommand = "cmd /C start cmd.exe /K";
+//			String plinkPath = PLINK_URL.getFile().substring(1);
+//			String sshCommand = "-ssh " + host + " -l " + user + " -i " + privateKeyPath + " -m";
+//			File scriptLauncher = createScriptLauncher(scriptFile);
+//			String scriptLauncherPath = scriptLauncher.getAbsolutePath();
+//			command = openTerminalcommand + " " + plinkPath + " " + sshCommand + " " + scriptLauncherPath;
+//		} else if (nameOS.startsWith("Linux")) {
+//			Terminal terminal = getConsoleType();
+//			String openTerminalcommand = null;
+//			switch (terminal) {
+//			case GNOMETERMINAL:
+//				openTerminalcommand = "gnome-terminal -x";
+//				break;
+//			case KONSOLE:
+//				openTerminalcommand = "konsole -e";
+//				break;
+//			case XTERM:
+//				openTerminalcommand = "xterm -x";
+//				break;
+//			default:
+//				break;
+//			}
+//
+//			String sshCommand = "ssh " + user + "@" + host + " -i " + privateKeyPath.toString() + " " + scriptFile;
+//			command = openTerminalcommand + " " + sshCommand;
+//
+//		} else {
+//			System.out.println("OS NOT SUPPORTED!");
+//		}
+//		if(command != null){
+//		    Process p = Runtime.getRuntime().exec(command);
+//		    p.waitFor();
+//		}
+//	}
 
 	public static void execSSHCommand(String command, Session session) throws JSchException, IOException {
 		execSSHCommand(command, session, null);
@@ -382,6 +388,17 @@ public class SshUtils {
 		}
 	}
 
+	public static Map<String, String> getEnvFromCommand(String command) {
+	    Map<String, String> env = new HashMap<>();
+	    Pattern pattern = Pattern.compile("export\\s(.*?)=(.*)\\s&&");
+	    Matcher m = pattern.matcher(command);
+	    while (m.find()) {
+	        env.put(m.group(1), m.group(2));
+	    }
+	    
+	    return env;
+	}
+	
 	public static String addEnvToCommand(String command, Map<String, String> env) {
 		StringBuilder sb = new StringBuilder();
 		if (env != null) {
@@ -396,10 +413,20 @@ public class SshUtils {
 
 	public static String addProfileLoaderToCommand(String command) {
 	    StringBuilder sb = new StringBuilder();
-	    sb.append("[[ -e ~/.profile ]] && source ~/.profile; ");
-	    sb.append("[[ -e ~/.bash_profile ]] && source ~/.bash_profile; ");
+	    sb.append(SOURCE_DOT_PROFILE);
+	    sb.append(SOURCE_DOT_BASH_PROFILE);
 	    sb.append(command);
 	    return sb.toString();
+	}
+
+	public static String removeProfileLoaderToCommand(String command) {
+	    if (command.contains(SOURCE_DOT_PROFILE)) {
+	        command = command.replace(SOURCE_DOT_PROFILE, "");
+	    }
+	    if (command.contains(SOURCE_DOT_BASH_PROFILE)) {
+	        command = command.replace(SOURCE_DOT_BASH_PROFILE, "");
+	    }
+	    return command;
 	}
 
 	private static void waitForChannelClosed(ChannelExec channel) {
@@ -415,32 +442,32 @@ public class SshUtils {
 		try {
 			execSSHCommand("chmod +x " + filePath, session);
 		} catch (JSchException | IOException e) {
-			e.printStackTrace();
+			logger.warn("{}", e.getMessage());
 		}
 	}
 
-	private static Terminal getConsoleType() throws IOException, InterruptedException {
-		Process p = Runtime.getRuntime().exec("which gnome-terminal");
-		p.waitFor();
-		if (p.exitValue() == 0) {
-			return Terminal.GNOMETERMINAL;
-		}
-		Process p1 = Runtime.getRuntime().exec("which konsole");
-		p1.waitFor();
-		if (p1.exitValue() == 0) {
-			return Terminal.KONSOLE;
-		}
-		return Terminal.XTERM;
-	}
-
-	private static File createScriptLauncher(String string) throws IOException {
-		File file = File.createTempFile("xxx", null);
-		FileWriter fstream = new FileWriter(file);
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.write(string);
-		out.close();
-		return file;
-	}
+//	private static Terminal getConsoleType() throws IOException, InterruptedException {
+//		Process p = Runtime.getRuntime().exec("which gnome-terminal");
+//		p.waitFor();
+//		if (p.exitValue() == 0) {
+//			return Terminal.GNOMETERMINAL;
+//		}
+//		Process p1 = Runtime.getRuntime().exec("which konsole");
+//		p1.waitFor();
+//		if (p1.exitValue() == 0) {
+//			return Terminal.KONSOLE;
+//		}
+//		return Terminal.XTERM;
+//	}
+//
+//	private static File createScriptLauncher(String string) throws IOException {
+//		File file = File.createTempFile("xxx", null);
+//		FileWriter fstream = new FileWriter(file);
+//		BufferedWriter out = new BufferedWriter(fstream);
+//		out.write(string);
+//		out.close();
+//		return file;
+//	}
 
 	public static boolean testConnection(SshParameters sshParameters) {
 		return testConnection(sshParameters, null, false, false);

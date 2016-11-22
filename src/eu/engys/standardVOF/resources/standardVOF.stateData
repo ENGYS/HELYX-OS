@@ -114,7 +114,7 @@ states
                 
                 $fvSolution_solvers_PIMPLE;
             
-                pcorr
+                "pcorr.*"
                 {
                     solver          PCG;
                     preconditioner
@@ -200,12 +200,15 @@ states
             runTimeModifiable   yes;
             adjustTimeStep      yes;
             maxCo               0.5;
-            maxAlphaCo          0.25;
+            maxAlphaCo          0.2;
             maxDeltaT           1.0;
         }
         fvSchemes
         {
-            ddtSchemes {$fvSchemes_ddtSchemes_les;}
+            ddtSchemes
+            {
+            	default CrankNicolson 0.9;
+            }
     
             gradSchemes 
             {
@@ -242,9 +245,6 @@ states
                 nCorrectors                 5;
                 nOuterCorrectors            1;
                 nNonOrthogonalCorrectors    1;
-                nAlphaCorr                  1;
-                nAlphaSubCycles             5;
-                cAlpha                      1.5;
                 correctPhi                  yes;
                 pRefCell                    0;
                 pRefValue                   0;
@@ -266,7 +266,7 @@ states
             }
             solvers
             {
-                pcorr
+                "pcorr.*"
                 {
                     solver          PCG;
                     preconditioner
@@ -449,8 +449,8 @@ states
                     relTol 0;
                     nSweeps 1;
                     minIter 1;
-                    nAlphaCorr 1;
-                    nAlphaSubCycles 3;
+		            nAlphaCorr                  2;
+		            nAlphaSubCycles             1;
                     cAlpha 1.5;
                 }
             }

@@ -1,36 +1,45 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.dictionary;
 
 import static eu.engys.core.dictionary.Dictionary.SPACER;
 import static eu.engys.core.dictionary.Dictionary.TAB;
 import static eu.engys.core.dictionary.Dictionary.VERBOSE;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.engys.core.dictionary.parser.ListField2;
 
 public class DictionaryWriter {
+    
+    private static final Logger logger = LoggerFactory.getLogger(DictionaryWriter.class);
+
+    private static final String SCALAR_TAG = "<scalar>";
+    private static final String VECTOR_TAG = "<vector>";
+    private static final String LIST = "List";
 
     protected Dictionary dictionary;
 
@@ -87,7 +96,7 @@ public class DictionaryWriter {
             if (ele != null) {
                 writeElement(sb, rowHeader, ele);
             } else {
-                System.out.println("DictionaryWriter.writeDictionary() ------------------------------>> " + key + " is NUUULLLLL in " + dictionary.getKeys() + " and " + dictionary.getDictionaries());
+                logger.error("Dictionary \"{}\" does not contain key {}. Keys are {}", dictionary.getName(), key, dictionary.getKeys());
             }
         }
         for (String includeFile : dictionary.getIncludeFiles()) {
@@ -99,7 +108,9 @@ public class DictionaryWriter {
     }
 
     public static void writeElement(StringBuffer sb, String rowHeader, DefaultElement ele) {
-        if (ele instanceof Dictionary) {
+        if (ele == null) {
+            logger.error("A NULL element has not been written in \n{}", sb.toString());
+        } else if (ele instanceof Dictionary) {
             DictionaryWriter writer = new DictionaryWriter((Dictionary) ele);
             writer.writeDictionary(sb, rowHeader + TAB);
         } else if (ele instanceof DimensionedScalar) {
@@ -120,7 +131,7 @@ public class DictionaryWriter {
     private static boolean hasParenthesis(DefaultElement ele) {
         FieldElement fieldElement = (FieldElement) ele;
         String value = fieldElement.getValue();
-        return value != null && value.contains("(") && value.contains("List");
+        return value != null && value.contains("(") && value.contains(LIST);
     }
 
     protected static void writeField(StringBuffer sb, FieldElement field, String rowHeader) {
@@ -146,9 +157,9 @@ public class DictionaryWriter {
         sb.append(SPACER);
         String value = field.getValue();
         if (value.contains("vector")) {
-            sb.append(value.replace("(", "\n(").replace("))", ")\n)").replace("<vector>", "<vector>\n"));
+            sb.append(value.replace("(", "\n(").replace("))", ")\n)").replace(VECTOR_TAG, VECTOR_TAG+"\n"));
         } else {
-            sb.append(value.replace("(", "\n(").replace("<scalar>", "<scalar>\n").replaceAll("\\s+", "\n"));
+            sb.append(value.replace("(", "\n(").replace(SCALAR_TAG, SCALAR_TAG+"\n").replaceAll("\\s+", "\n"));
         }
         sb.append(";");
     }
@@ -167,16 +178,18 @@ public class DictionaryWriter {
     private static void writeDimensionedScalar(StringBuffer sb, DimensionedScalar ds, String rowHeader) {
         if (VERBOSE)
             System.out.println("Dictionary.writeDimensionedScalar() " + (ds != null ? ds.getName() : "NULL!!!"));
-        sb.append("\n");
-        sb.append(rowHeader);
-        sb.append(TAB);
-        sb.append(ds.getName());
-        sb.append(SPACER);
-        sb.append(ds.getName());
-        sb.append(SPACER);
-        sb.append(ds.getDimensions());
-        sb.append(SPACER);
-        sb.append(ds.getValue());
-        sb.append(";");
+        if (ds != null) {
+            sb.append("\n");
+            sb.append(rowHeader);
+            sb.append(TAB);
+            sb.append(ds.getName());
+            sb.append(SPACER);
+            sb.append(ds.getName());
+            sb.append(SPACER);
+            sb.append(ds.getDimensions());
+            sb.append(SPACER);
+            sb.append(ds.getValue());
+            sb.append(";");
+        }
     }
 }

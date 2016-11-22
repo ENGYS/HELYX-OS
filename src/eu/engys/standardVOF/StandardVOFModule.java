@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.standardVOF;
 
 import java.util.HashSet;
@@ -52,10 +51,12 @@ public class StandardVOFModule extends ApplicationModuleAdapter {
 
     private static final String MODULE_NAME = "standardVOF";
 
+    public static final Solver INTER_FOAM = new Solver("interFoam");
+    public static final Solver INTER_DYM_FOAM = new Solver("interDyMFoam");
+    
     public static final String VOF_LABEL = "VOF";
     public static final String VOF_KEY = "VOF";
-
-    public static final Solver INTER_FOAM = new Solver("interFoam");
+    
     public static final MultiphaseModel VOF_MODEL = new MultiphaseModel(VOF_LABEL, VOF_KEY, true, true);
 
     private StandardVOFSolutionView solutionView;
@@ -67,8 +68,8 @@ public class StandardVOFModule extends ApplicationModuleAdapter {
     private double sigma;
 
     private Model model;
-
     private DefaultsProvider defaults;
+
     private StandardVOFReader reader;
 
     @Inject
@@ -118,10 +119,14 @@ public class StandardVOFModule extends ApplicationModuleAdapter {
 
     @Override
     public void updateSolver(State state) {
-        if (state.isTransient()) {
+        if (state.getMultiphaseModel().equals(VOF_MODEL)) {
             if (state.isIncompressible()) {
-                if (state.getMultiphaseModel().equals(VOF_MODEL)) {
-                    state.setSolver(INTER_FOAM);
+                if (state.isTransient()) {
+                    if (state.isDynamic()) {
+                        state.setSolver(INTER_DYM_FOAM);
+                    } else {
+                        state.setSolver(INTER_FOAM);
+                    }
                 }
             }
         }
@@ -143,10 +148,6 @@ public class StandardVOFModule extends ApplicationModuleAdapter {
     }
 
     @Override
-    public void write() {
-    }
-
-    @Override
     public void saveDefaultsToProject() {
         if (isVOF()) {
             StateBuilder.saveDefaultsToProject(model, defaults);
@@ -157,7 +158,7 @@ public class StandardVOFModule extends ApplicationModuleAdapter {
     @Override
     public Fields loadDefaultsFields(String region) {
         if (isVOF()) {
-            return FieldsDefaults.loadFieldsFromDefaults(model.getState(), defaults, model.getPatches(), region);
+            return FieldsDefaults.loadFieldsFromDefaults(model.getProject().getBaseDir(), model.getState(), defaults, model.getPatches(), region);
         } else {
             return new Fields();
         }

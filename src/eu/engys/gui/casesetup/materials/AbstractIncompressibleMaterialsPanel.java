@@ -1,40 +1,33 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.materials;
 
-import static eu.engys.core.project.constant.TransportProperties.CP_KEY;
-import static eu.engys.core.project.constant.TransportProperties.LAMBDA_KEY;
-import static eu.engys.core.project.constant.TransportProperties.MATERIAL_NAME_KEY;
 import static eu.engys.core.project.constant.TransportProperties.MU_KEY;
 import static eu.engys.core.project.constant.TransportProperties.NU_KEY;
-import static eu.engys.core.project.constant.TransportProperties.PRT_KEY;
-import static eu.engys.core.project.constant.TransportProperties.P_REF_KEY;
 import static eu.engys.core.project.constant.TransportProperties.RHO_KEY;
 import static eu.engys.core.project.constant.TransportProperties.SIGMA_KEY;
-import static eu.engys.core.project.constant.TransportProperties.T_REF_KEY;
 import static eu.engys.util.Symbols.CP;
 import static eu.engys.util.Symbols.DENSITY;
 import static eu.engys.util.Symbols.DOT;
@@ -47,11 +40,12 @@ import java.beans.PropertyChangeListener;
 
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.dictionary.DimensionedScalar;
-import eu.engys.core.dictionary.model.DictionaryModel;
 import eu.engys.core.modules.materials.MaterialsBuilder;
 import eu.engys.core.project.Model;
+import eu.engys.core.project.materials.incompressible.IncompressibleMaterial;
 import eu.engys.core.project.state.State;
 import eu.engys.util.DimensionalUnits;
+import eu.engys.util.bean.BeanModel;
 import eu.engys.util.ui.builder.PanelBuilder;
 import eu.engys.util.ui.textfields.DoubleField;
 import eu.engys.util.ui.textfields.StringField;
@@ -68,8 +62,10 @@ public abstract class AbstractIncompressibleMaterialsPanel implements Incompress
     public static final String DENSITY_LABEL = "Density " + DENSITY;
     public static final String THERMAL_EXPANTION_COEFF_LABEL = "Thermal Expansion Coefficient [K" + MINUS_ONE + "]";
 
-    protected DictionaryModel incompressibleModel = new DictionaryModel("newMaterial", getEmptyMaterial());
+//    protected DictionaryModel incompressibleModel = new DictionaryModel("newMaterial", getEmptyMaterial());
 
+    protected BeanModel<IncompressibleMaterial> materialModel = new BeanModel<>(new IncompressibleMaterial());
+    
     private StringField nameField;
     private DoubleField rho;
     private DoubleField mu;
@@ -82,9 +78,9 @@ public abstract class AbstractIncompressibleMaterialsPanel implements Incompress
         this.builder = new PanelBuilder();
     }
     
-    public abstract Dictionary getMaterial(Model model);
+    public abstract IncompressibleMaterial getMaterial(Model model);
 
-    public abstract void setMaterial(Dictionary material);
+    public abstract void setMaterial(IncompressibleMaterial material);
     
     @Override
     public void setEnabled(boolean enabled) {
@@ -101,24 +97,33 @@ public abstract class AbstractIncompressibleMaterialsPanel implements Incompress
     }
 
     protected void buildIncompressibleMaterialPanel() {
-        builder.addComponent("Name", nameField = incompressibleModel.bindLabel(MATERIAL_NAME_KEY));
-        builder.addComponent(DENSITY_LABEL, rho = incompressibleModel.bindDimensionedDouble(RHO_KEY, DimensionalUnits.KG_M3, 0D, Double.MAX_VALUE));
-        builder.addComponent(DYNAMIC_VISCOSITY_LABEL, mu = incompressibleModel.bindDimensionedDouble(MU_KEY, DimensionalUnits.KG_MS, 0D, Double.MAX_VALUE));
-        builder.addComponent(KINEMATIC_VISCOSITY_LABEL, nu = incompressibleModel.bindDimensionedDouble(NU_KEY, DimensionalUnits.M2_S, 0D, Double.MAX_VALUE));
+        builder.addComponent("Name", nameField = materialModel.bindLabel(IncompressibleMaterial.NAME_KEY));
+        builder.addComponent(DENSITY_LABEL, rho = materialModel.bindDoublePositive(IncompressibleMaterial.RHO_KEY));
+        builder.addComponent(DYNAMIC_VISCOSITY_LABEL, mu = materialModel.bindDoublePositive(IncompressibleMaterial.MU_KEY));
+        builder.addComponent(KINEMATIC_VISCOSITY_LABEL, nu = materialModel.bindDoublePositive(IncompressibleMaterial.NU_KEY));
 
         nameField.setEnabled(false);
 
+        addListeners();
+
+        builder.addComponent(SPECIFIC_HEAT_CAPACITY_LABEL, materialModel.bindDoublePositive(IncompressibleMaterial.CP_KEY));
+        builder.addComponent(TURBULENT_PRANDTL_NUMBER_LABEL, materialModel.bindDoublePositive(IncompressibleMaterial.PRT_KEY));
+        builder.addComponent(THERMAL_CONDUCTIVITY_LABEL, materialModel.bindDoublePositive(IncompressibleMaterial.LAMBDA_KEY));
+        builder.addComponent(REFERENCE_ABSOLUTE_PRESSURE_PA_LABEL, materialModel.bindDoublePositive(IncompressibleMaterial.P_REF_KEY));
+        builder.addComponent(REFERENCE_TEMPERATURE_K_LABEL, materialModel.bindDoublePositive(IncompressibleMaterial.T_REF_KEY));
+    }
+
+    protected void removeListeners() {
+        rho.removePropertyChangeListener("value", this);
+        mu.removePropertyChangeListener("value", this);
+        nu.removePropertyChangeListener("value", this);
+    }
+    protected void addListeners() {
         rho.addPropertyChangeListener("value", this);
         mu.addPropertyChangeListener("value", this);
         nu.addPropertyChangeListener("value", this);
-
-        builder.addComponent(SPECIFIC_HEAT_CAPACITY_LABEL, incompressibleModel.bindDimensionedDouble(CP_KEY, DimensionalUnits.M2_S2K, 0D, Double.MAX_VALUE));
-        builder.addComponent(TURBULENT_PRANDTL_NUMBER_LABEL, incompressibleModel.bindDimensionedDouble(PRT_KEY, DimensionalUnits.NONE, 0D, Double.MAX_VALUE));
-        builder.addComponent(THERMAL_CONDUCTIVITY_LABEL, incompressibleModel.bindDimensionedDouble(LAMBDA_KEY, DimensionalUnits.KGM_S3K, 0D, Double.MAX_VALUE));
-        builder.addComponent(REFERENCE_ABSOLUTE_PRESSURE_PA_LABEL, incompressibleModel.bindDimensionedDouble(P_REF_KEY, DimensionalUnits.KG_MS2, 0D, Double.MAX_VALUE));
-        builder.addComponent(REFERENCE_TEMPERATURE_K_LABEL, incompressibleModel.bindDimensionedDouble(T_REF_KEY, DimensionalUnits.K, 0D, Double.MAX_VALUE));
     }
-
+    
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getSource() == nu) {

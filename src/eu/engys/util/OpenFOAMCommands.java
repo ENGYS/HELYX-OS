@@ -1,38 +1,44 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util;
 
 import static eu.engys.util.IOUtils.WIN_EOL;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class OpenFOAMCommands {
 
+    public static final String FRONTAL_AREA = "frontalArea";
+    public static final String MOVE_TO_CASE_FOLDER_WIN = "cd /D \"%CASE%\"";
+    public static final String PARA_FOAM = "paraFoam";
     private static final String _ALL_REGIONS = "-allRegions";
     private static final String _NO_FUNCTION_OBJECTS = "-noFunctionObjects";
+    private static final String _WRITE_P = "-writep";
     private static final String _FORCE = "-force";
     private static final String _CONSTANT = "-constant";
     private static final String _ZERO_TIME = "-zeroTime";
@@ -40,10 +46,9 @@ public class OpenFOAMCommands {
     private static final String _OVERWRITE = "-overwrite";
     private static final String _SCALE = "-scale";
     private static final String _PARALLEL = "-parallel";
-
+    private static final String _TIME = "-time";
     // Flag to solve a problem with mpirun on OpenSUSE 12.3 where a default file is not installed correctly
     private static final String _DEFAULT_HOST_FILE = PrefUtil.getBoolean(PrefUtil.DEFAULT_HOSTFILE_NONE) ? "--default-hostfile none" : "";
-
     private static final String GENVLIST = "-genvlist HOME,PATH,USERNAME,WM_PROJECT_DIR,WM_PROJECT_INST_DIR,WM_OPTIONS,FOAM_LIBBIN,FOAM_APPBIN,FOAM_USER_APPBIN,FOAM_CONFIG,MPI_BUFFER_SIZE";
 
     private static final String CASE() {
@@ -90,59 +95,98 @@ public class OpenFOAMCommands {
         }
     }
 
+    public static final String BLOCK_MESH_COMMAND = "blockMesh";
+    public static final String CHECK_MESH_COMMAND = "checkMesh";
+    public static final String CASE_SETUP_COMMAND = "caseSetup";
+    public static final String DECOMPOSE_PAR_COMMAND = "decomposePar";
+    public static final String EXTRUDE_TO_REGION_MESH_COMMAND = "extrudeToRegionMesh";
+    public static final String FOAM_MESH_TO_FLUENT_COMMAND = "foamMeshToFluent";
+    public static final String FOAM_TO_STAR_MESH_COMMAND = "foamToStarMesh";
+    public static final String FLUENT_3D_MESH_TO_FOAM_COMMAND = "fluent3DMeshToFoam";
+    public static final String MERGE_MESHES_COMMAND = "mergeMeshes";
+    public static final String PAR_MAP_FIELDS_COMMAND = "parMapFields";
+    public static final String POTENTIAL_FOAM_COMMAND = "potentialFoam";
+    public static final String RECONSTRUCT_PAR_COMMAND = "reconstructPar";
+    public static final String RECONSTRUCT_PAR_MESH_COMMAND = "reconstructParMesh";
+    public static final String RENUMBER_MESH_COMMAND = "renumberMesh";
+    public static final String STRETCH_MESH_COMMAND = "stretchMesh";
+    public static final String SET_FIELDS_COMMAND = "setFields";
+    public static final String SNAPPY_CHECK_MESH_COMMAND = "snappyCheckMesh";
+    public static final String SNAPPY_HEX_MESH_COMMAND = "snappyHexMesh";
+
     /*
      * MESH Commands
      */
     public static final String BLOCK_MESH() {
-        return COMMAND("blockMesh " + _BLOCK_MESH_DICT() + " " + _CASE(), _TEE_LOG());
+        return COMMAND(BLOCK_MESH_COMMAND + " " + _BLOCK_MESH_DICT() + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String MERGE_MESHES(String filePath) {
-        return COMMAND("mergeMeshes " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + CASE() + " \"" + filePath + "\"", _TEE_LOG());
+        return COMMAND(MERGE_MESHES_COMMAND + " " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + CASE() + " \"" + filePath + "\"", _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR_MESH() {
-        return COMMAND("reconstructParMesh " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR_MESH_CONSTANT() {
-        return COMMAND("reconstructParMesh " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT, _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT, _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR_MESH_ALLREGIONS() {
-        return COMMAND("reconstructParMesh " + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR_MESH_CONSTANT_ALLREGIONS() {
-        return COMMAND("reconstructParMesh " + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT + " " + _ALL_REGIONS, _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT + " " + _ALL_REGIONS, _TEE_LOG());
     }
 
     public static final String CHECK_MESH_SERIAL() {
-        return COMMAND("checkMesh " + _CASE(), _TEE_LOG());
+        return COMMAND(CHECK_MESH_COMMAND + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String CHECK_MESH_SERIAL_CONSTANT() {
+        return COMMAND(CHECK_MESH_COMMAND + " " + _CONSTANT + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String CHECK_MESH_PARALLEL() {
-        return COMMAND(_MPI_NP() + " checkMesh " + _PARALLEL + " " + _CASE(), _TEE_LOG());
+        return COMMAND(_MPI_NP() + " " + CHECK_MESH_COMMAND + " " + _PARALLEL + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String CHECK_MESH_PARALLEL_CONSTANT() {
+        return COMMAND(_MPI_NP() + " " + CHECK_MESH_COMMAND + " " + _PARALLEL + " " + _CONSTANT + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String STRETCH_MESH_SERIAL() {
+        return COMMAND(STRETCH_MESH_COMMAND + " " + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String STRETCH_MESH_PARALLEL() {
+        return COMMAND(_MPI_NP() + " " + STRETCH_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _PARALLEL + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String SNAPPY_CHECK_MESH_SERIAL() {
-        return COMMAND("snappyCheckMesh -writeAllMetrics " + _CASE(), _TEE_LOG());
+        return COMMAND(SNAPPY_CHECK_MESH_COMMAND + " -writeAllMetrics " + _CASE(), _TEE_LOG());
     }
 
     public static final String SNAPPY_CHECK_MESH_PARALLEL() {
-        return COMMAND(_MPI_NP() + " snappyCheckMesh -writeAllMetrics " + _PARALLEL + " " + _CASE(), _TEE_LOG());
+        return COMMAND(_MPI_NP() + " " + SNAPPY_CHECK_MESH_COMMAND + " -writeAllMetrics " + _PARALLEL + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String RUN_MESH_SERIAL() {
-        return COMMAND("snappyHexMesh " + _OVERWRITE + " " + _CASE(), _TEE_LOG());
+        return COMMAND(SNAPPY_HEX_MESH_COMMAND + " " + _OVERWRITE + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String RUN_MESH_PARALLEL() {
-        return COMMAND(_MPI_NP() + " snappyHexMesh " + _PARALLEL + " " + _OVERWRITE + " " + _CASE(), _TEE_LOG());
+        return COMMAND(_MPI_NP() + " " + SNAPPY_HEX_MESH_COMMAND + " " + _PARALLEL + " " + _OVERWRITE + " " + _CASE(), _TEE_LOG());
     }
 
+    /*
+     * Fields
+     */
+
     public static final String EXTRUDE_REGION_TO_MESH() {
-        return COMMAND("extrudeToRegionMesh " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(EXTRUDE_TO_REGION_MESH_COMMAND + " " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     /*
@@ -156,81 +200,85 @@ public class OpenFOAMCommands {
         return COMMAND(_MPI_NP() + " " + SOLVER() + " " + _PARALLEL + " " + _CASE(), _TEE_LOG());
     }
 
-    /*
-     * Fields
-     */
-
     public static final String SET_FIELDS_SERIAL() {
-        return COMMAND("setFields " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(SET_FIELDS_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String SET_FIELDS_PARALLEL() {
-        return COMMAND(_MPI_NP() + " setFields " + _PARALLEL + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(_MPI_NP() + " " + SET_FIELDS_COMMAND + " " + _PARALLEL + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String POTENTIAL_FOAM_SERIAL(boolean initialiseUBCs) {
+        return COMMAND(POTENTIAL_FOAM_COMMAND + " " + (initialiseUBCs ? "-initialiseUBCs " : "") + _WRITE_P + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    }
+    
+    public static final String POTENTIAL_FOAM_PARALLEL(boolean initialiseUBCs) {
+        return COMMAND(_MPI_NP() + " " + POTENTIAL_FOAM_COMMAND + " " + (initialiseUBCs ? "-initialiseUBCs " : "") + _WRITE_P + " "+ _PARALLEL + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String INITIALISE_FIELDS_SERIAL() {
-        return COMMAND("caseSetup " + _CASE(), _TEE_LOG());
-    }
-
-    public static final String INITIALISE_FIELDS_PARALLEL() {
-        return COMMAND(_MPI_NP() + " caseSetup " + _PARALLEL + " " + _CASE(), _TEE_LOG());
-    }
-
-    public static final String PAR_MAP_FIELDS_SERIAL() {
-        return COMMAND("parMapFields " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
-    }
-
-    public static final String PAR_MAP_FIELDS_PARALLEL() {
-        return COMMAND(_MPI_NP() + " parMapFields " + _PARALLEL + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(CASE_SETUP_COMMAND + " " + _CASE(), _TEE_LOG());
     }
 
     /*
      * Other
      */
 
-    public static final String DECOMPOSE_PAR() {
-        return COMMAND("decomposePar " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    public static final String INITIALISE_FIELDS_PARALLEL() {
+        return COMMAND(_MPI_NP() + " " + CASE_SETUP_COMMAND + " " + _PARALLEL + " " + _CASE(), _TEE_LOG());
     }
 
-    public static final String DECOMPOSE_PAR_CONSTANT() {
-        return COMMAND("decomposePar " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT, _TEE_LOG());
+    public static final String PAR_MAP_FIELDS_SERIAL() {
+        return COMMAND(PAR_MAP_FIELDS_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
-    public static final String DECOMPOSE_PAR_ALLREGIONS() {
-        return COMMAND("decomposePar " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
+    public static final String PAR_MAP_FIELDS_PARALLEL() {
+        return COMMAND(_MPI_NP() + " " + PAR_MAP_FIELDS_COMMAND + " " + _PARALLEL + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
-    public static final String DECOMPOSE_PAR_CONSTANT_ALLREGIONS() {
-        return COMMAND("decomposePar " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _CONSTANT + " " + _ALL_REGIONS, _TEE_LOG());
+    public static final String DECOMPOSE_PAR(Set<String> timeSteps) {
+        return COMMAND(DECOMPOSE_PAR_COMMAND + " " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + createTimeFlag(timeSteps) + " " + _CASE(), _TEE_LOG());
+    }
+
+    public static final String DECOMPOSE_PAR_CONSTANT(Set<String> timeSteps) {
+        return COMMAND(DECOMPOSE_PAR_COMMAND + " " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + createTimeFlag(timeSteps) + " " + _CASE() + " " + _CONSTANT, _TEE_LOG());
+    }
+
+    public static final String DECOMPOSE_PAR_ALLREGIONS(Set<String> timeSteps) {
+        return COMMAND(DECOMPOSE_PAR_COMMAND + " " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + createTimeFlag(timeSteps) + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
+    }
+
+    public static final String DECOMPOSE_PAR_CONSTANT_ALLREGIONS(Set<String> timeSteps) {
+        return COMMAND(DECOMPOSE_PAR_COMMAND + " " + _FORCE + " " + _NO_FUNCTION_OBJECTS + " " + createTimeFlag(timeSteps) + " " + _CASE() + " " + _CONSTANT + " " + _ALL_REGIONS, _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR(boolean useWithZeroFlag) {
-        return COMMAND("reconstructPar " + (useWithZeroFlag ? _WITH_ZERO : _ZERO_TIME) + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_COMMAND + " " + (useWithZeroFlag ? _WITH_ZERO : _ZERO_TIME) + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String RECONSTRUCT_PAR_ALLREGIONS(boolean useWithZeroFlag) {
-        return COMMAND("reconstructPar " + (useWithZeroFlag ? _WITH_ZERO : _ZERO_TIME) + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
+        return COMMAND(RECONSTRUCT_PAR_COMMAND + " " + (useWithZeroFlag ? _WITH_ZERO : _ZERO_TIME) + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + _ALL_REGIONS, _TEE_LOG());
     }
 
     public static final String FLUENT_TO_FOAM(Double scale, String fluentFileName) {
         String separator = Util.isWindowsScriptStyle() ? "\\" : "/";
-        return COMMAND("fluent3DMeshToFoam " + _SCALE + " " + scale + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + CASE() + separator + fluentFileName, _TEE_LOG());
+        return COMMAND(FLUENT_3D_MESH_TO_FOAM_COMMAND + " " + _SCALE + " " + scale + " " + _NO_FUNCTION_OBJECTS + " " + _CASE() + " " + CASE() + separator + fluentFileName, _TEE_LOG());
     }
 
-    public static final String RENUMBER_SERIAL() {
-        return COMMAND("renumberMesh " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    public static final String RENUMBER_MESH_SERIAL() {
+        return COMMAND(RENUMBER_MESH_COMMAND + " " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
-    public static final String RENUMBER_PARALLEL() {
-        return COMMAND(_MPI_NP() + " renumberMesh " + _PARALLEL + " " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+    public static final String RENUMBER_MESH_PARALLEL() {
+        return COMMAND(_MPI_NP() + " " + RENUMBER_MESH_COMMAND + " " + _PARALLEL + " " + _OVERWRITE + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String FOAM_MESH_TO_STAR() {
-        return COMMAND("foamToStarMesh " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(FOAM_TO_STAR_MESH_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String FOAM_MESH_TO_FLUENT() {
-        return COMMAND("foamMeshToFluent " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
+        return COMMAND(FOAM_MESH_TO_FLUENT_COMMAND + " " + _NO_FUNCTION_OBJECTS + " " + _CASE(), _TEE_LOG());
     }
 
     public static final String CAD_TOOL(boolean split, double precision, File input, File output) {
@@ -242,8 +290,29 @@ public class OpenFOAMCommands {
         return COMMAND("CADtoSurface" + byComponentFlag + " " + precisionFlag + " " + inputFlag + " " + outputFlag, _TEE_LOG());
     }
 
-    public static final String FRONTAL_AREA = "frontalArea";
-    public static final String MOVE_TO_CASE_FOLDER_WIN = "cd /D \"%CASE%\"";
-    public static final String PARA_FOAM = "paraFoam";
+    public static final String PVBATCH_SERIAL() {
+        return COMMAND("pvbatch --use-offscreen-rendering export.py", _TEE_LOG());
+    }
+
+    public static final String PVBATCH_PARALLEL() {
+        return COMMAND(_MPI_NP() + " pvbatch --use-offscreen-rendering export.py", _TEE_LOG());
+    }
+
+    /*
+     * Utils
+     */
+    private static String createTimeFlag(Set<String> timeSteps) {
+        if (timeSteps.isEmpty()) {
+            return "";
+        } else {
+            String times = _TIME + " ";
+            List<String> list = new ArrayList<>(timeSteps);
+            for (int i = 0; i < timeSteps.size() - 1; i++) {
+                times += list.get(i) + ",";
+            }
+            times += list.get(timeSteps.size() - 1);
+            return times;
+        }
+    }
 
 }

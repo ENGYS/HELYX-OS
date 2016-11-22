@@ -1,43 +1,70 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.geometry.surface;
 
-import static eu.engys.core.project.system.BlockMeshDict.ELEMENTS_KEY;
-import vtk.vtkPolyData;
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.geometry.Surface;
 import eu.engys.core.project.geometry.Type;
+import vtk.vtkPolyData;
 
 public class MultiPlane extends MultiRegion {
 
+    public static final double[] DEFAULT_MIN = {0,0,0};
+    public static final double[] DEFAULT_MAX = {1,1,1};
+    public static final int[] DEFAULT_ELEMENTS = {10,10,10};
+    
+    private double[] min = DEFAULT_MIN;
+    private double[] max = DEFAULT_MAX;
+    private int[] elements = DEFAULT_ELEMENTS;
+    
     public MultiPlane(String name) {
         super(name);
     }
 
+    public double[] getMin() {
+        return min;
+    }
+    public void setMin(double[] min) {
+        firePropertyChange(MIN_KEY, this.min, this.min = min);
+    }
+    
+    public double[] getMax() {
+        return max;
+    }
+    public void setMax(double[] max) {
+        firePropertyChange(MAX_KEY, this.max, this.max = max);
+    }
+    
+    public int[] getElements() {
+        return elements;
+    }
+    public void setElements(int[] elements) {
+        firePropertyChange(ELEMENTS_KEY, this.elements, this.elements = elements);
+    }
+    
     public void addPlane(String name) {
         if (!regionsMap.containsKey(name)) {
             PlaneRegion newPlane = new PlaneRegion(name);
@@ -68,23 +95,11 @@ public class MultiPlane extends MultiRegion {
     }
 
     @Override
-    public void setGeometryDictionary(Dictionary d) {
-        super.setGeometryDictionary(d);
-
-        double[] min = d.lookupDoubleArray(MIN_KEY);
-        double[] max = d.lookupDoubleArray(MAX_KEY);
-        int[] res = d.lookupIntArray(ELEMENTS_KEY);
-
-        if (regions.size() == 6) {
-            setPlane(regions.get(0).getName(), new double[] { min[0], min[1], min[2] }, new double[] { min[0], max[1], min[2] }, new double[] { min[0], min[1], max[2] }, res[1], res[2]);
-            setPlane(regions.get(1).getName(), new double[] { max[0], min[1], min[2] }, new double[] { max[0], max[1], min[2] }, new double[] { max[0], min[1], max[2] }, res[1], res[2]);
-
-            setPlane(regions.get(2).getName(), new double[] { min[0], min[1], min[2] }, new double[] { max[0], min[1], min[2] }, new double[] { min[0], min[1], max[2] }, res[0], res[2]);
-            setPlane(regions.get(3).getName(), new double[] { min[0], max[1], min[2] }, new double[] { max[0], max[1], min[2] }, new double[] { min[0], max[1], max[2] }, res[0], res[2]);
-
-            setPlane(regions.get(4).getName(), new double[] { min[0], min[1], min[2] }, new double[] { max[0], min[1], min[2] }, new double[] { min[0], max[1], min[2] }, res[0], res[1]);
-            setPlane(regions.get(5).getName(), new double[] { min[0], min[1], max[2] }, new double[] { max[0], min[1], max[2] }, new double[] { min[0], max[1], max[2] }, res[0], res[1]);
-        }
+    public void fromGeometryDictionary(Dictionary g) {
+    }
+    @Override
+    public Dictionary toGeometryDictionary() {
+        return null;
     }
 
     @Override
@@ -109,17 +124,9 @@ public class MultiPlane extends MultiRegion {
 
     public double[] getDelta() {
         double[] delta = new double[3];
-
-        if (getGeometryDictionary() != null) {
-            double[] min = getGeometryDictionary().lookupDoubleArray(MIN_KEY);
-            double[] max = getGeometryDictionary().lookupDoubleArray(MAX_KEY);
-            int[] res = getGeometryDictionary().lookupIntArray(ELEMENTS_KEY);
-
-            for (int i = 0; i < delta.length; i++) {
-                delta[i] = (max[i] - min[i]) / res[i];
-            }
+        for (int i = 0; i < delta.length; i++) {
+            delta[i] = (max[i] - min[i]) / elements[i];
         }
-
         return delta;
     }
     
@@ -133,5 +140,18 @@ public class MultiPlane extends MultiRegion {
     @Override
     public vtkPolyData getDataSet() {
         return null;
+    }
+
+    public void updatePlanes() {
+        if (regions.size() == 6) {
+            setPlane(regions.get(0).getName(), new double[] { min[0], min[1], min[2] }, new double[] { min[0], max[1], min[2] }, new double[] { min[0], min[1], max[2] }, elements[1], elements[2]);
+            setPlane(regions.get(1).getName(), new double[] { max[0], min[1], min[2] }, new double[] { max[0], max[1], min[2] }, new double[] { max[0], min[1], max[2] }, elements[1], elements[2]);
+
+            setPlane(regions.get(2).getName(), new double[] { min[0], min[1], min[2] }, new double[] { max[0], min[1], min[2] }, new double[] { min[0], min[1], max[2] }, elements[0], elements[2]);
+            setPlane(regions.get(3).getName(), new double[] { min[0], max[1], min[2] }, new double[] { max[0], max[1], min[2] }, new double[] { min[0], max[1], max[2] }, elements[0], elements[2]);
+
+            setPlane(regions.get(4).getName(), new double[] { min[0], min[1], min[2] }, new double[] { max[0], min[1], min[2] }, new double[] { min[0], max[1], min[2] }, elements[0], elements[1]);
+            setPlane(regions.get(5).getName(), new double[] { min[0], min[1], max[2] }, new double[] { max[0], min[1], max[2] }, new double[] { min[0], max[1], max[2] }, elements[0], elements[1]);
+        }        
     }
 }

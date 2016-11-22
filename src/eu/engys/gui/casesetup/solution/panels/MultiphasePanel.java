@@ -1,35 +1,33 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.solution.panels;
 
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import eu.engys.core.modules.ApplicationModule;
@@ -41,7 +39,7 @@ import eu.engys.util.ui.ComponentsFactory;
 import eu.engys.util.ui.builder.PanelBuilder;
 import eu.engys.util.ui.textfields.SpinnerField;
 
-public class MultiphasePanel extends JPanel implements MultiphaseBuilder {
+public abstract class MultiphasePanel extends JPanel implements MultiphaseBuilder {
 
     public static final String PHASES_LABEL = "Phases";
     private static final String MULTIPHASE = "Multiphase";
@@ -67,9 +65,8 @@ public class MultiphasePanel extends JPanel implements MultiphaseBuilder {
 
         multiphaseBuilder = new PanelBuilder();
         multiphaseBuilder.addComponent(phaseBuilderLeft.removeMargins().getPanel(), phaseBuilderRight.removeMargins().getPanel());
-        multiphaseBuilder.getPanel().setBorder(BorderFactory.createTitledBorder(MULTIPHASE));
 
-        add(multiphaseBuilder.getPanel());
+        add(multiphaseBuilder.withTitle(MULTIPHASE).getPanel());
 
         for (ApplicationModule m : modules) {
             m.getSolutionView().buildMultiphase(this);
@@ -80,12 +77,13 @@ public class MultiphasePanel extends JPanel implements MultiphaseBuilder {
         MultiphaseModel multiphaseModel = state.getMultiphaseModel();
         if (multiphaseModel != null) {
             multiphaseChooser.select(multiphaseModel);
+            if (multiphaseModel.isMultiphase()) {
+                phasesNumber.setIntValue(Math.max(2, state.getPhases()));
+            } else {
+                phasesNumber.setIntValue(1);
+            }
         } else {
             multiphaseChooser.selectNone();
-        }
-        if (multiphaseModel.isMultiphase()) {
-            phasesNumber.setIntValue(Math.max(2, state.getPhases()));
-        } else {
             phasesNumber.setIntValue(1);
         }
 
@@ -93,8 +91,7 @@ public class MultiphasePanel extends JPanel implements MultiphaseBuilder {
         fixMultiphase(getSelectedModel());
     }
 
-    public void fixSolutionState(SolutionState solutionState) {
-    }
+    public abstract void fixSolutionState(SolutionState solutionState);
 
     public void fixMultiphase(MultiphaseModel mm) {
         if (mm.isOff()) {
@@ -145,10 +142,12 @@ public class MultiphasePanel extends JPanel implements MultiphaseBuilder {
         multiphaseChooser.setMultiphaseOff();
     }
 
+    @Override
     public void enableChoice(MultiphaseModel mm) {
         multiphaseChooser.enableChoice(mm);
     }
 
+    @Override
     public void disableChoice(MultiphaseModel mm) {
         multiphaseChooser.disableChoice(mm);
     }

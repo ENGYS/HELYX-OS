@@ -1,35 +1,36 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.solver.postprocessing.panels;
+
+import static eu.engys.core.controller.AbstractController.REFRESH_ONCE;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -38,13 +39,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.engys.core.executor.FileManagerSupport;
+import eu.engys.core.modules.AbstractChart;
 import eu.engys.core.presentation.ActionManager;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.system.monitoringfunctionobjects.MonitoringFunctionObject;
@@ -69,17 +73,25 @@ public abstract class AbstractParserView extends JPanel implements ParserView {
 
     public AbstractParserView(Model model, MonitoringFunctionObject functionObject, ProgressMonitor monitor) {
         super(new BorderLayout());
+        if (functionObject != null)
+            setName(functionObject.getName());
         this.model = model;
         this.functionObject = functionObject;
         this.monitor = monitor;
         this.tabbedPane = new JTabbedPane();
+        this.tabbedPane.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                stop();
+            }
+        });
+
         this.parsingEnabled = false;
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
         loadingPane = new WaitLayerUI(new EnableParsing());
-        JLayer<JPanel> layer = new JLayer<JPanel>(mainPanel, loadingPane);
+        JLayer<JPanel> layer = new JLayer<>(mainPanel, loadingPane);
 
         add(layer, BorderLayout.CENTER);
     }
@@ -128,31 +140,58 @@ public abstract class AbstractParserView extends JPanel implements ParserView {
     }
 
     @Override
-    public void setCrosshairVisibile(boolean visible) {
-        for (Component c : tabbedPane.getComponents()) {
-            if (c instanceof MovingAverageChartPanel<?>) {
-                ((MovingAverageChartPanel<?>) c).setCrosshairVisible(visible);
+    public void showLogFile() {
+        try {
+            if (Util.isWindows()) {
+                showLogFileWindows();
+            } else {
+                showLogFileLinux();
+            }
+        } catch (Exception e) {
+            showErrorMessage(e);
+        }
+    }
+
+    private void showLogFileLinux() {
+        List<Parser> parsersList = getReportParsersList();
+        for (Parser parser : parsersList) {
+            File logFile = parser.getFile();
+            if (logFile != null && logFile.exists()) {
+                FileManagerSupport.open(logFile);
             }
         }
     }
 
-    @Override
-    public void showLogFile() {
-        try {
-            List<Parser> parsersList = gerReportParsersList();
-            for (Parser parser : parsersList) {
-                File logFile = parser.getFile();
-                if (logFile != null && logFile.exists()) {
-                    if (Util.isWindows() && FilenameUtils.getExtension(logFile.getName()).isEmpty()) {
-                        FileManagerSupport.open(logFile.getParentFile());
-                    } else {
-                        FileManagerSupport.open(logFile);
-                    }
+    private void showLogFileWindows() {
+        List<File> logFiles = new ArrayList<>();
+        for (Parser parser : getReportParsersList()) {
+            File logFile = parser.getFile();
+            if (logFile != null && logFile.exists()) {
+                logFiles.add(logFile);
+            }
+        }
+        if (logFiles.isEmpty()) {
+            return;
+        } else if (logFiles.size() == 1) {
+            // 1 file -> open it
+            FileManagerSupport.open(logFiles.get(0));
+        } else {
+            // 1+ files -> retrive parent folders
+            List<File> parentFolders = new ArrayList<>();
+            for (File logFile : logFiles) {
+                File parentFile = logFile.getParentFile();
+                if (!parentFolders.contains(parentFile)) {
+                    parentFolders.add(parentFile);
                 }
             }
-        } catch (Exception e1) {
-            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(AbstractParserView.this), e1.getMessage(), "Export Error", JOptionPane.ERROR_MESSAGE);
-            logger.error("Cannot open log file", e1.getMessage());
+            if (parentFolders.size() == 1) {
+                // 1 parent folder -> open it
+                FileManagerSupport.open(parentFolders.get(0));
+            } else {
+                // 1+ parent folders -> open common parent folder that is the function object folder
+                FileManagerSupport.open(parentFolders.get(0).getParentFile());
+
+            }
         }
     }
 
@@ -198,28 +237,30 @@ public abstract class AbstractParserView extends JPanel implements ParserView {
 
     @Override
     public void exportToPNG() {
-        AbstractChartPanel chartPanel = (AbstractChartPanel) tabbedPane.getSelectedComponent();
+        AbstractChart chart = getSelectedChart();
         File pngFile = FileChooserUtils.getPNGFile();
-        if (pngFile != null && chartPanel != null) {
+        if (pngFile != null && chart != null) {
+            JFreeChart jfreeChart = chart.getChartPanel().getChart();
             // PRE-SAVE
-            chartPanel.getChart().setBackgroundPaint(Color.WHITE);
-            if (chartPanel.getChart().getLegend() != null) {
-                chartPanel.getChart().getLegend().setBackgroundPaint(Color.WHITE);
-                chartPanel.getChart().getLegend().setVisible(true);
+            jfreeChart.setBackgroundPaint(Color.WHITE);
+            if (jfreeChart.getLegend() != null) {
+                jfreeChart.getLegend().setBackgroundPaint(Color.WHITE);
+                jfreeChart.getLegend().setVisible(true);
             }
             // SAVE
             try {
-                ChartUtilities.saveChartAsPNG(pngFile, chartPanel.getChart(), chartPanel.getSize().width, chartPanel.getSize().height);
+                ChartUtilities.saveChartAsPNG(pngFile, jfreeChart, chart.getChartPanel().getSize().width, chart.getChartPanel().getSize().height);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
 
             // POST-SAVE
-            chartPanel.getChart().setBackgroundPaint(new Color(0, 0, 0, 0));
-            if (chartPanel.getChart().getLegend() != null) {
-                chartPanel.getChart().getLegend().setBackgroundPaint(new Color(0, 0, 0, 0));
-                chartPanel.getChart().getLegend().setVisible(false);
+            jfreeChart.setBackgroundPaint(new Color(0, 0, 0, 0));
+            if (jfreeChart.getLegend() != null) {
+                jfreeChart.getLegend().setBackgroundPaint(new Color(0, 0, 0, 0));
+                jfreeChart.getLegend().setVisible(false);
             }
+
             FileManagerSupport.open(pngFile);
         } else {
             logger.error("Problem saving chart to PNG");
@@ -232,10 +273,12 @@ public abstract class AbstractParserView extends JPanel implements ParserView {
             @Override
             public void run() {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(AbstractParserView.this), e.getMessage(), "Export Error", JOptionPane.ERROR_MESSAGE);
-                logger.error("Cannot export", e.getMessage());
+                logger.error("Export Error", e.getMessage());
             }
         });
     }
+
+    public abstract AbstractChart getSelectedChart();
 
     @Override
     public boolean isParsingEnabled() {
@@ -252,11 +295,15 @@ public abstract class AbstractParserView extends JPanel implements ParserView {
         return this;
     }
 
+    @Override
+    public void stop() {
+    }
+
     protected class EnableParsing implements Runnable {
         @Override
         public void run() {
             setParsingEnabled(true);
-            ActionManager.getInstance().invoke("solver.refresh.once");
+            ActionManager.getInstance().invoke(REFRESH_ONCE);
             if (!model.getSolverModel().getServerState().getSolverState().isDoingSomething()) {
                 setParsingEnabled(false);
             }

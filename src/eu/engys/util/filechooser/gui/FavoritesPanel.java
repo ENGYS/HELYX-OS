@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.filechooser.gui;
 
 import java.awt.BorderLayout;
@@ -52,8 +51,8 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import eu.engys.util.filechooser.actions.favorite.EditFavorite;
-import eu.engys.util.filechooser.actions.favorite.OpenFavorite;
+import eu.engys.util.filechooser.actions.favorite.OpenFavoriteAction;
+import eu.engys.util.filechooser.actions.favorite.RenameFavoriteAction;
 import eu.engys.util.filechooser.favorites.Favorite;
 import eu.engys.util.filechooser.favorites.FavoritesUtils;
 import eu.engys.util.filechooser.favorites.PopupListener;
@@ -119,7 +118,7 @@ public class FavoritesPanel extends JPanel {
         addOpenActionToList(favoriteSystemList);
         addPopupMenu(favoriteSystemList, ACTION_OPEN);
 
-        JLabel systemLocationLabel = createLabelWithIcon(FAVORITES_SYSTEMLOCATIONS, COMPUTER_ICON);
+        JLabel systemLocationLabel = createLabelWithIcon(SYSTEM_LABEL, SYSTEM_ICON);
 
         if (!controller.isRemote()) {
             JPanel systemPanel = new JPanel(new BorderLayout());
@@ -141,9 +140,9 @@ public class FavoritesPanel extends JPanel {
 
         addOpenActionToList(favoritesUserList);
         addEditActionToList(favoritesUserList, userListModel);
-        addPopupMenu(favoritesUserList, ACTION_OPEN, ACTION_EDIT, ACTION_DELETE);
+        addPopupMenu(favoritesUserList, ACTION_EDIT, ACTION_DELETE);
 
-        JLabel userFavouritesLabel = createLabelWithIcon(FAVORITES_FAVORITES, STAR);
+        JLabel userFavouritesLabel = createLabelWithIcon(USER_LABEL, USER_ICON);
 
         JPanel favoritesPanel = new JPanel(new BorderLayout());
         favoritesPanel.setName(FAVORITES_PANEL);
@@ -194,7 +193,7 @@ public class FavoritesPanel extends JPanel {
         final JList<Favorite> favoritesUserList = new JList<Favorite>(userListModel);
         favoritesUserList.setTransferHandler(new MutableListDropHandler(favoritesUserList));
         new MutableListDragListener(favoritesUserList);
-        favoritesUserList.getActionMap().put(ACTION_DELETE, new AbstractAction("Delete", MINUSBUTTON) {
+        favoritesUserList.getActionMap().put(ACTION_DELETE, new AbstractAction(DELETE_LABEL, DELETE_ICON) {
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -260,12 +259,12 @@ public class FavoritesPanel extends JPanel {
     }
 
     private void addOpenActionToList(final JList<Favorite> favoritesList) {
-        favoritesList.getActionMap().put(ACTION_OPEN, new OpenFavorite(controller, favoritesList));
+        favoritesList.getActionMap().put(ACTION_OPEN, new OpenFavoriteAction(controller, favoritesList));
         favoritesList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 boolean isLeftButton = e.getButton() == MouseEvent.BUTTON1;
-                boolean isSingleClick = e.getClickCount() == 1;
-                if (isSingleClick && isLeftButton) {
+                boolean isDoubleClick = e.getClickCount() == 2;
+                if (isDoubleClick && isLeftButton) {
                     favoritesList.getActionMap().get(ACTION_OPEN).actionPerformed(null);
                 }
             }
@@ -275,7 +274,7 @@ public class FavoritesPanel extends JPanel {
     }
 
     private void addEditActionToList(JList<Favorite> favoritesList, MutableListModel<Favorite> listModel) {
-        favoritesList.getActionMap().put(ACTION_EDIT, new EditFavorite(controller, favoritesList, listModel));
+        favoritesList.getActionMap().put(ACTION_EDIT, new RenameFavoriteAction(controller, favoritesList, listModel));
 
         InputMap favoritesListInputMap = favoritesList.getInputMap(JComponent.WHEN_FOCUSED);
         favoritesListInputMap.put(KeyStroke.getKeyStroke("F2"), ACTION_EDIT);
@@ -285,10 +284,13 @@ public class FavoritesPanel extends JPanel {
      * Resources
      */
 
-    private static final String FAVORITES_SYSTEMLOCATIONS = ResourcesUtil.getString("favorites.systemLocations");
-    private static final String FAVORITES_FAVORITES = ResourcesUtil.getString("favorites.favorites");
+    private static final String SYSTEM_LABEL = ResourcesUtil.getString("favorites.system.label");
+    private static final Icon SYSTEM_ICON = ResourcesUtil.getIcon("favorites.system.icon");
 
-    private static final Icon COMPUTER_ICON = ResourcesUtil.getIcon("computer");
-    private static final Icon STAR = ResourcesUtil.getIcon("star");
-    private static final Icon MINUSBUTTON = ResourcesUtil.getIcon("minusButton");
+    private static final String USER_LABEL = ResourcesUtil.getString("favorites.user.label");
+    private static final Icon USER_ICON = ResourcesUtil.getIcon("favorites.user.icon");
+
+    private static final String DELETE_LABEL = ResourcesUtil.getString("favorites.delete.label");
+    private static final Icon DELETE_ICON = ResourcesUtil.getIcon("favorites.delete.icon");
+    
 }

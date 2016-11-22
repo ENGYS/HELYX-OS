@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.gui.mesh.panels;
 
@@ -32,9 +31,14 @@ import static eu.engys.core.project.system.SnappyHexMeshDict.REFINEMENTS_REGIONS
 import static eu.engys.core.project.system.SnappyHexMeshDict.REFINEMENTS_SURFACES_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.WRAPPER_KEY;
 
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 
 import com.google.inject.Inject;
@@ -44,22 +48,28 @@ import eu.engys.core.dictionary.model.DictionaryModel;
 import eu.engys.core.dictionary.model.PointInfo;
 import eu.engys.core.dictionary.model.ShowLocationAdapter;
 import eu.engys.core.project.Model;
+import eu.engys.core.project.geometry.BoundingBox;
 import eu.engys.core.project.system.SnappyHexMeshDict;
 import eu.engys.gui.DefaultGUIPanel;
 import eu.engys.gui.events.EventManager;
 import eu.engys.gui.events.view3D.PointEvent;
+import eu.engys.util.ui.ResourcesUtil;
 import eu.engys.util.ui.builder.PanelBuilder;
+import eu.engys.util.ui.textfields.DoubleField;
+import net.java.dev.designgridlayout.Componentizer;
 
 public class MaterialPointsPanel extends DefaultGUIPanel {
 
-    public static final String TITLE = "Material Point";
+    public static final String MATERIAL_POINT = "Material Point";
+    
+    private final static Icon CENTRE_ICON = ResourcesUtil.getIcon("centre.materialpoint.icon");
 
     private DictionaryModel castellatedModel;
     private ShowLocationAdapter locationPanel;
 
     @Inject
     public MaterialPointsPanel(Model model) {
-        super(TITLE, model);
+        super(MATERIAL_POINT, model);
     }
 
     @Override
@@ -77,10 +87,24 @@ public class MaterialPointsPanel extends DefaultGUIPanel {
     @Override
     protected JComponent layoutComponents() {
         castellatedModel = new DictionaryModel(new Dictionary(""));
-
+        
+        JButton centreButton = new JButton(new AbstractAction("", CENTRE_ICON) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BoundingBox bb = model.getGeometry().computeBoundingBox();
+                DoubleField[] fields = locationPanel.getFields();
+                
+                fields[0].setDoubleValue(bb.getCenter()[0]);
+                fields[1].setDoubleValue(bb.getCenter()[1]);
+                fields[2].setDoubleValue(bb.getCenter()[2]);
+            }
+        });
+        centreButton.setToolTipText("Move the material point to the centre of the bounding box");
+        centreButton.setPreferredSize(new Dimension(22, 22));
+        
         PanelBuilder builder = new PanelBuilder();
         locationPanel = castellatedModel.bindLocation(LOCATION_IN_MESH, 4);
-        builder.addComponent(locationPanel);
+        builder.addComponent(Componentizer.create().minAndMore(locationPanel).fixedPref(centreButton).component());
         locationPanel.addPropertyChangeListener(PointInfo.PROPERTY_NAME, new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -92,9 +116,8 @@ public class MaterialPointsPanel extends DefaultGUIPanel {
         });
 
         return builder.removeMargins().getPanel();
-
     }
-
+    
     @Override
     public void load() {
         SnappyHexMeshDict snappyDict = model.getProject().getSystemFolder().getSnappyHexMeshDict();
@@ -120,5 +143,5 @@ public class MaterialPointsPanel extends DefaultGUIPanel {
             castellated.add(LOCATION_IN_MESH, locations);
         }
     }
-
+    
 }

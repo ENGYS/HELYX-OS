@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui;
 
 import static eu.engys.util.ui.ComponentsFactory.checkField;
@@ -51,8 +50,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import net.java.dev.designgridlayout.Componentizer;
-
 import org.apache.commons.io.FileUtils;
 
 import eu.engys.core.OpenFOAMEnvironment;
@@ -61,6 +58,7 @@ import eu.engys.core.project.defaults.DictDataFolder;
 import eu.engys.util.ApplicationInfo;
 import eu.engys.util.PrefUtil;
 import eu.engys.util.Util;
+import eu.engys.util.Util.ScriptStyle;
 import eu.engys.util.filechooser.util.SelectionMode;
 import eu.engys.util.ui.ComponentsFactory;
 import eu.engys.util.ui.FileFieldPanel;
@@ -70,6 +68,7 @@ import eu.engys.util.ui.builder.PanelBuilder;
 import eu.engys.util.ui.textfields.DoubleField;
 import eu.engys.util.ui.textfields.IntegerField;
 import eu.engys.util.ui.textfields.StringField;
+import net.java.dev.designgridlayout.Componentizer;
 
 public class PreferencesDialog {
 
@@ -80,8 +79,10 @@ public class PreferencesDialog {
     private static final String OPENFOAM_TOOLTIP_WINDOWS = "e.g. <INSTALLATION_PATH>\\%s\\OpenFOAM-x.x_engysEdition-x.x";
     private static final String OPENFOAM_TOOLTIP_LINUX_OS = "e.g. <INSTALLATION_PATH>/%s/OpenFOAM-x.x.x";
     private static final String OPENFOAM_TOOLTIP_WINDOWS_OS = "e.g. <INSTALLATION_PATH>\\%s\\OpenFOAM-x.x.x";
-    private static final String PARAVIEW_TOOLTIP_LINUX = "e.g. <INSTALLATION_PATH>/ParaView x.x.x/bin/paraview";
-    private static final String PARAVIEW_TOOLTIP_WINDOWS = "e.g. <INSTALLATION_PATH>\\ParaView x.x.x\\bin\\paraview.exe";
+    private static final String PARAVIEW_TOOLTIP_LINUX = "e.g. <INSTALLATION_PATH>/ParaView-x.x.x/bin/paraview";
+    private static final String PARAVIEW_TOOLTIP_WINDOWS = "e.g. <INSTALLATION_PATH>\\ParaView-x.x.x\\bin\\paraview.exe";
+    private static final String PARAVIEW_BATCH_TOOLTIP_LINUX = "e.g. <INSTALLATION_PATH>/ParaView-x.x.x.osmesa/bin/pvbatch";
+    private static final String PARAVIEW_BATCH_TOOLTIP_WINDOWS = "platform not supported";
     private static final String FIELDVIEW_TOOLTIP_LINUX = "e.g. <INSTALLATION_PATH>/fv/bin/fv";
     private static final String FIELDVIEW_TOOLTIP_WINDOWS = "e.g. <INSTALLATION_PATH>\\Intelligent Light\\FVWINxx\\bin\\fv.bat";
     private static final String ENSIGHT_TOOLTIP_LINUX = "e.g. <INSTALLATION_PATH>/CEI/bin/ensight100";
@@ -93,13 +94,15 @@ public class PreferencesDialog {
     // private static final String FILE_OPENER_TOOLTIP =
     // "Override system file opener, e.g. 'gnome-open'";
 
+    private static final int ROW_SIZE = 20;
     /*
      * Labels
      */
 
     private static final String PATHS_LABEL = "Paths";
     public static final String CORE_FOLDER_LABEL = "Core Folder";
-    public static final String PARA_VIEW_EXECUTABLE_LABEL = "ParaView Executable";
+    public static final String PARAVIEW_EXECUTABLE_LABEL = "ParaView Executable";
+    public static final String PARAVIEW_BATCH_EXECUTABLE_LABEL = "ParaView Batch Executable";
     public static final String FIELD_VIEW_EXECUTABLE_LABEL = "FieldView Executable";
     public static final String EN_SIGHT_EXECUTABLE_LABEL = "EnSight Executable";
 
@@ -121,23 +124,27 @@ public class PreferencesDialog {
     public static final String MAX_LOG_LINES_LABEL = "Max Log Lines";
     // public static final String MAX_CHART_LINES_LABEL = "Max Chart Lines";
     public static final String HIDE_EMPTY_PATCHES_LABEL = "Hide Empty Patches";
+    public static final String HIDE_PROCESSOR_PATCHES_LABEL = "Hide Processor Patches";
+    public static final String HIDE_PROCESSOR_CYCLIC_PATCHES_LABEL = "Hide Processor Cyclic Patches";
     public static final String CUSTOM_FILE_MANAGER_LABEL = "Custom File Manager";
     public static final String CUSTOM_TERMINAL_COMMAND_LABEL = "Custom Terminal Command";
     public static final String DEFAULT_HOSTFILE_NONE_LABEL = "Default Hostfile Off (needs restart)";
+
+    public static final String USE_DOCKER_LABEL = "Use Docker";
+    public static final String DOCKER_IMAGE_LABEL = "Docker Image";
 
     private JDialog dialog;
     private FileFieldPanel fieldViewPanel;
     private FileFieldPanel ensightPanel;
     private FileFieldPanel paraViewPanel;
+    private FileFieldPanel paraViewBatchPanel;
     private FileFieldPanel openFoamPanel;
 
     private IntegerField connectionTries;
     private IntegerField connectionRefresh;
-    private IntegerField waitForStopTime;
     private IntegerField waitForRunTime;
     private IntegerField scriptRefresh;
     private IntegerField waiForKillTime;
-    private IntegerField logWaitTime;
 
     private IntegerField interactiveMemory;
     private IntegerField interactiveTime;
@@ -145,31 +152,25 @@ public class PreferencesDialog {
 
     private StringField defaultTerminal;
     private StringField defaultFileManager;
-    private StringField defaultFileOpener;
     private JCheckBox defaultHostFile;
 
     private JCheckBox hideEmptyPatches;
+    private JCheckBox hideProcessorPatches;
+    private JCheckBox hideProcessorCyclicPatches;
 
-    private IntegerField maxChartRows;
     private IntegerField maxLogRows;
 
-    private final boolean isOS;
-    private final boolean paraview;
-    private final boolean fieldview;
-    private final boolean ensight;
-    private final boolean hasSolverPreferences;
+    private JCheckBox useDocker;
+    private StringField dockerImage;
 
     private JLabel errorLabel;
     private JButton okButton;
     private JButton openDefaults;
     private DictDataFolder dictDataFolder;
+    private PreferencesBean bean;
 
-    public PreferencesDialog(boolean isOS, boolean paraview, boolean fieldview, boolean ensight, boolean hasSolverPreferences, DictDataFolder dictDataFolder) {
-        this.isOS = isOS;
-        this.paraview = paraview;// HELYX-OS or Windows OS
-        this.fieldview = fieldview;// HELYX-SAS and HELYX
-        this.ensight = ensight;// HELYX
-        this.hasSolverPreferences = hasSolverPreferences;
+    public PreferencesDialog(PreferencesBean bean, DictDataFolder dictDataFolder) {
+        this.bean = bean;
         this.dictDataFolder = dictDataFolder;
 
         initDialog();
@@ -188,7 +189,12 @@ public class PreferencesDialog {
         dialog = new JDialog(UiUtil.getActiveWindow(), "Preferences", ModalityType.APPLICATION_MODAL);
         dialog.getContentPane().setLayout(new BorderLayout());
         dialog.getContentPane().add(mainPanel);
-        dialog.setSize(800, 600);
+
+        int dialogOffset = 150;
+        int pathSize = ROW_SIZE + (bean.isParaview() ? ROW_SIZE : 0) + (bean.isEnsight() ? ROW_SIZE : 0) + (bean.isFieldview() ? ROW_SIZE : 0);
+        int size = dialogOffset + pathSize + (bean.isBatchPreferences() ? ROW_SIZE * 5 : 0) + (bean.isVtkPreferences() ? ROW_SIZE * 3 : 0) + (bean.isMiscPreferences() ? ROW_SIZE * 8 : 0);
+
+        dialog.setSize(800, size);
         dialog.setLocationRelativeTo(null);
         dialog.setName("PreferencesDialog");
         dialog.getRootPane().setDefaultButton(okButton);
@@ -222,22 +228,32 @@ public class PreferencesDialog {
      */
 
     public void load() {
-        loadPathProperties();
-        loadBatchProperties();
-        loadVTKProperties();
-        loadMiscProperties();
-
+        if (bean.isPathPreferences()) {
+            loadPathProperties();
+        }
+        if (bean.isBatchPreferences()) {
+            loadBatchProperties();
+        }
+        if (bean.isVtkPreferences()) {
+            loadVTKProperties();
+        }
+        if (bean.isMiscPreferences()) {
+            loadMiscProperties();
+        }
     }
 
     private void loadPathProperties() {
         openFoamPanel.setFile(PrefUtil.getOpenFoamEntry());
-        if (paraview) {
+        if (bean.isParaview()) {
             paraViewPanel.setFile(PrefUtil.getParaViewEntry());
         }
-        if (fieldview) {
+        if (bean.isParaviewBatch()) {
+            paraViewBatchPanel.setFile(PrefUtil.getParaViewBatchEntry());
+        }
+        if (bean.isFieldview()) {
             fieldViewPanel.setFile(PrefUtil.getFieldViewEntry());
         }
-        if (ensight) {
+        if (bean.isEnsight()) {
             ensightPanel.setFile(PrefUtil.getEnsightEntry());
         }
 
@@ -274,7 +290,16 @@ public class PreferencesDialog {
             defaultHostFile.setSelected(PrefUtil.getBoolean(PrefUtil.DEFAULT_HOSTFILE_NONE));
         }
         hideEmptyPatches.setSelected(PrefUtil.getBoolean(PrefUtil.HIDE_EMPTY_PATCHES));
+        hideProcessorPatches.setSelected(PrefUtil.getBoolean(PrefUtil.HIDE_PROCESSOR_PATCHES));
+        hideProcessorCyclicPatches.setSelected(PrefUtil.getBoolean(PrefUtil.HIDE_PROCESSOR_CYCLIC_PATCHES));
         maxLogRows.setIntValue(PrefUtil.getInt(PrefUtil.BATCH_MONITOR_DIALOG_MAX_ROW));
+
+        useDocker.setSelected(PrefUtil.getBoolean(PrefUtil.USE_DOCKER));
+        dockerImage.setStringValue(PrefUtil.getString(PrefUtil.DOCKER_IMAGE));
+        
+        if(useDocker.isSelected() && Util.isWindows()){
+            Util.setScriptStyle(ScriptStyle.LINUX);
+        }
     }
 
     /*
@@ -283,21 +308,33 @@ public class PreferencesDialog {
 
     // public for test purposes only
     public void save() {
-        savePathProperties();
-        saveBatchProperties();
-        saveVTKProperties();
-        saveMiscProperties();
+        if (bean.isPathPreferences()) {
+            savePathProperties();
+        }
+        if (bean.isBatchPreferences()) {
+            saveBatchProperties();
+        }
+        if (bean.isVtkPreferences()) {
+            saveVTKProperties();
+        }
+        if (bean.isMiscPreferences()) {
+            saveMiscProperties();
+        }
+
     }
 
     private void savePathProperties() {
         PrefUtil.setOpenFoamEntry(openFoamPanel.getFile());
-        if (paraview) {
+        if (bean.isParaview()) {
             PrefUtil.setParaViewEntry(paraViewPanel.getFile());
         }
-        if (fieldview) {
+        if (bean.isParaviewBatch()) {
+            PrefUtil.setParaViewBatchEntry(paraViewBatchPanel.getFile());
+        }
+        if (bean.isFieldview()) {
             PrefUtil.setFieldViewEntry(fieldViewPanel.getFile());
         }
-        if (ensight) {
+        if (bean.isEnsight()) {
             PrefUtil.setEnsightEntry(ensightPanel.getFile());
         }
     }
@@ -324,7 +361,18 @@ public class PreferencesDialog {
             PrefUtil.putBoolean(PrefUtil.DEFAULT_HOSTFILE_NONE, defaultHostFile.isSelected());
         }
         PrefUtil.putBoolean(PrefUtil.HIDE_EMPTY_PATCHES, hideEmptyPatches.isSelected());
+        PrefUtil.putBoolean(PrefUtil.HIDE_PROCESSOR_PATCHES, hideProcessorPatches.isSelected());
+        PrefUtil.putBoolean(PrefUtil.HIDE_PROCESSOR_CYCLIC_PATCHES, hideProcessorCyclicPatches.isSelected());
         PrefUtil.putInt(PrefUtil.BATCH_MONITOR_DIALOG_MAX_ROW, maxLogRows.getIntValue());
+
+        PrefUtil.putBoolean(PrefUtil.USE_DOCKER, useDocker.isSelected());
+        PrefUtil.putString(PrefUtil.DOCKER_IMAGE, dockerImage.getStringValue());
+        
+        if(useDocker.isSelected() && Util.isWindows()){
+            Util.setScriptStyle(ScriptStyle.LINUX);
+        } else {
+            Util.initScriptStyle();
+        }
     }
 
     /*
@@ -338,12 +386,18 @@ public class PreferencesDialog {
         JPanel miscPanel = createMiscPanel();
 
         PanelBuilder builder = new PanelBuilder();
-        builder.addComponent(pathsPanel);
-        if (hasSolverPreferences) {
+        if (bean.isPathPreferences()) {
+            builder.addComponent(pathsPanel);
+        }
+        if (bean.isBatchPreferences()) {
             builder.addComponent(batchPanel);
         }
-        builder.addComponent(vtkPanel);
-        builder.addComponent(miscPanel);
+        if (bean.isVtkPreferences()) {
+            builder.addComponent(vtkPanel);
+        }
+        if (bean.isMiscPreferences()) {
+            builder.addComponent(miscPanel);
+        }
 
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
@@ -358,13 +412,13 @@ public class PreferencesDialog {
     private JPanel createPathsPanel() {
         String ofPrompt = "";
         if (Util.isWindows()) {
-            if (isOS) {
+            if (bean.isOS()) {
                 ofPrompt = String.format(OPENFOAM_TOOLTIP_WINDOWS_OS, ApplicationInfo.getVendor());
             } else {
                 ofPrompt = String.format(OPENFOAM_TOOLTIP_WINDOWS, ApplicationInfo.getVendor());
             }
         } else {
-            if (isOS) {
+            if (bean.isOS()) {
                 ofPrompt = String.format(OPENFOAM_TOOLTIP_LINUX_OS, ApplicationInfo.getVendor());
             } else {
                 ofPrompt = String.format(OPENFOAM_TOOLTIP_LINUX, ApplicationInfo.getVendor());
@@ -377,16 +431,25 @@ public class PreferencesDialog {
         addResettableComponent(pathBuilder, CORE_FOLDER_LABEL, openFoamPanel = ComponentsFactory.fileField(SelectionMode.DIRS_ONLY, ofTooltip, ofPrompt, true), PrefUtil.OPENFOAM_KEY);
         openFoamPanel.addPropertyChangeListener(new UpdateErrorLabelListener());
 
-        if (paraview) {
+        if (bean.isParaview()) {
             String pvPrompt = Util.isWindows() ? PARAVIEW_TOOLTIP_WINDOWS : PARAVIEW_TOOLTIP_LINUX;
             String pvTooltip = PREFIX_FOR_TOOLTIP + pvPrompt;
 
             paraViewPanel = ComponentsFactory.fileField(SelectionMode.FILES_ONLY, pvTooltip, pvPrompt, true);
             paraViewPanel.addPropertyChangeListener(new UpdateErrorLabelListener());
-            addResettableComponent(pathBuilder, PARA_VIEW_EXECUTABLE_LABEL, paraViewPanel, PrefUtil.PARAVIEW_KEY);
+            addResettableComponent(pathBuilder, PARAVIEW_EXECUTABLE_LABEL, paraViewPanel, PrefUtil.PARAVIEW_KEY);
         }
 
-        if (fieldview) {
+        if (bean.isParaviewBatch()) {
+            String pvBatchPrompt = Util.isWindows() ? PARAVIEW_BATCH_TOOLTIP_WINDOWS : PARAVIEW_BATCH_TOOLTIP_LINUX;
+            String pvBatchTooltip = PREFIX_FOR_TOOLTIP + pvBatchPrompt;
+            
+            paraViewBatchPanel = ComponentsFactory.fileField(SelectionMode.FILES_ONLY, pvBatchTooltip, pvBatchPrompt, true);
+            paraViewBatchPanel.addPropertyChangeListener(new UpdateErrorLabelListener());
+            addResettableComponent(pathBuilder, PARAVIEW_BATCH_EXECUTABLE_LABEL, paraViewBatchPanel, PrefUtil.PARAVIEW_BATCH_KEY);
+        }
+
+        if (bean.isFieldview()) {
             String fvPrompt = Util.isWindows() ? FIELDVIEW_TOOLTIP_WINDOWS : FIELDVIEW_TOOLTIP_LINUX;
             String fvTooltip = PREFIX_FOR_TOOLTIP + fvPrompt;
 
@@ -394,7 +457,7 @@ public class PreferencesDialog {
             fieldViewPanel.addPropertyChangeListener(new UpdateErrorLabelListener());
             addResettableComponent(pathBuilder, FIELD_VIEW_EXECUTABLE_LABEL, fieldViewPanel, PrefUtil.FIELDVIEW_KEY);
         }
-        if (ensight) {
+        if (bean.isEnsight()) {
             String fvPrompt = Util.isWindows() ? ENSIGHT_TOOLTIP_WINDOWS : ENSIGHT_TOOLTIP_LINUX;
             String fvTooltip = PREFIX_FOR_TOOLTIP + fvPrompt;
 
@@ -429,7 +492,7 @@ public class PreferencesDialog {
 
     private JPanel createMiscPanel() {
         PanelBuilder miscBuilder = new PanelBuilder();
-        if (Util.isUnix()) {
+        if (!Util.isWindows()) {
             addResettableComponent(miscBuilder, CUSTOM_TERMINAL_COMMAND_LABEL, defaultTerminal = stringField(), PrefUtil.HELYX_DEFAULT_TERMINAL);
             defaultTerminal.setPrompt(TERMINAL_TOOLTIP);
 
@@ -440,7 +503,17 @@ public class PreferencesDialog {
             defaultHostFile.setToolTipText(DEFAULT_HOSTFILE_TOOLTIP);
         }
         addResettableComponent(miscBuilder, HIDE_EMPTY_PATCHES_LABEL, hideEmptyPatches = checkField(), PrefUtil.HIDE_EMPTY_PATCHES);
+        addResettableComponent(miscBuilder, HIDE_PROCESSOR_PATCHES_LABEL, hideProcessorPatches = checkField(), PrefUtil.HIDE_PROCESSOR_PATCHES);
+        addResettableComponent(miscBuilder, HIDE_PROCESSOR_CYCLIC_PATCHES_LABEL, hideProcessorCyclicPatches = checkField(), PrefUtil.HIDE_PROCESSOR_CYCLIC_PATCHES);
         addResettableComponent(miscBuilder, MAX_LOG_LINES_LABEL, maxLogRows = intField(), PrefUtil.BATCH_MONITOR_DIALOG_MAX_ROW);
+        
+        useDocker = checkField();
+        dockerImage = stringField(false, false);
+
+        if(!Util.isWindows()){
+            addResettableComponent(miscBuilder, USE_DOCKER_LABEL, useDocker, PrefUtil.USE_DOCKER);
+            addResettableComponent(miscBuilder, DOCKER_IMAGE_LABEL, dockerImage, PrefUtil.DOCKER_IMAGE);
+        }
 
         openDefaults = new JButton(new AbstractAction("Show Files") {
             @Override
@@ -454,7 +527,7 @@ public class PreferencesDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    FileUtils.forceDeleteOnExit(new File(ApplicationInfo.getHome(), "dictData"));
+                    FileUtils.forceDeleteOnExit(new File(new File(ApplicationInfo.getHome(), ApplicationInfo.getVersion()), "dictData"));
                 } catch (IOException e1) {
                 } finally {
                     JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), "Restart " + ApplicationInfo.getName() + " to complete this action.");
@@ -489,7 +562,7 @@ public class PreferencesDialog {
                 } else if (compToAdd instanceof DoubleField) {
                     resetDoubleField(compToAdd, value);
                 } else if (compToAdd instanceof FileFieldPanel) {
-                    if(key.equals(PrefUtil.OPENFOAM_KEY)){
+                    if (key.equals(PrefUtil.OPENFOAM_KEY)) {
                         resetOpenFoamFileField(compToAdd);
                     } else {
                         resetFileField(compToAdd);
@@ -502,7 +575,7 @@ public class PreferencesDialog {
             }
 
             private void resetOpenFoamFileField(final JComponent compToAdd) {
-                File[] openFoamDir = OpenFOAMEnvironment.getOpenFoamDir();
+                File[] openFoamDir = (bean.isOS() && Util.isUnix()) ? OpenFOAMEnvironment.getOpenFoamDirOS_onUnix() : OpenFOAMEnvironment.getOpenFoamDir();
                 if (Util.isVarArgsNotNullAndOfSize(1, openFoamDir)) {
                     ((FileFieldPanel) compToAdd).setFile(openFoamDir[0]);
                 } else {
@@ -553,21 +626,28 @@ public class PreferencesDialog {
      */
 
     private boolean isParaViewOk() {
-        if (paraview) {
+        if (bean.isParaview()) {
             return paraViewPanel.hasExistingFile();
         }
         return true;
     }
 
+    private boolean isParaViewBatchOk() {
+        if (bean.isParaviewBatch()) {
+            return paraViewBatchPanel.hasExistingFile();
+        }
+        return true;
+    }
+
     private boolean isEnsightOk() {
-        if (ensight) {
+        if (bean.isEnsight()) {
             return ensightPanel.hasExistingFile();
         }
         return true;
     }
 
     private boolean isFieldViewOk() {
-        if (fieldview) {
+        if (bean.isFieldview()) {
             return fieldViewPanel.hasExistingFile();
         }
         return true;

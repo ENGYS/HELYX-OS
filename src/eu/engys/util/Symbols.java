@@ -1,42 +1,45 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.util;
 
 public class Symbols {
 
+    
     public static final String THETA = "\u03B8";
     public static final String PHI = "\u03C6";
+    public static final String CHI = "\u03F0";
+    public static final String E_ACUTE = "\u00E9";
 
+    public static final String OMEGA = "[\u03C9]";
     public static final String CUBE = "\u00B3";
     public static final String SQUARE = "\u00B2";
     public static final String SUBSCRIPT_2 = "\u2082";
     public static final String MINUS_ONE = "\u02C9\u00B9";
     public static final String DOT = "\u00B7";
-
+    
     public static final String PASCAL = "[Pa]";
     public static final String KELVIN = "[K]";
     public static final String KELVIN_ON_SECONDS = "[K/s]";
@@ -44,10 +47,22 @@ public class Symbols {
     public static final String M2_S2 = "[m" + SQUARE + "/s" + SQUARE + "]";
     public static final String M2_S = "[m" + SQUARE + "/s]";
 
+    public static final String S = "[s]";
+    public static final String M = "[m]";
     public static final String M_S = "[m/s]";
+    public static final String DEG = "[deg]";
+    public static final String RAD = "[rad]";
     public static final String K_SYMBOL = "[m" + SQUARE + "/s" + SQUARE + "]";
     public static final String EPSILON_SYMBOL = "[m" + SQUARE + "/s" + CUBE + "]";
-    public static final String OMEGA_SYMBOL = "[1/s]";
+    public static final String OMEGA_SYMBOL_S = "[1/s]";
+    public static final String OMEGA_SYMBOL_RAD = "[rad/s]";
+    public static final String KG = "[kg]";
+    public static final String KGM2 = "[kg"+DOT+"m"+SQUARE+"]";
+    
+    public static final String N_M = "[N/m]";
+    public static final String NS_M = "[Ns/m]";
+    public static final String NM_RAD = "[Nm/rad]";
+    public static final String NMS_RAD = "[Nms/rad]";
 
     public static final String MU_MEASURE = "[Pa" + DOT + "s]";
     public static final String NU_MEASURE = "[m" + SQUARE + "/s]";
@@ -84,6 +99,7 @@ public class Symbols {
     public static final String PLUS_UPPERCASE = "\u207A";
     public static final String DOUBLE_ARROW = "\u2194";
     public static final String DEGREE_SIGN = "\u00B0";
+    public static final String HAT = "\u0302";
     
     public static String PEDICE(int number) {
         String numberToString = String.valueOf(number);

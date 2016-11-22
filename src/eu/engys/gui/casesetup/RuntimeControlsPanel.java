@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup;
 
 import static eu.engys.core.project.system.ControlDict.ADJUSTABLE_RUN_TIME_KEY;
@@ -93,11 +92,11 @@ public class RuntimeControlsPanel extends DefaultGUIPanel {
     public static final String WRITE_FORMAT_LABEL = "Write Format";
     public static final String PURGE_WRITE_LABEL = "Purge Write";
     public static final String WRITE_CONTROL_LABEL = "Write Control";
-    public static final String MAX_TIME_STEP_LABEL = "Max Time Step";
+    public static final String MAX_TIME_STEP_LABEL = "Max Time Step " + Symbols.S;
     public static final String MAX_COURANT_ALPHA_LABEL = "Max Courant Alpha";
     public static final String MAX_COURANT_NUMBER_LABEL = "Max Courant Number";
     public static final String ADJUSTABLE_TIME_STEP_LABEL = "Adjustable Time Step";
-    public static final String DELTA_T_LABEL = Symbols.DELTA_T + "(s)";
+    public static final String DELTA_T_LABEL = Symbols.DELTA_T + Symbols.S;
     public static final String END_TIME_LABEL = "End Time";
     public static final String START_FROM_LABEL = "Start From";
 
@@ -325,17 +324,18 @@ public class RuntimeControlsPanel extends DefaultGUIPanel {
                 boolean isSteadyMultiphase = state.isSteady() && state.getMultiphaseModel().isMultiphase();
                 boolean isSteadyCoupled = state.isSteady() && state.getSolverType().isCoupled();
 
-                if (isTransient || isSteadyMultiphase || isSteadyCoupled) {
+                boolean okState = isTransient || isSteadyMultiphase || isSteadyCoupled;
+                if (okState) {
                     deltaT.setEnabled(true);
                 } else {
                     deltaT.setEnabled(false);
                     deltaT.setDoubleValue(1);
                 }
 
-                adjustableTime.setEnabled((isTransient || isSteadyMultiphase) && !isSonic(state));
-                maxCourantNumber.setEnabled((isTransient || isSteadyMultiphase) && adjustableTime.isSelected());
-                maxAlphaCourant.setEnabled((isTransient || isSteadyMultiphase) && adjustableTime.isSelected() && state.getMultiphaseModel().isMultiphase());
-                maxTimeStep.setEnabled((isTransient || isSteadyMultiphase) && adjustableTime.isSelected());
+                adjustableTime.setEnabled(okState && !isSonic(state));
+                maxCourantNumber.setEnabled(okState && adjustableTime.isSelected());
+                maxAlphaCourant.setEnabled(okState && adjustableTime.isSelected() && state.getMultiphaseModel().isMultiphase());
+                maxTimeStep.setEnabled(okState && adjustableTime.isSelected());
             }
         });
     }

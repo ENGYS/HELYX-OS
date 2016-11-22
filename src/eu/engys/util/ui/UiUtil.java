@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.ui;
 
 import java.awt.BorderLayout;
@@ -30,12 +29,15 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -43,6 +45,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.font.TextAttribute;
 import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.file.Paths;
@@ -75,6 +78,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -102,12 +106,42 @@ import eu.engys.util.connection.SshParameters;
 import eu.engys.util.connection.SshUtils;
 import eu.engys.util.progress.ProgressMonitor;
 
-/** Static convenience methods for GUIs which eliminate code duplication. */
 public final class UiUtil {
 
+    public static String DIALOG_OK_LABEL = "OK";
+    public static String DIALOG_CANCEL_LABEL = "Cancel";
+    public static String RESET_BUTTON_LABEL = "Reset";
+    public static String ADD_BUTTON_LABEL = "Add";
+    public static String REMOVE_BUTTON_LABEL = "Remove";
+    public static String EDIT_BUTTON_LABEL = "Edit";
+    public static final String NONE_LABEL = "None";
+
+    public static final String ADD_ROW_BUTTON_NAME = "add.row.button";
+    public static final String REM_ROW_BUTTON_NAME = "rem.row.button";
+
+    public static final Dimension LABEL_DIMENSION = new JLabel("M").getPreferredSize();
+    
+    /*
+     * So tests can run on low resolution monitors too
+     */
+    public static final Dimension TEST_FRAME_SIZE = new Dimension(1000, 800);
+
+    /**
+     * First we check for an active window
+     * (scenario: the progress monitor is up, and I want to get it instead of the main application frame)
+     * 
+     * If no active windows are found we return the first showing window
+     * (scenario: the application frame is up but it is not active because Im working on another software, 
+     * if an optionpane is shown I assign the first showing window as a parent instead)
+     */
     public static Window getActiveWindow() {
-        for (Window window : Window.getWindows()) {
+        Window[] windows = Window.getWindows();
+        for (Window window : windows) {
             if (window.isShowing() && window.isActive())
+                return (Window) window;
+        }
+        for (Window window : windows) {
+            if (window.isShowing())
                 return (Window) window;
         }
         return null;
@@ -140,6 +174,59 @@ public final class UiUtil {
         }
     }
 
+    /**
+     * This method collapses the bottom component of a splitpane
+     */
+    public static void collapseSplitPane(JSplitPane splitPane) {
+        splitPane.setBottomComponent(new JLabel());
+        splitPane.setDividerLocation(Integer.MAX_VALUE);
+        splitPane.setResizeWeight(1);
+        splitPane.setDividerSize(0);
+    }
+
+    /**
+     * This method shows the bottom if it was previosly hidden
+     */
+    public static void expandSplitPane(JSplitPane splitPane, JComponent bottomComponent, double splitLocationRatio, int bottomComponentHeight) {
+        if (splitPane.getBottomComponent() instanceof JLabel) {
+            splitPane.setBottomComponent(bottomComponent);
+        }
+        if (splitPane.getResizeWeight() == 1) {
+            splitPane.setDividerLocation(splitPane.getHeight() - bottomComponentHeight);
+            splitPane.setResizeWeight(splitLocationRatio);
+            splitPane.setDividerSize(new JSplitPane().getDividerSize());
+        }
+    }
+
+    public static boolean isCollapsed(JSplitPane splitPane) {
+        boolean check1 = splitPane.getBottomComponent() instanceof JLabel;
+        boolean check2 = splitPane.getDividerSize() == 0;
+        boolean check3 = splitPane.getResizeWeight() == 1;
+        return check1 && check2 && check3;
+    }
+
+    public static void showInfoPopup(Component parent, String text) {
+        try {
+            JPopupMenu popup = new JPopupMenu();
+            popup.add(new JMenuItem(text));
+            Point location = MouseInfo.getPointerInfo().getLocation();
+            SwingUtilities.convertPointFromScreen(location, parent);
+            popup.show(parent, location.x, (location.y / 2));
+        } catch (Exception ee) {
+            // convertPointFromScreen can throw a Nullpointer exception
+            // no need to do anything
+        }
+    }
+
+    public static JLabel getLabelSeparator() {
+        return new JLabel() {
+            @Override
+            public Dimension getPreferredSize() {
+                return ComponentsFactory.intField().getPreferredSize();
+            }
+        };
+    }
+
     public static void showDocumentationNotLoadedWarning(boolean emptyDocumentation) {
         if (emptyDocumentation) {
             JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), "Missing file.", ApplicationInfo.getName() + " Documentation error", JOptionPane.ERROR_MESSAGE);
@@ -147,7 +234,7 @@ public final class UiUtil {
             JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), "Ambiguous file name.", ApplicationInfo.getName() + " Documentation error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     public static void showEnvironmentNotLoadedWarning(String application) {
         String message = String.format("%s cannot be launched because:\n\t1) %s is not installed on your system.\n\t2) The path to the executable does not exists.\n\t3) The path to the executable is broken.\nPlease, enter %s executable path under: Edit > Preferences.", application, application, application);
         JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), message, application + " executable error", JOptionPane.WARNING_MESSAGE);
@@ -168,31 +255,11 @@ public final class UiUtil {
         JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), message, "Demo", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void show(String title, Component panel, int w, int h) {
-        UiUtil.centerAndShow(defaultTestFrame(title, panel, w, h));
-    }
-
-    public static void show(String title, Component panel) {
-        UiUtil.centerAndShow(defaultTestFrame(title, panel));
-    }
-
-    public static JFrame defaultTestFrame(String title, Component panel, int w, int h) {
-        JFrame frame = defaultTestFrame(title, panel);
-        frame.setSize(w, h);
-        frame.setPreferredSize(new Dimension(w, h));
-        return frame;
-    }
-
     public static JFrame defaultTestFrame(String title, Component panel) {
-        JFrame frame = defaultEmptyTestFrame(title);
-        frame.getContentPane().add(panel, BorderLayout.CENTER);
-        return frame;
-    }
-
-    public static JFrame defaultEmptyTestFrame(String title) {
         JFrame frame = new JFrame(title);
         frame.getContentPane().setLayout(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(panel, BorderLayout.CENTER);
         return frame;
     }
 
@@ -213,19 +280,12 @@ public final class UiUtil {
 
     public static void centerAndShow(Window aWindow) {
         aWindow.pack();
-        /*
-         * If called from outside the event dispatch thread (as is the case upon startup, in the launch thread), 
-         * then in principle this code is not thread-safe: once pack has been called, the component is realized, 
-         * and (most) further work on the component should take place in the event-dispatch thread.
-         * 
-         * In practice, it is exceedingly unlikely that this will lead to an error, since invisible components cannot receive events.
-         */
         center(aWindow);
         aWindow.setVisible(true);
     }
 
     public static Border getStandardBorder() {
-        return BorderFactory.createEmptyBorder(UiUtil.STANDARD_BORDER, UiUtil.STANDARD_BORDER, UiUtil.STANDARD_BORDER, UiUtil.STANDARD_BORDER);
+        return BorderFactory.createEmptyBorder(STANDARD_BORDER, STANDARD_BORDER, STANDARD_BORDER, STANDARD_BORDER);
     }
 
     public static JComponent getCommandRow(JComponent... aButtons) {
@@ -270,28 +330,26 @@ public final class UiUtil {
         return panel;
     }
 
-    public static JComponent getCommandColumnToolbar(java.util.List<JComponent> aButtons) {
-        equalizeSizes(aButtons);
-        JToolBar panel = getToolbar("command.column.toolbar");
-        LayoutManager layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
-        panel.setLayout(layout);
-        panel.setOpaque(false);
-        panel.setFloatable(false);
-        panel.setBorder(BorderFactory.createEmptyBorder(0, UiUtil.TWO_SPACES, 0, 0));
+    public static JComponent getCommandColumnToolbar(List<JComponent> buttons) {
+        equalizeSizes(buttons);
+        JToolBar toolbar = getToolbarWrapped("command.column.toolbar");
+        LayoutManager layout = new BoxLayout(toolbar, BoxLayout.Y_AXIS);
+        toolbar.setLayout(layout);
+        toolbar.setBorder(BorderFactory.createEmptyBorder(0, UiUtil.TWO_SPACES, 0, 0));
 
         // (no for-each is used here, because of the 'not-yet-last' check)
-        Iterator<JComponent> buttonsIter = aButtons.iterator();
+        Iterator<JComponent> buttonsIter = buttons.iterator();
         while (buttonsIter.hasNext()) {
             AbstractButton next = (AbstractButton) buttonsIter.next();
             next.setAlignmentX(Component.LEFT_ALIGNMENT);
             next.setHorizontalAlignment(SwingConstants.LEFT);
-            panel.add(next);
+            toolbar.add(next);
             if (buttonsIter.hasNext()) {
-                panel.add(Box.createVerticalStrut(UiUtil.ONE_SPACE));
+                toolbar.add(Box.createVerticalStrut(UiUtil.ONE_SPACE));
             }
         }
-        panel.add(Box.createVerticalGlue());
-        return panel;
+        toolbar.add(Box.createVerticalGlue());
+        return toolbar;
     }
 
     public static JMenuItem createMenuItem(Action a) {
@@ -318,10 +376,10 @@ public final class UiUtil {
         b.setText(((text != null && text.equals("MISSING")) ? null : text));
         b.setIcon(icon);
         b.setToolTipText(desc);
-        
+
         return b;
     }
-    
+
     public static AbstractButton createToolBarIconButton(Action a) {
         return _createToolBarButton(a, false);
     }
@@ -343,12 +401,11 @@ public final class UiUtil {
                     return null;
             }
         };
-        b.setName(text != null ? text : desc);
+        b.setName((text == null || text.isEmpty()) ? desc : text);
         b.setText(showLabel ? ((text != null && text.equals("MISSING")) ? null : text) : null);
         b.setIcon(icon);
         b.setToolTipText(desc);
         // b.setEnabled(a.isEnabled());
-        b.setFocusable(false);
         return b;
     }
 
@@ -363,7 +420,6 @@ public final class UiUtil {
         };
         button.setName(name);
         button.setToolTipText(tooltip);
-        button.setFocusable(false);
 
         final JPopupMenu popup = new JPopupMenu();
         for (Action action : actions) {
@@ -392,16 +448,6 @@ public final class UiUtil {
             bar.add(button);
         }
         return bar;
-    }
-
-    public static void clearToolbar(JToolBar toolbar) {
-        for (Component c : toolbar.getComponents()) {
-            if (c instanceof AbstractButton) {
-                ((AbstractButton) c).setSelected(false);
-            } else if (c instanceof JComboBox) {
-                ((JComboBox<?>) c).setSelectedIndex(-1);
-            }
-        }
     }
 
     public static ButtonBar createToolBarToggleButtonBar(Action... actions) {
@@ -445,7 +491,6 @@ public final class UiUtil {
         b.setRolloverSelectedIcon(sel_icon);
         b.setSelectedIcon(sel_icon);
         b.setEnabled(a.isEnabled());
-        b.setFocusable(false);
         return b;
     }
 
@@ -461,7 +506,6 @@ public final class UiUtil {
         b.setHorizontalTextPosition(SwingConstants.RIGHT);
         // b.setVerticalTextPosition(3);
         b.setName((String) a.getValue(Action.NAME));
-        b.setFocusable(false);
         return b;
     }
 
@@ -482,7 +526,6 @@ public final class UiUtil {
         b.setText("");
         b.setIcon(icon);
         b.setToolTipText(text);
-        b.setFocusable(false);
         group.add(b);
         return b;
     }
@@ -565,6 +608,7 @@ public final class UiUtil {
 
     private static Action getPrototype(String actionName) {
         return new AbstractAction(actionName) {
+
             @Override
             public void actionPerformed(ActionEvent arg0) {
             }
@@ -597,7 +641,7 @@ public final class UiUtil {
 
     }
 
-    public static void equalizeSizes(java.util.List<JComponent> aComponents) {
+    public static void equalizeSizes(List<JComponent> aComponents) {
         Dimension targetSize = new Dimension(0, 0);
         for (JComponent comp : aComponents) {
             Dimension compSize = comp.getPreferredSize();
@@ -655,7 +699,7 @@ public final class UiUtil {
             containers.remove(container);
         }
     }
-    
+
     public static void disable(Container container) {
         List<JComponent> components = getDescendantsOfType(JComponent.class, container, true);
         List<JComponent> enabledComponents = new ArrayList<JComponent>();
@@ -678,7 +722,6 @@ public final class UiUtil {
             }
         }
     }
-    
 
     public static void expandAll(JTree tree, boolean expand) {
         TreeNode root = (TreeNode) tree.getModel().getRoot();
@@ -736,16 +779,39 @@ public final class UiUtil {
     }
 
     public static JToolBar getToolbar(String name) {
-        JToolBar toolbar = new JToolBar();
-        toolbar.setLayout(new WrappedFlowLayout(FlowLayout.LEFT, 0, 0));
+        return getToolbar(name, JToolBar.HORIZONTAL);
+    }
+
+    public static JToolBar getToolbar(String name, int orientation) {
+        JToolBar toolbar = new JToolBar(orientation);
+        toolbar.setName(name);
         toolbar.putClientProperty("Synthetica.toolBar.buttons.paintBorder", Boolean.TRUE);
         toolbar.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        toolbar.setName(name);
         toolbar.setFloatable(false);
-        toolbar.setRollover(false);
         toolbar.setOpaque(false);
         toolbar.setBorder(BorderFactory.createEmptyBorder());
+        return toolbar;
+    }
 
+    public static JToolBar getToolbarWrapped() {
+        return getToolbarWrapped("", JToolBar.HORIZONTAL);
+    }
+
+    public static JToolBar getToolbarWrapped(String name) {
+        return getToolbarWrapped(name, JToolBar.HORIZONTAL);
+    }
+
+    public static JToolBar getToolbarWrapped(String name, int orientation) {
+        JToolBar toolbar = getToolbar(name, orientation);
+        toolbar.setLayout(new WrappedFlowLayout(FlowLayout.LEFT, 0, 0));
+        return toolbar;
+    }
+
+    public static JToolBar createButtonToolbarStyle(AbstractButton button) {
+        JToolBar toolbar = UiUtil.getToolbar("");
+        toolbar.setBorder(BorderFactory.createEmptyBorder());
+        toolbar.add(button);
+        // toolbar.add(Box.createGlue());
         return toolbar;
     }
 
@@ -811,11 +877,6 @@ public final class UiUtil {
                 if (GraphicsEnvironment.isHeadless()) {
                 } else {
                     e.printStackTrace();
-//                    StringOutputStream stream = new StringOutputStream();
-//                    e.printStackTrace(new PrintStream(stream));
-//                    String msg = stream.toString();
-//                    System.err.println(msg);
-//                    JOptionPane.showMessageDialog(UiUtil.getActiveWindow(), msg, "An error occurred", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -880,7 +941,17 @@ public final class UiUtil {
         } catch (Exception e) {
 
         }
-
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static JButton createURLOpenerButton(AbstractAction action){
+        JButton aButton = new JButton(action);
+        Font origFont = aButton.getFont();
+        Map attributes = origFont.getAttributes();
+        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+        aButton.setFont(aButton.getFont().deriveFont(attributes));
+        aButton.setOpaque(false);
+        return aButton;
     }
 
     public static final int ONE_SPACE = 5;

@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.executor;
 
 import java.awt.Desktop;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.engys.util.PDFFileFilter;
 import eu.engys.util.PrefUtil;
+import eu.engys.util.TempFolder;
 import eu.engys.util.Util;
 import eu.engys.util.ui.UiUtil;
 
@@ -63,7 +63,7 @@ public class FileManagerSupport {
     public static void open(File file) {
         if (Util.isWindows()) {
             // Desktop.getDesktop().open(file) on windows may hang
-            _open(file, "Open action not supported");
+        	_openWindows(file);
         } else {
             openOnLinux(file);
         }
@@ -76,18 +76,28 @@ public class FileManagerSupport {
                 try {
                     Desktop.getDesktop().open(file);
                 } catch (IOException e) {
-                    _open(file, e.getMessage());
+                    _openLinux(file);
                 }
             } else {
-                _open(file, "Open action not supported");
+                _openLinux(file);
             }
         } else {
-            _open(file, "Desktop class not supported by this platform");
+            _openLinux(file);
         }
     }
 
-    private static void _open(File file, String logInfo) {
-        Executor.command(getOpenCommand(file), getOpenCommandArguments(file)).description(ACTION_NAME).exec();
+    private static void _openLinux(File file) {
+        File inFolder = TempFolder.get();
+        Executor.command(getOpenCommand(file), getOpenCommandArguments(file)).inFolder(inFolder).description(ACTION_NAME).exec();
+    }
+
+    /*
+     * If you try to open multiple files (e.g. parser log files) just one of the files is opened.
+     * The command rundll32.exe is not blocking therefore I can call execAndWait
+     */
+    private static void _openWindows(File file) {
+    	File inFolder = TempFolder.get();
+    	Executor.command(getOpenCommand(file), getOpenCommandArguments(file)).inFolder(inFolder).description(ACTION_NAME).execAndWait();
     }
 
     private static String getOpenCommand(File file) {

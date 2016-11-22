@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.filechooser.gui;
 
 import java.awt.BorderLayout;
@@ -37,12 +36,13 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -65,12 +65,15 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 
 import eu.engys.util.ArchiveUtils;
+import eu.engys.util.filechooser.actions.CloneFileAction;
 import eu.engys.util.filechooser.actions.DeleteFileAction;
 import eu.engys.util.filechooser.actions.ExtractArchiveAction;
 import eu.engys.util.filechooser.actions.NewFolderAction;
-import eu.engys.util.filechooser.actions.pathnavigation.BaseNavigateActionGoUp;
-import eu.engys.util.filechooser.actions.pathnavigation.BaseNavigateActionOpen;
-import eu.engys.util.filechooser.actions.pathnavigation.BaseNavigateActionRefresh;
+import eu.engys.util.filechooser.actions.RenameFileAction;
+import eu.engys.util.filechooser.actions.navigation.BaseNavigateActionGoUp;
+import eu.engys.util.filechooser.actions.navigation.BaseNavigateActionOpen;
+import eu.engys.util.filechooser.actions.navigation.BaseNavigateActionRefresh;
+import eu.engys.util.filechooser.favorites.PopupListener;
 import eu.engys.util.filechooser.table.FileNameWithType;
 import eu.engys.util.filechooser.table.FileNameWithTypeComparator;
 import eu.engys.util.filechooser.table.FileSize;
@@ -88,11 +91,13 @@ import eu.engys.util.ui.treetable.TableFilter;
 
 public class FileSystemPanel extends JPanel {
 
-    private static final String ACTION_OPEN = "OPEN";
-    private static final String ACTION_GO_UP = "GO_UP";
-    private static final String ACTION_REFRESH = "REFRESH";
-    private static final String ACTION_DELETE = "DELETE";
-    private static final String ACTION_APPROVE = "ACTION APPROVE";
+    public static final String ACTION_OPEN = "OPEN";
+    public static final String ACTION_GO_UP = "GO_UP";
+    public static final String ACTION_REFRESH = "REFRESH";
+    public static final String ACTION_RENAME = "RENAME";
+    public static final String ACTION_CLONE = "CLONE";
+    public static final String ACTION_DELETE = "DELETE";
+    public static final String ACTION_APPROVE = "ACTION APPROVE";
 
     public static final String NAME = "chooser.filesystempanel";
     public static final String CREATE_FOLDER = "create.folder";
@@ -129,6 +134,7 @@ public class FileSystemPanel extends JPanel {
         FileSystemTableModel model = new FileSystemTableModel();
         this.table = new JTable(model);
         populateActionMap();
+        addPopupMenu(table, ACTION_RENAME, ACTION_CLONE, ACTION_DELETE);
         populateInputMap();
         setColumnSize();
 
@@ -136,7 +142,6 @@ public class FileSystemPanel extends JPanel {
         table.setRowSorter(sorter);
 
         tableFilter = new TableFilter<TableModel>("");
-        tableFilter.setColumnsWhereToSearch(0);
         sorter.setRowFilter(tableFilter);
 
         table.setFillsViewportHeight(true);
@@ -162,9 +167,6 @@ public class FileSystemPanel extends JPanel {
         bar.add(createFolderButton);
         bar.add(deleteFileButton);
         bar.add(extractArchiveButton);
-
-        bar.setBorder(BorderFactory.createEmptyBorder());
-
         return bar;
     }
 
@@ -193,7 +195,7 @@ public class FileSystemPanel extends JPanel {
     }
 
     private void filter() {
-        tableFilter.setFilterText(searchField.getText());
+        tableFilter.setFilterText(0, searchField.getText());
         sorter.sort();
     }
 
@@ -279,6 +281,8 @@ public class FileSystemPanel extends JPanel {
         inputMap.put(KeyStroke.getKeyStroke("DELETE"), ACTION_DELETE);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_CANCEL, 0), ACTION_DELETE);
 
+        inputMap.put(KeyStroke.getKeyStroke("F2"), ACTION_RENAME);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), ACTION_REFRESH);
     }
 
     private void populateActionMap() {
@@ -287,6 +291,19 @@ public class FileSystemPanel extends JPanel {
         actionMap.put(ACTION_GO_UP, new BaseNavigateActionGoUp(controller));
         actionMap.put(ACTION_REFRESH, new BaseNavigateActionRefresh(controller));
         actionMap.put(ACTION_DELETE, new DeleteFileAction(controller));
+        actionMap.put(ACTION_RENAME, new RenameFileAction(controller, table));
+        actionMap.put(ACTION_CLONE, new CloneFileAction(controller, table));
+    }
+
+    private JPopupMenu addPopupMenu(JTable table, String... actions) {
+        JPopupMenu favoritesPopupMenu = new JPopupMenu();
+        for (String action : actions) {
+            JMenuItem item = favoritesPopupMenu.add(table.getActionMap().get(action));
+            item.setName(action);
+        }
+        table.addKeyListener(new PopupListener(favoritesPopupMenu));
+        table.addMouseListener(new PopupListener(favoritesPopupMenu));
+        return favoritesPopupMenu;
     }
 
     public FileObject getSelectedFileObject() {

@@ -1,29 +1,30 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util.ui;
+
+import static eu.engys.util.ui.UiUtil.NONE_LABEL;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -42,7 +43,7 @@ import javax.swing.JRadioButton;
 
 public class ChooserPanel extends JPanel implements ActionListener {
 
-    public static final String NONE = "NONE";
+    public static final String SELECTION_PROPERTY = "selection";
 
     private ButtonGroup buttonGroup = new ButtonGroup();
     private Map<String, AbstractButton> buttons = new HashMap<String, AbstractButton>();
@@ -73,7 +74,7 @@ public class ChooserPanel extends JPanel implements ActionListener {
         if (buttonGroup.getSelection() != null)
             return buttonGroup.getSelection().getActionCommand();
         else
-            return NONE;
+            return NONE_LABEL;
     }
 
     public boolean hasSelection() {
@@ -123,15 +124,16 @@ public class ChooserPanel extends JPanel implements ActionListener {
         return radio;
     }
 
-    public void addChoice(String choice, int offset) {
+    public JRadioButton addChoice(String choice, int offset) {
         JRadioButton radio = createChoice(choice, offset);
         add(radio);
         buttonGroup.add(radio);
         buttons.put(choice, radio);
+        return radio;
     }
 
-    public void addChoice(String choice) {
-        addChoice(choice, UiUtil.ONE_SPACE);
+    public JRadioButton addChoice(String choice) {
+        return addChoice(choice, UiUtil.ONE_SPACE);
     }
 
     public void addChoices(int offset, String... choices) {
@@ -152,7 +154,7 @@ public class ChooserPanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof AbstractButton) {
-            firePropertyChange("selection", false, true);
+            firePropertyChange(SELECTION_PROPERTY, false, true);
         }
     }
 

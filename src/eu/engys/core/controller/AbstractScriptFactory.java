@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.controller;
 
 import java.io.File;
@@ -35,10 +34,12 @@ import eu.engys.util.Util;
 public abstract class AbstractScriptFactory implements ScriptFactory {
 
     protected static final String RUN_MESH = "Run Mesh";
-    public static final String MESH_SERIAL_RUN = "mesh_serial.run";
-    public static final String MESH_SERIAL_BAT = "mesh_serial.bat";
-    public static final String MESH_PARALLEL_RUN = "mesh_parallel.run";
-    public static final String MESH_PARALLEL_BAT = "mesh_parallel.bat";
+    public static final String MESH_SERIAL = "mesh_serial";
+    public static final String MESH_SERIAL_RUN = MESH_SERIAL + ".run";
+    public static final String MESH_SERIAL_BAT = MESH_SERIAL + ".bat";
+    public static final String MESH_PARALLEL = "mesh_parallel";
+    public static final String MESH_PARALLEL_RUN = MESH_PARALLEL + ".run";
+    public static final String MESH_PARALLEL_BAT = MESH_PARALLEL + ".bat";
 
     protected static final String CHECK_MESH = "Check Mesh";
     public static final String CHECK_MESH_SERIAL_RUN = "check_mesh_serial.run";
@@ -46,15 +47,25 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
     public static final String CHECK_MESH_PARALLEL_RUN = "check_mesh_parallel.run";
     public static final String CHECK_MESH_PARALLEL_BAT = "check_mesh_parallel.bat";
 
+    protected static final String SNAPPY_CHECK_MESH = "Snappy Check Mesh";
+    public static final String SNAPPY_CHECK_MESH_SERIAL_RUN = "snappy_check_mesh_serial.run";
+    public static final String SNAPPY_CHECK_MESH_SERIAL_BAT = "snappy_check_mesh_serial.bat";
+    public static final String SNAPPY_CHECK_MESH_PARALLEL_RUN = "snappy_check_mesh_parallel.run";
+    public static final String SNAPPY_CHECK_MESH_PARALLEL_BAT = "snappy_check_mesh_parallel.bat";
+
     protected static final String RUN_CASE = "Run Case";
+    public static final String SOLVER_SERIAL = "solver_serial";
     public static final String SOLVER_SERIAL_RUN = "solver_serial.run";
     public static final String SOLVER_SERIAL_BAT = "solver_serial.bat";
+    public static final String SOLVER_PARALLEL = "solver_parallel";
     public static final String SOLVER_PARALLEL_RUN = "solver_parallel.run";
     public static final String SOLVER_PARALLEL_BAT = "solver_parallel.bat";
 
     protected static final String INITIALISE_FIELDS = "Initialise Fields";
+    public static final String INITIALISE_FIELDS_SERIAL = "initialiseFields_serial";
     public static final String INITIALISE_FIELDS_SERIAL_RUN = "initialiseFields_serial.run";
     public static final String INITIALISE_FIELDS_SERIAL_BAT = "initialiseFields_serial.bat";
+    public static final String INITIALISE_FIELDS_PARALLEL = "initialiseFields_parallel";
     public static final String INITIALISE_FIELDS_PARALLEL_RUN = "initialiseFields_parallel.run";
     public static final String INITIALISE_FIELDS_PARALLEL_BAT = "initialiseFields_parallel.bat";
 
@@ -63,6 +74,12 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
     private static final String EXTRUDEMESH_SERIAL_BAT = "extrudeMesh_serial.bat";
     private static final String EXTRUDEMESH_PARALLEL_RUN = "extrudeMesh_parallel.run";
     private static final String EXTRUDEMESH_PARALLEL_BAT = "extrudeMesh_parallel.bat";
+
+    protected static final String EXPORT = "Export Results";
+    private static final String EXPORT_SERIAL_RUN = "exportResults_serial.run";
+    private static final String EXPORT_SERIAL_BAT = "exportResults_serial.bat";
+    private static final String EXPORT_PARALLEL_RUN = "exportResults_parallel.run";
+    private static final String EXPORT_PARALLEL_BAT = "exportResults_parallel.bat";
 
     /*
      * MESH
@@ -102,14 +119,14 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
         return script;
     }
 
-    private File getMeshParallelScript(Model model) {
+    protected File getMeshParallelScript(Model model) {
         File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? MESH_PARALLEL_BAT : MESH_PARALLEL_RUN);
         writeFileIfNeeded(file, getParallelMeshScript());
         file.setExecutable(true);
         return file;
     }
 
-    private File getMeshSerialScript(Model model) {
+    protected File getMeshSerialScript(Model model) {
         File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? MESH_SERIAL_BAT : MESH_SERIAL_RUN);
         writeFileIfNeeded(file, getSerialMeshScript());
         file.setExecutable(true);
@@ -136,9 +153,9 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
     public List<String> getDefaultCheckMeshScript(Model model) {
         List<String> script = null;
         if (model.getProject().isParallel()) {
-            script = getParallelMeshScript();
+            script = getParallelCheckMeshScript();
         } else {
-            script = getSerialMeshScript();
+            script = getSerialCheckMeshScript();
         }
         return script;
     }
@@ -160,6 +177,47 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
     protected abstract List<String> getParallelCheckMeshScript();
 
     protected abstract List<String> getSerialCheckMeshScript();
+
+    @Override
+    public File getSnappyCheckMeshScript(Model model) {
+        File parallelScript = getSnappyCheckMeshParallelScript(model);
+        File serialScript = getSnappyCheckMeshSerialScript(model);
+
+        if (model.getProject().isParallel()) {
+            return parallelScript;
+        } else {
+            return serialScript;
+        }
+    }
+
+    @Override
+    public List<String> getDefaultSnappyCheckMeshScript(Model model) {
+        List<String> script = null;
+        if (model.getProject().isParallel()) {
+            script = getParallelSnappyCheckMeshScript();
+        } else {
+            script = getSerialSnappyCheckMeshScript();
+        }
+        return script;
+    }
+
+    private File getSnappyCheckMeshParallelScript(Model model) {
+        File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? CHECK_MESH_PARALLEL_BAT : CHECK_MESH_PARALLEL_RUN);
+        writeFileIfNeeded(file, getParallelSnappyCheckMeshScript());
+        file.setExecutable(true);
+        return file;
+    }
+
+    private File getSnappyCheckMeshSerialScript(Model model) {
+        File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? CHECK_MESH_SERIAL_BAT : CHECK_MESH_SERIAL_RUN);
+        writeFileIfNeeded(file, getSerialSnappyCheckMeshScript());
+        file.setExecutable(true);
+        return file;
+    }
+
+    protected abstract List<String> getParallelSnappyCheckMeshScript();
+
+    protected abstract List<String> getSerialSnappyCheckMeshScript();
 
     /*
      * SOLVER
@@ -315,18 +373,57 @@ public abstract class AbstractScriptFactory implements ScriptFactory {
     protected abstract List<String> getLinuxSetupCaseScript();
 
     @Override
-    public File getExportScript(Model model) {
+    public File getReportScript(Model model) {
         File file = new File(model.getProject().getBaseDir(), "export.py");
-        writeFileIfNeeded(file, getExportScript());
+        writeFileIfNeeded(file, getReportScript());
         return file;
     }
 
     @Override
-    public List<String> getDefaultExportScript(Model model) {
-        return getExportScript();
+    public List<String> getDefaultReportScript(Model model) {
+        return getReportScript();
     }
 
-    protected abstract List<String> getExportScript();
+    public abstract List<String> getReportScript();
+
+    @Override
+    public File getExportScript(Model model) {
+        File parallelScript = getExportParallelScript(model);
+        File serialScript = getExporteSerialScript(model);
+
+        if (model.getProject().isParallel()) {
+            return parallelScript;
+        } else {
+            return serialScript;
+        }
+    }
+
+    @Override
+    public List<String> getDefaultExportScript(Model model) {
+        List<String> script = null;
+        if (model.getProject().isParallel()) {
+            script = getParallelExportScript();
+        } else {
+            script = getSerialExportScript();
+        }
+        return script;
+    }
+
+    protected File getExportParallelScript(Model model) {
+        File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? EXPORT_PARALLEL_BAT : EXPORT_PARALLEL_RUN);
+        writeFileIfNeeded(file, getParallelExportScript());
+        return file;
+    }
+
+    protected File getExporteSerialScript(Model model) {
+        File file = new File(model.getProject().getBaseDir(), Util.isWindowsScriptStyle() ? EXPORT_SERIAL_BAT : EXPORT_SERIAL_RUN);
+        writeFileIfNeeded(file, getSerialExportScript());
+        return file;
+    }
+
+    protected abstract List<String> getParallelExportScript();
+
+    protected abstract List<String> getSerialExportScript();
 
     protected void writeFileIfNeeded(File file, List<String> script) {
         if (!file.exists()) {

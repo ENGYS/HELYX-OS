@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.solution.panels;
 
 import java.awt.GridBagConstraints;
@@ -59,10 +58,6 @@ public class SolutionStatePanel extends JPanel {
         layoutComponents(visibleSolverType);
     }
 
-    public void setListener(PropertyChangeListener listener) {
-        this.listener = listener;
-    }
-
     private void layoutComponents(boolean visibleSolverType) {
         solverTypePanel = new SolverTypePanel();
         timePanel = new TimePanel();
@@ -70,7 +65,6 @@ public class SolutionStatePanel extends JPanel {
         methodPanel = new MethodPanel();
         machPanel = new MachPanel();
 
-        
         if (visibleSolverType) {
             add(solverTypePanel, new GridBagConstraints(0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             add(timePanel, new GridBagConstraints(0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
@@ -78,10 +72,10 @@ public class SolutionStatePanel extends JPanel {
             add(methodPanel, new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
             add(machPanel, new GridBagConstraints(1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         } else {
-            add(timePanel,      new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-            add(flowPanel,      new GridBagConstraints(1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-            add(methodPanel,    new GridBagConstraints(0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-            add(machPanel,      new GridBagConstraints(1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            add(timePanel, new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            add(flowPanel, new GridBagConstraints(1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            add(methodPanel, new GridBagConstraints(0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+            add(machPanel, new GridBagConstraints(1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
         }
 
         for (ApplicationModule m : modules) {
@@ -116,9 +110,9 @@ public class SolutionStatePanel extends JPanel {
                     machPanel.setEnabled(true);
                     if (ss.isSteady()) {
                         methodPanel.setEnabled(false);
-                        methodPanel.select(SolutionState.RANS);
+                        methodPanel.select(Method.RANS.label());
                         machPanel.setEnabled(false);
-                        machPanel.select(SolutionState.LO_MACH);
+                        machPanel.select(Mach.LOW.label());
                     } else if (ss.isTransient()) {
                         if (ss.isFlowNone()) {
                             methodPanel.setEnabled(false);
@@ -128,21 +122,25 @@ public class SolutionStatePanel extends JPanel {
                             if (ss.isCompressible()) {
                                 machPanel.setEnabled(true);
                                 if (ss.isMachNone()) {
-                                    machPanel.select(SolutionState.LO_MACH);
+                                    machPanel.select(Mach.LOW.label());
                                 }
                             } else if (ss.isIncompressible()) {
                                 machPanel.setEnabled(false);
-                                machPanel.select(SolutionState.LO_MACH);
+                                machPanel.select(Mach.LOW.label());
                             }
                         }
                     }
                 }
             } else if (ss.isCoupled()) {
-                flowPanel.select(SolutionState.INCOMPRESSIBLE);
+                flowPanel.select(Flow.INCOMPRESSIBLE.label());
                 flowPanel.setEnabled(false);
-                methodPanel.select(SolutionState.RANS);
-                methodPanel.setEnabled(false);
-                machPanel.select(SolutionState.LO_MACH);
+                if (ss.isSteady()) {
+                    methodPanel.select(Method.RANS.label());
+                    methodPanel.setEnabled(false);
+                } else if(ss.isTransient()){
+                    methodPanel.setEnabled(true);
+                }
+                machPanel.select(Mach.LOW.label());
                 machPanel.setEnabled(false);
             }
         }
@@ -152,10 +150,14 @@ public class SolutionStatePanel extends JPanel {
         SolutionState ss = new SolutionState();
         ss.time = timePanel.getSelectedState();
         ss.flow = flowPanel.getSelectedState();
-        ss.turbulence = methodPanel.getSelectedState();
-        ss.solver = solverTypePanel.getSelectedState();
+        ss.method = methodPanel.getSelectedState();
+        ss.solverType = solverTypePanel.getSelectedState();
         ss.mach = machPanel.getSelectedState();
         return ss;
+    }
+
+    public void setListener(PropertyChangeListener listener) {
+        this.listener = listener;
     }
 
     public void removeListeners() {

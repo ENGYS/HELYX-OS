@@ -1,29 +1,30 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero.cellzones;
+
+import static eu.engys.core.project.constant.ConstantFolder.CONSTANT;
 
 public class CellZonesUtils {
 
@@ -67,6 +68,7 @@ public class CellZonesUtils {
     public static final String FIXED_TEMPERATURE_CONSTRAINT_KEY = "fixedTemperatureConstraint";
     public static final String EXPONENTIAL_THERMAL_SOURCE_KEY = "exponentialThermalSource";
     public static final String SCALAR_SEMI_IMPLICT_SOURCE_KEY = "scalarSemiImplicitSource";
+    public static final String SCALAR_FIXED_VALUE_CONSTRAINT_KEY = "scalarFixedValueConstraint";
     public static final String SCALAR_EXPLICIT_SET_VALUE_KEY = "scalarExplicitSetValue";
     public static final String TEMPERATURE_KEY = "temperature";
     public static final String CE_KEY = "Ce";
@@ -77,10 +79,27 @@ public class CellZonesUtils {
     public static final String PLACE_HOLDER_KEY = "placeHolder";
     public static final String H_KEY = "h";
     public static final String T_KEY = "T";
+    public static final String FIELD_VALUES_KEY = "fieldValues";
     public static final String INJECTION_RATE_KEY = "injectionRate";
     public static final String INJECTION_RATE_SU_SP_KEY = "injectionRateSuSp";
     public static final String SPECIFIC_KEY = "specific";
     public static final String UNIFORM_KEY = "uniform";
+    
+    /*
+     * Heat Exchanger
+     */
+    public static final String EFFECTIVENESS_HEAT_EXCHANGER_SOURCE_KEY = "effectivenessHeatExchangerSource";
+    public static final String EFFECTIVENESS_HEAT_EXCHANGER_SOURCE_COEFFS_KEY = EFFECTIVENESS_HEAT_EXCHANGER_SOURCE_KEY+"Coeffs";
+    public static final String FIELD_NAMES_KEY = "fieldNames";
+    public static final String PRIMARY_INLET_T_KEY = "primaryInletT";
+    public static final String SECONDARY_INLET_T_KEY = "secondaryInletT";
+    public static final String SECONDARY_MASS_FLOW_RATE_KEY = "secondaryMassFlowRate";
+    public static final String FACE_ZONE_KEY = "faceZone";
+    public static final String OUT_OF_BOUNDS_KEY = "outOfBounds";
+    public static final String CLAMP_KEY = "clamp";
+    public static final String FILE_NAME_KEY = "fileName";
+    public static final String FILE_NAME_VALUE = "heatExchangerTable";
+    public static final String FILE_NAME_FILE_VALUE = "\""+CONSTANT+"/"+FILE_NAME_VALUE+"\"";
     
     /*
      * Humidity
@@ -88,17 +107,18 @@ public class CellZonesUtils {
     public static final String W_KEY = "w";
     
     /*
-     * Sliding
+     * Dynamic
      */
-    public static final String t0_KEY = "t0";
-    public static final String THETA_KEY = "theta";
-    public static final String PERIOD_KEY = "period";
-    public static final String ABSOLUTE_KEY = "absolute";
-    public static final String[] VOLUME_MODE_KEYS = new String[] { ABSOLUTE_KEY, SPECIFIC_KEY };
+    // see DynamicMeshDict
+    
 
     /*
      * OTHER KEYS
      */
+    public static final String PERIOD_KEY = "period";
+    public static final String ABSOLUTE_KEY = "absolute";
+    public static final String[] VOLUME_MODE_KEYS = new String[] { ABSOLUTE_KEY, SPECIFIC_KEY };
+    
     public static final String COEFFS_KEY = "Coeffs";
     public static final String ACTIVE_KEY = "active";
     public static final String SELECTION_MODE_KEY = "selectionMode";

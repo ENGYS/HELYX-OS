@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.util.progress;
 
@@ -32,7 +31,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +44,6 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
 import eu.engys.util.ui.ExecUtil;
 import eu.engys.util.ui.UiUtil;
@@ -56,7 +53,7 @@ public class ProgressDialog extends JDialog {
 	private final Action CLOSE_ACTION = new AbstractAction("Close") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			dispose();
+			setVisible(false);
 		}
 	};
 
@@ -155,7 +152,7 @@ public class ProgressDialog extends JDialog {
 	}
 
 	private void _start() {
-		_update();
+		_update("START");
 
 		stopButton.setVisible(monitor.canStop());
 		
@@ -198,15 +195,16 @@ public class ProgressDialog extends JDialog {
 		}
 	}
 
-	public void update() {
+	public void update(final String label) {
 		ExecUtil.invokeLater(new Runnable() {
 			public void run() {
-				_update();
+				_update(label);
 			}
 		});
 	}
 
-	private void _update() {
+	private void _update(String label) {
+//	    System.out.println("ProgressDialog '"+label+"' current: " + monitor.getCurrent() + ", total: " + monitor.getTotal() + ", indet: " + monitor.isIndeterminate());
 		if (monitor.getCurrent() != monitor.getTotal()) {
 			String messages = monitor.getMessages();
 			statusArea.setText(messages);
@@ -217,8 +215,9 @@ public class ProgressDialog extends JDialog {
 			}
 
 			if (!monitor.isIndeterminate()) {
-				if (monitor.getTotal() != progressBar.getMaximum())
-					progressBar.setMaximum(monitor.getTotal());
+				if (monitor.getTotal() != progressBar.getMaximum()) {
+				    progressBar.setMaximum(monitor.getTotal());
+				}
 
 				if (monitor.getTotal() > 0) {
 					progressBar.setStringPainted(true);
@@ -227,7 +226,6 @@ public class ProgressDialog extends JDialog {
 					progressBar.setStringPainted(false);
 				}
 			}
-
 		} else {
 			progressBar.setStringPainted(true);
 			progressBar.setValue(progressBar.getMaximum());
@@ -235,27 +233,4 @@ public class ProgressDialog extends JDialog {
 		}
 	}
 
-	public static void runOnEDT(final Runnable runnable) {
-		if (SwingUtilities.isEventDispatchThread()) {
-			// System.out.println("ProgressDialog.runOnEDT() is EDT");
-			// Thread.dumpStack();
-			runnable.run();
-		} else {
-			SwingUtilities.invokeLater(runnable);
-		}
-	}
-
-	public static void waitOnEDT(final Runnable runnable) {
-		if (SwingUtilities.isEventDispatchThread()) {
-			// System.out.println("ProgressDialog.runOnEDT() is EDT");
-			// Thread.dumpStack();
-			runnable.run();
-		} else {
-			try {
-				SwingUtilities.invokeAndWait(runnable);
-			} catch (InvocationTargetException | InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }

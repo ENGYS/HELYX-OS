@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.launcher.modules;
 
 import java.io.File;
@@ -42,6 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Module;
 
+import eu.engys.util.Util;
+
 public class Modules {
 
 	private static final Logger logger = LoggerFactory.getLogger(Modules.class);
@@ -53,18 +53,22 @@ public class Modules {
 	private static URL url;
 	
 	public static List<Module> loadSuiteModules() {
-		return loadModules("eu.engys.suite.modules", Module.class, null);
+		return loadModules("eu.engys.suite.modules", Module.class, null, null);
 	}
 	
 	public static List<Module> loadApplicationModules(URL url) {
-		return loadModules("eu.engys.application.modules", Module.class, url);
+		return loadModules("eu.engys.application.modules", Module.class, url, null);
+	}
+
+	public static List<Module> load3DModules(URL url, boolean no3D) {
+	    return loadModules("eu.engys.vtk.modules", Module.class, url, no3D);
 	}
 	
 	public static List<Module> loadBatchModules(URL url) {
-		return loadModules("eu.engys.batch.modules", Module.class, url);
+		return loadModules("eu.engys.batch.modules", Module.class, url, null);
 	}
-
-	static <M> List<M> loadModules(String pkgName, Class<M> interfaceClass, URL classURL) {
+	
+	static <M> List<M> loadModules(String pkgName, Class<M> interfaceClass, URL classURL, Object arg) {
 		List<M> modules = new ArrayList<M>();
 		
 		interfase = interfaceClass;
@@ -77,11 +81,16 @@ public class Modules {
     	
 			for(Class<? extends M> clazz : classes) {
 				try {
-					M newInstance = clazz.newInstance();
-					logger.info("[Modules] {} loaded", clazz.getName());
-					modules.add(newInstance);
+				    M module = null;
+				    if (arg != null) {
+				        module = clazz.getConstructor(arg.getClass()).newInstance(arg);
+				    } else {
+				        module = clazz.newInstance();
+				    }
+				    logger.info("[Modules] {} loaded", clazz.getName());
+				    modules.add(module);
 				} catch (Exception e) {
-					logger.error(e.getMessage());
+					logger.error(e.getMessage(), e);
 				}
 			}
 		} catch (Exception e) {
@@ -132,12 +141,12 @@ public class Modules {
 		for(URL packageURL : Collections.list(packageURLs)) {
 			if (packageURL.getProtocol().equals("jar")) {
 				// build jar file name
-				String jarFileName = URLDecoder.decode(packageURL.getFile(), "UTF-8");
+				String jarFileName = URLDecoder.decode(packageURL.getFile(), Util.UTF_8);
 				jarFileName = jarFileName.substring(5, jarFileName.indexOf("!"));
 				if (url == null ){
 					names.addAll(extractClassName(packageName, jarFileName));
 				} else {
-					String parentJarFileName = URLDecoder.decode(url.getFile(), "UTF-8");
+					String parentJarFileName = URLDecoder.decode(url.getFile(), Util.UTF_8);
 					
 					if (jarFileName.startsWith(parentJarFileName)){
 						names.addAll(extractClassName(packageName, jarFileName));

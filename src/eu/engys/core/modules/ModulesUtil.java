@@ -1,30 +1,30 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.modules;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,13 +46,16 @@ import eu.engys.core.modules.cellzones.CellZonesView;
 import eu.engys.core.modules.materials.MaterialsView;
 import eu.engys.core.modules.tree.ModuleElementPanel;
 import eu.engys.core.modules.tree.TreeView;
-import eu.engys.core.project.InvalidProjectException;
+import eu.engys.core.project.materials.Material;
 import eu.engys.core.project.state.SolverFamily;
 import eu.engys.core.project.state.State;
+import eu.engys.core.project.system.monitoringfunctionobjects.Parser;
+import eu.engys.core.project.system.monitoringfunctionobjects.ParserView;
 import eu.engys.core.project.zero.cellzones.CellZoneType;
 import eu.engys.core.project.zero.cellzones.CellZones;
 import eu.engys.core.project.zero.fields.Field;
 import eu.engys.core.project.zero.fields.Fields;
+import eu.engys.core.project.zero.patches.BoundaryConditions;
 import eu.engys.util.ui.builder.PanelBuilder;
 
 public class ModulesUtil {
@@ -91,28 +94,51 @@ public class ModulesUtil {
         }
     }
 
-    public static Dictionary extractRelativeToStateSettings(String encodedPrimalState, Dictionary mDict) {
-        if (mDict.found("requirements")) {
-            Dictionary requirements = (Dictionary) mDict.remove("requirements");
-            if (requirements.found("conditional")) {
-                if (requirements.subDict("conditional").found(encodedPrimalState)) {
-                    Dictionary conditional = requirements.subDict("conditional").subDict(encodedPrimalState);
-                    return conditional;
-                }
-            }
-        }
-        return null;
-    }
-
-    public static void updateStateFromGUI(Set<ApplicationModule> modules) {
+    public static void read(Set<ApplicationModule> modules) {
         for (ApplicationModule module : modules) {
-            module.getSolutionView().updateStateFromGUI();
+            module.read();
         }
     }
 
-    public static void loadState(Set<ApplicationModule> modules) throws InvalidProjectException {
+    public static void write(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.write();
+        }
+    }
+
+    public static void loadState(Set<ApplicationModule> modules) {
         for (ApplicationModule module : modules) {
             module.loadState();
+        }
+    }
+
+    public static void checkIfCanOpenCase(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.checkIfCanOpenCase();
+        }
+    }
+
+    public static void save(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.save();
+        }
+    }
+
+    public static void loadMaterials(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.loadMaterials();
+        }
+    }
+
+    public static void saveMaterials(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.saveMaterials();
+        }
+    }
+
+    public static void updateStateFromGUI(Set<ApplicationModule> modules, State state) {
+        for (ApplicationModule module : modules) {
+            module.getSolutionView().updateStateFromGUI(state);
         }
     }
 
@@ -125,12 +151,6 @@ public class ModulesUtil {
     public static void updateSolverFamilies(Set<ApplicationModule> modules, State state, Set<SolverFamily> families) {
         for (ApplicationModule module : modules) {
             module.updateSolverFamilies(state, families);
-        }
-    }
-
-    public static void loadMaterials(Set<ApplicationModule> modules) {
-        for (ApplicationModule module : modules) {
-            module.loadMaterials();
         }
     }
 
@@ -152,18 +172,6 @@ public class ModulesUtil {
         }
     }
 
-    public static void save(Set<ApplicationModule> modules) {
-        for (ApplicationModule module : modules) {
-            module.save();
-        }
-    }
-
-//    public static void initaliseFields(Set<ApplicationModule> modules, Controller controller, ExecutorService service, Server server) {
-//        for (ApplicationModule module : modules) {
-//            module.initialiseFields(controller, service, server);
-//        }
-//    }
-
     public static Fields loadFieldsFromDefaults(Set<ApplicationModule> modules, String region) {
         Fields fields = new Fields();
         for (ApplicationModule module : modules) {
@@ -179,6 +187,36 @@ public class ModulesUtil {
                 continue;
             }
             materialsView.configure(parametersBuilder);
+        }
+    }
+
+    public static void updateMaterialFromDefaults(Set<ApplicationModule> modules, Material material) {
+        for (ApplicationModule module : modules) {
+            MaterialsView materialsView = module.getMaterialsView();
+            if (materialsView == null) {
+                continue;
+            }
+            materialsView.updateMaterialFromDefaults(material);
+        }
+    }
+
+    public static void updateGUIFromMaterial(Set<ApplicationModule> modules, Material material) {
+        for (ApplicationModule module : modules) {
+            MaterialsView materialsView = module.getMaterialsView();
+            if (materialsView == null) {
+                continue;
+            }
+            materialsView.updateGUIFromMaterial(material);
+        }
+    }
+
+    public static void updateMaterialFromGUI(Set<ApplicationModule> modules, Material material) {
+        for (ApplicationModule module : modules) {
+            MaterialsView materialsView = module.getMaterialsView();
+            if (materialsView == null) {
+                continue;
+            }
+            materialsView.updateMaterialFromGUI(material);
         }
     }
 
@@ -210,11 +248,53 @@ public class ModulesUtil {
         }
     }
 
+    public static Parser createResidualsParser(Set<ApplicationModule> modules, File fileToParse) {
+        for (ApplicationModule module : modules) {
+            Parser parser = module.createResidualsParser();
+            if (parser != null) {
+                return parser;
+            }
+        }
+        return null;
+    }
+
+    public static List<Parser> createParsers(Set<ApplicationModule> modules) {
+        List<Parser> parsers = new ArrayList<>();
+        for (ApplicationModule module : modules) {
+            List<Parser> moduleParsers = module.createParsers();
+            parsers.addAll(moduleParsers);
+        }
+        return parsers;
+    }
+
+    public static List<ParserView> createParserViews(Set<ApplicationModule> modules) {
+        List<ParserView> parsers = new ArrayList<>();
+        for (ApplicationModule module : modules) {
+            List<ParserView> moduleParsers = module.getParserViews();
+            parsers.addAll(moduleParsers);
+        }
+        return parsers;
+    }
+
+    public static void deleteUselessLogFiles(Set<ApplicationModule> modules) {
+        for (ApplicationModule module : modules) {
+            module.deleteUselessLogFiles();
+        }
+    }
+
+    public static List<String> getFieldsToBeMonitored(Set<ApplicationModule> modules) {
+        List<String> moduleFields = new ArrayList<>();
+        for (ApplicationModule module : modules) {
+            moduleFields.addAll(module.getFieldsToBeMonitored());
+        }
+        return moduleFields;
+    }
+
     public static List<CellZoneType> getCellZoneTypes(Set<ApplicationModule> modules) {
         List<CellZoneType> moduleCellZoneTypes = new ArrayList<CellZoneType>();
         for (ApplicationModule module : modules) {
             CellZonesView cellZonesView = module.getCellZonesView();
-            if (cellZonesView != null){
+            if (cellZonesView != null) {
                 moduleCellZoneTypes.addAll(cellZonesView.getCellZoneTypes());
             }
         }
@@ -263,13 +343,35 @@ public class ModulesUtil {
         return panels;
     }
 
-    public static void updateTree(Set<ApplicationModule> modules, ModuleElementPanel viewElementPanel) {
+    public static Set<ModulePanel> getSolverPanels(Set<ApplicationModule> modules) {
+        Set<ModulePanel> panels = new HashSet<>();
+        for (ApplicationModule module : modules) {
+            panels.addAll(module.getSolverPanels());
+        }
+        return panels;
+    }
+
+    public static void updateCaseSetupTree(Set<ApplicationModule> modules, ModuleElementPanel viewElementPanel) {
         for (ApplicationModule module : modules) {
             TreeView treeView = module.getTreeView();
             if (treeView == null)
                 continue;
-            treeView.updateTree(viewElementPanel);
+            treeView.updateCaseSetupTree(viewElementPanel);
         }
     }
 
+    public static void updateSolverTree(Set<ApplicationModule> modules, ModuleElementPanel viewElementPanel) {
+        for (ApplicationModule module : modules) {
+            TreeView treeView = module.getTreeView();
+            if (treeView == null)
+                continue;
+            treeView.updateSolverTree(viewElementPanel);
+        }
+    }
+
+    public static void saveToBoundaryConditions(Set<ApplicationModule> modules, BoundaryConditions bc) {
+        for (ApplicationModule module : modules) {
+            module.saveToBoundaryConditions(bc);
+        }
+    }
 }

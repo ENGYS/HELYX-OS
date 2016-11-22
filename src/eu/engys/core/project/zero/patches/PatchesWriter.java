@@ -1,31 +1,43 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.zero.patches;
 
 import static eu.engys.core.dictionary.Dictionary.TYPE;
+import static eu.engys.core.project.zero.patches.BoundaryType.CYCLIC_AMI_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.CYCLIC_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.MAPPED_PATCH_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.MAPPED_WALL_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.PATCH_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.PROCESSOR_CYCLIC_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.PROCESSOR_KEY;
+import static eu.engys.core.project.zero.patches.BoundaryType.SYMMETRY_KEY;
+import static eu.engys.core.project.zero.patches.Patch.N_FACES_KEY;
+import static eu.engys.core.project.zero.patches.Patch.OFFSETS_KEY;
+import static eu.engys.core.project.zero.patches.Patch.PHYSICAL_TYPE_KEY;
+import static eu.engys.core.project.zero.patches.Patch.START_FACE_KEY;
+import static eu.engys.core.project.zero.patches.Patch.TYPE_KEY;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -49,12 +61,6 @@ import eu.engys.util.ui.ExecUtil;
 
 public class PatchesWriter {
 
-    public static final String OFFSETS_KEY = "offsets";
-    public static final String TYPE_KEY = "type";
-    public static final String PHYSICAL_TYPE_KEY = "physicalType";
-    public static final String START_FACE_KEY = "startFace";
-    public static final String N_FACES_KEY = "nFaces";
-
     private static final Logger logger = LoggerFactory.getLogger(Patches.class);
 
     private ProgressMonitor monitor;
@@ -77,7 +83,7 @@ public class PatchesWriter {
                 }
             };
         }
-//        ExecUtil.execInParallelAndWait(runnables);
+        // ExecUtil.execInParallelAndWait(runnables);
         ExecUtil.execSerial(runnables);
     }
 
@@ -85,13 +91,13 @@ public class PatchesWriter {
         monitor.setCurrent(null, monitor.getCurrent() + 1, 2);
         logger.info("WRITE: Boundary {}", boundaryFile.getAbsolutePath());
 
-        Map<String, String> originalNames = new HashMap<String, String>();
-        Map<String, String> phisicalTypes = new HashMap<String, String>();
-        Map<String, String> types = new HashMap<String, String>();
-        Map<String, Dictionary> dictionaries = new HashMap<String, Dictionary>();
+        Map<String, String> originalNames = new HashMap<>();
+        Map<String, String> phisicalTypes = new HashMap<>();
+        Map<String, String> types = new HashMap<>();
+        Map<String, Dictionary> dictionaries = new HashMap<>();
 
         for (Patch patch : patches) {
-            phisicalTypes.put(patch.getName(), patch.getPhisicalType().getKey());
+            phisicalTypes.put(patch.getName(), patch.getPhysicalType().getKey());
             types.put(patch.getName(), patch.getType());
             originalNames.put(patch.getOriginalName(), patch.getName());
             dictionaries.put(patch.getName(), new Dictionary(patch.getDictionary()));
@@ -127,20 +133,22 @@ public class PatchesWriter {
                         patchDict.add(START_FACE_KEY, originalPatchDict.lookup(START_FACE_KEY));
 
                         if (phisicalTypes.containsKey(newName)) {
-                            String phisicalType = phisicalTypes.get(newName);
                             String type = types.get(newName);
+                            String physicalType = phisicalTypes.get(newName);
+                            
+                            boolean isCoupled = model.getState() != null && model.getState().isCoupled();
 
-                            if (BoundaryType.isPatchPhysicalType(phisicalType)) {
-                                patchDict.add(TYPE_KEY, "patch");
-                                patchDict.add(PHYSICAL_TYPE_KEY, phisicalType);
-                            } else if (BoundaryType.isCoupledSymmetryPlaneType(phisicalType) && model.getState().getSolverType().isCoupled()) {
-                                patchDict.add(TYPE_KEY, "patch");
-                                patchDict.add(PHYSICAL_TYPE_KEY, phisicalType);
-                            } else if (BoundaryType.isWallPhysicalType(phisicalType)) {
+                            if (BoundaryType.isPatchPhysicalType(physicalType)) {
+                                patchDict.add(TYPE_KEY, PATCH_KEY);
+                                patchDict.add(PHYSICAL_TYPE_KEY, physicalType);
+                            } else if (isCoupled && BoundaryType.isSymmetryPlanePhysicalType(physicalType)) {
+                                patchDict.add(TYPE_KEY, PATCH_KEY);
+                                patchDict.add(PHYSICAL_TYPE_KEY, SYMMETRY_KEY);
+                            } else if (BoundaryType.isFreeSurfacePhysicalType(physicalType)) {
                                 patchDict.add(TYPE_KEY, type);
-                                patchDict.add(PHYSICAL_TYPE_KEY, phisicalType);
+                                patchDict.add(PHYSICAL_TYPE_KEY, physicalType);
 
-                                if (type.equals("mappedPatch") || type.equals("mappedWall")) {
+                                if (type.equals(MAPPED_PATCH_KEY) || type.equals(MAPPED_WALL_KEY)) {
                                     patchDict.add(OFFSETS_KEY, originalPatchDict.lookup(OFFSETS_KEY));
                                     Dictionary dictionary = dictionaries.get(newName);
                                     if (dictionary.found(N_FACES_KEY))
@@ -153,10 +161,10 @@ public class PatchesWriter {
                                     patchDict.merge(dictionary);
                                 }
                             } else {
-                                patchDict.add(TYPE, phisicalType);
+                                patchDict.add(TYPE, physicalType);
                             }
 
-                            if (phisicalType.equals("cyclic") || phisicalType.equals("cyclicAMI") || phisicalType.equals("processor")) {
+                            if (physicalType.equals(CYCLIC_KEY) || physicalType.equals(CYCLIC_AMI_KEY) || physicalType.equals(PROCESSOR_KEY) || physicalType.equals(PROCESSOR_CYCLIC_KEY)) {
                                 Dictionary dictionary = dictionaries.get(newName);
                                 if (dictionary.found(N_FACES_KEY))
                                     dictionary.remove(N_FACES_KEY);

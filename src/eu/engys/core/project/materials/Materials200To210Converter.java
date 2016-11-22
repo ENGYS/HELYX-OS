@@ -1,40 +1,36 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.materials;
 
 import static eu.engys.core.project.constant.ThermophysicalProperties.AS_KEY;
-import static eu.engys.core.project.constant.ThermophysicalProperties.CONSTANT_CP_KEY;
-import static eu.engys.core.project.constant.ThermophysicalProperties.CONST_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.CP_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.ENERGY_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.EQUATION_OF_STATE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.HF_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.HIGH_CP_COEFFS_KEY;
-import static eu.engys.core.project.constant.ThermophysicalProperties.JANAF_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.LOW_CP_COEFFS_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.MATERIAL_NAME_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.MIXTURE_KEY;
@@ -45,16 +41,20 @@ import static eu.engys.core.project.constant.ThermophysicalProperties.PR_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.PURE_MIXTURE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.SENSIBLE_ENTHALPY_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.SPECIE_KEY;
-import static eu.engys.core.project.constant.ThermophysicalProperties.SUTHERLAND_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.TCOMMON_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMODYNAMICS_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_CONST_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_JANAF_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_MODEL_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMO_TYPE_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THIGH_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.TLOW_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.TRANSPORT_CONST_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.TRANSPORT_KEY;
+import static eu.engys.core.project.constant.ThermophysicalProperties.TRANSPORT_SUTHERLAND_KEY;
 import static eu.engys.core.project.constant.ThermophysicalProperties.TS_KEY;
+
 import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.constant.ThermophysicalProperties;
 
@@ -96,10 +96,10 @@ public class Materials200To210Converter {
 
         /* THERMODYNAMICS */
         Dictionary thermodynamicsDict = new Dictionary(THERMODYNAMICS_KEY);
-        if (thermo.equals(CONSTANT_CP_KEY)) {
+        if (thermo.equals(THERMO_CONST_KEY)) {
             thermodynamicsDict.add(CP_KEY, materialGUIDict.lookup(CP_KEY));
             thermodynamicsDict.add(HF_KEY, materialGUIDict.lookup(HF_KEY));
-        } else if (thermo.equals(JANAF_KEY)) {
+        } else if (thermo.equals(THERMO_JANAF_KEY)) {
             thermodynamicsDict.add(TLOW_KEY, materialGUIDict.lookup(TLOW_KEY));
             thermodynamicsDict.add(THIGH_KEY, materialGUIDict.lookup(THIGH_KEY));
             thermodynamicsDict.add(TCOMMON_KEY, materialGUIDict.lookup(TCOMMON_KEY));
@@ -109,10 +109,10 @@ public class Materials200To210Converter {
 
         /* TRANSPORT */
         Dictionary transportDict = new Dictionary(TRANSPORT_KEY);
-        if (transport.equals(CONST_KEY)) {
+        if (transport.equals(TRANSPORT_CONST_KEY)) {
             transportDict.add(MU_KEY, materialGUIDict.lookup(MU_KEY));
             transportDict.add(PR_KEY, materialGUIDict.lookup(PR_KEY));
-        } else if (transport.equals(SUTHERLAND_KEY)) {
+        } else if (transport.equals(TRANSPORT_SUTHERLAND_KEY)) {
             transportDict.add(AS_KEY, materialGUIDict.lookup(AS_KEY));
             transportDict.add(TS_KEY, materialGUIDict.lookup(TS_KEY));
         }

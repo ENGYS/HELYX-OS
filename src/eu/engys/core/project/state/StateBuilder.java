@@ -1,33 +1,33 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.state;
 
 import static eu.engys.core.project.constant.ConstantFolder.CONSTANT;
 import static eu.engys.core.project.constant.ConstantFolder.FREE_SURFACE_PROPERTIES;
 import static eu.engys.core.project.constant.ConstantFolder.G;
+import static eu.engys.core.project.constant.MRFProperties.MRF_PROPERTIES;
 import static eu.engys.core.project.constant.ThermophysicalProperties.THERMOPHYSICAL_PROPERTIES;
 import static eu.engys.core.project.constant.TransportProperties.MATERIAL_NAME_KEY;
 import static eu.engys.core.project.constant.TransportProperties.PHASE1_KEY;
@@ -35,6 +35,11 @@ import static eu.engys.core.project.constant.TransportProperties.PHASE2_KEY;
 import static eu.engys.core.project.constant.TransportProperties.PHASES_KEY;
 import static eu.engys.core.project.constant.TransportProperties.TRANSPORT_MODEL_KEY;
 import static eu.engys.core.project.constant.TransportProperties.TRANSPORT_PROPERTIES;
+import static eu.engys.core.project.constant.TurbulenceProperties.LES_KEY;
+import static eu.engys.core.project.constant.TurbulenceProperties.LES_MODEL_KEY;
+import static eu.engys.core.project.constant.TurbulenceProperties.RAS_KEY;
+import static eu.engys.core.project.constant.TurbulenceProperties.RAS_MODEL_KEY;
+import static eu.engys.core.project.constant.TurbulenceProperties.SIMULATION_TYPE_KEY;
 import static eu.engys.core.project.constant.TurbulenceProperties.TURBULENCE_PROPERTIES;
 import static eu.engys.core.project.system.ControlDict.CONTROL_DICT;
 import static eu.engys.core.project.system.FvSchemes.BACKWARD;
@@ -107,11 +112,11 @@ public class StateBuilder {
         }
 
         logger.info("Fields: loadFieldsFromDefaults");
-        fields.merge(FieldsDefaults.loadFieldsFromDefaults(model.getState(), model.getDefaults(), model.getPatches(), null));
+        fields.merge(FieldsDefaults.loadFieldsFromDefaults(model.getProject().getBaseDir(), model.getState(), model.getDefaults(), model.getPatches(), null));
 
         logger.info("Modules: loadFieldsFromDefaults");
         fields.merge(ModulesUtil.loadFieldsFromDefaults(modules, null));
-        
+
         fields.fixPVisibility(model.getState());
 
         model.setFields(fields);
@@ -138,11 +143,11 @@ public class StateBuilder {
         Fields fields = new Fields();
 
         logger.info("Fields: loadFieldsFromDefaults");
-        fields.merge(FieldsDefaults.loadFieldsFromDefaults(model.getState(), model.getDefaults(), model.getPatches(), null));
+        fields.merge(FieldsDefaults.loadFieldsFromDefaults(model.getProject().getBaseDir(), model.getState(), model.getDefaults(), model.getPatches(), null));
 
         logger.info("Modules: loadFieldsFromDefaults");
         fields.merge(ModulesUtil.loadFieldsFromDefaults(modules, null));
-        
+
         fields.fixPVisibility(model.getState());
 
         model.setFields(fields);
@@ -225,6 +230,12 @@ public class StateBuilder {
                 else
                     prj.getConstantFolder().getTurbulenceProperties().merge(constantDict.subDict(TURBULENCE_PROPERTIES));
             }
+            if (constantDict.isDictionary(MRF_PROPERTIES)) {
+                if (prj.getConstantFolder().getMrfProperties() == null)
+                    prj.getConstantFolder().setMrfProperties(constantDict.subDict(MRF_PROPERTIES));
+                else
+                    prj.getConstantFolder().getMrfProperties().merge(constantDict.subDict(MRF_PROPERTIES));
+            }
         }
     }
 
@@ -285,18 +296,16 @@ public class StateBuilder {
     }
 
     private static SolverType readSolverType(FvSolution fvSolution) {
+        // Coupled handled in its own module
         if (fvSolution != null) {
-            if (fvSolution.found(FvSolution.COUPLED)) {
-                return SolverType.COUPLED;
-            } else {
-                return SolverType.SEGREGATED;
-            }
+            return SolverType.SEGREGATED;
         } else {
             return SolverType.NONE;
         }
     }
 
     private static SolverFamily readSolverFamily(State state, FvSolution fvSolution) {
+        // Coupled handled in its own module
         if (state.getSolverType().isSegregated()) {
             if (state.isLowMach()) {
                 if (state.isSteady()) {
@@ -333,14 +342,12 @@ public class StateBuilder {
             } else {
                 return SolverFamily.NONE;
             }
-        } else if (state.getSolverType().isCoupled()) {
-            return SolverFamily.COUPLED;
         } else {
             return SolverFamily.NONE;
         }
     }
 
-    private static Time readTime(Model model, SolverType solverType, FvSchemes fvSchemes, ProgressMonitor monitor) {
+    public static Time readTime(Model model, SolverType solverType, FvSchemes fvSchemes, ProgressMonitor monitor) {
         if (fvSchemes != null) {
             Dictionary ddtSchemes = fvSchemes.getDdtSchemes();
             if (ddtSchemes != null) {
@@ -387,19 +394,17 @@ public class StateBuilder {
 
     private static Method readMethod(ConstantFolder constantFolder) {
         Dictionary turbPropDict = constantFolder.getTurbulenceProperties();
-        if (turbPropDict != null && turbPropDict.found(TurbulenceProperties.SIMULATION_TYPE)) {
-            String turbType = turbPropDict.lookup(TurbulenceProperties.SIMULATION_TYPE);
-            if (turbType.startsWith(TurbulenceProperties.RAS)) {
+        if (turbPropDict != null && turbPropDict.found(SIMULATION_TYPE_KEY)) {
+            String turbType = turbPropDict.lookup(SIMULATION_TYPE_KEY);
+            if (turbType.startsWith(RAS_KEY)) {
                 return Method.RANS;
-            } else if (turbType.startsWith(TurbulenceProperties.LES)) {
+            } else if (turbType.startsWith(LES_KEY)) {
                 return Method.LES;
-            } else if (turbType.startsWith(TurbulenceProperties.LAMINAR)) {
-                Dictionary RASProperties = constantFolder.getRASProperties();
-                Dictionary LESProperties = constantFolder.getLESProperties();
-                if (RASProperties != null && !RASProperties.isEmpty()) {
-                    return Method.RANS;
-                } else if (LESProperties != null && !LESProperties.isEmpty()) {
+            } else if(turbType.equals(TurbulenceProperties.LAMINAR_KEY)){
+                if(turbPropDict.isDictionary(LES_KEY)){
                     return Method.LES;
+                } else {
+                    return Method.RANS;
                 }
             }
         }
@@ -457,19 +462,14 @@ public class StateBuilder {
         }
     }
 
-    private static TurbulenceModel readTurbulenceModel(Model model, SolverType solverType, ConstantFolder constantFolder, ProgressMonitor monitor) {
-        if (model.getState().isLES()) {
-            Dictionary LESProperties = constantFolder.getLESProperties();
-            if (LESProperties != null) {
-                String lesModel = LESProperties.lookup("LESModel");
-                return readTurbulenceModelFromState(model, solverType, lesModel, monitor);
-            }
-        } else if (model.getState().isRANS()) {
-            Dictionary RASProperties = constantFolder.getRASProperties();
-            if (RASProperties != null) {
-                String rasModel = RASProperties.lookup("RASModel");
-                return readTurbulenceModelFromState(model, solverType, rasModel, monitor);
-            }
+    public static TurbulenceModel readTurbulenceModel(Model model, SolverType solverType, ConstantFolder constantFolder, ProgressMonitor monitor) {
+        Dictionary turbulenceProperties = constantFolder.getTurbulenceProperties();
+        if (model.getState().isLES() && turbulenceProperties.found(LES_KEY)) {
+            String lesModel = turbulenceProperties.subDict(LES_KEY).lookup(LES_MODEL_KEY);
+            return readTurbulenceModelFromState(model, solverType, lesModel, monitor);
+        } else if (model.getState().isRANS() && turbulenceProperties.found(RAS_KEY)) {
+            String rasModel = turbulenceProperties.subDict(RAS_KEY).lookup(RAS_MODEL_KEY);
+            return readTurbulenceModelFromState(model, solverType, rasModel, monitor);
         }
         return null;
     }
@@ -479,20 +479,17 @@ public class StateBuilder {
         Method method = model.getState().getMethod();
         Flow flow = model.getState().getFlow();
         logger.info("Loading Turbulence model for {} {} {}", solverType, method, flow);
+
         List<TurbulenceModel> modelsForState = turbulenceModels.getModelsForState(solverType, method, flow);
         if (modelsForState != null && !modelsForState.isEmpty()) {
-
-            TurbulenceModel turbulenceModel = new TurbulenceModel();
-            turbulenceModel.setName(modelName);
-
-            int index = modelsForState.indexOf(turbulenceModel);
-            if (index >= 0) {
-                return modelsForState.get(index);
-            } else {
-                TurbulenceModel firstTurbulenceModel = modelsForState.get(0);
-                monitor.warning(String.format("%s not found. Changed to %s", modelName, firstTurbulenceModel), 1);
-                return firstTurbulenceModel;
+            for (TurbulenceModel tm : modelsForState) {
+                if (tm.getName().equals(modelName)) {
+                    return tm;
+                }
             }
+            TurbulenceModel firstTurbulenceModel = modelsForState.get(0);
+            monitor.warning(String.format("%s not found. Changed to %s", modelName, firstTurbulenceModel), 1);
+            return firstTurbulenceModel;
         } else {
             monitor.warning("Turbulence models not loaded", 1);
             return null;

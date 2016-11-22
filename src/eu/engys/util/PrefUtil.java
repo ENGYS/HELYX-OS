@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.util;
 
@@ -43,14 +42,18 @@ public class PrefUtil {
     public static final String USER_NAME = System.getProperty("user.name");
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String USER_DIR = System.getProperty("user.dir");
+    public static final String DISPLAY = System.getenv("DISPLAY");
 
     public static final String FAVORITES_KEY = "filechooser.favorites";
 
-//    public static final String DOC_KEY = "doc.basedir";
+    // public static final String DOC_KEY = "doc.basedir";
     public static final String OPENFOAM_KEY = "openfoam.basedir";
     public static final String PARAVIEW_KEY = "paraview.basedir";
+    public static final String PARAVIEW_BATCH_KEY = "paraview.batch.basedir";
     public static final String FIELDVIEW_KEY = "fieldview.basedir";
     public static final String ENSIGHT_KEY = "ensight.basedir";
+    public static final String USE_DOCKER = "use.docker";
+    public static final String DOCKER_IMAGE = "docker.image";
 
     // batch
     public static final String SERVER_CONNECTION_MAX_TRIES = "batch.connection.max.tries";
@@ -69,12 +72,15 @@ public class PrefUtil {
 
     // misc
     public static final String RECENT_PROJECTS = "recent.projects";
+    public static final String RECENT_STUDIES = "recent.studies";
     public static final String HELYX_DEFAULT_TERMINAL = "helyx.default.terminal";
     public static final String DEFAULT_HOSTFILE_NONE = "default.hostfile.none";
     public static final String HELYX_DEFAULT_FILE_MANAGER = "default.file.manager";
     public static final String HELYX_DEFAULT_FILE_OPENER = "default.file.opener";
     public static final String MATERIALS_USER_LIB = "materials.user.lib.";
     public static final String HIDE_EMPTY_PATCHES = "hide.empty.patches";
+    public static final String HIDE_PROCESSOR_PATCHES = "hide.processor.patches";
+    public static final String HIDE_PROCESSOR_CYCLIC_PATCHES = "hide.processor.cyclic.patches";
 
     // files
     public static final String WORK_DIR = "last.open.dir";
@@ -85,6 +91,13 @@ public class PrefUtil {
     public static final String LICENSE_SERVER_NAME = "license.server.name";
     public static final String LICENSE_SERVER_PORT = "license.server.port";
 
+    // Parallel Works
+    public static final String PW_DRIVER = "parallel.works.driver";
+    public static final String PW_APIKEY = "parallel.works.apikey";
+    public static final String PW_WORKSPACE = "parallel.works.workspace";
+    public static final String PW_WORKFLOW = "parallel.works.workflow";
+    public static final String PW_PULL_RESULTS = "parallel.works.pull";
+
     private static CompositeConfiguration configuration;
 
     private static CompositeConfiguration configuration() {
@@ -93,7 +106,7 @@ public class PrefUtil {
         }
         return configuration;
     }
-    
+
     public static void reload() {
         try {
             deleteOldPrefsFolders();
@@ -140,8 +153,8 @@ public class PrefUtil {
             List<String> fileLines = FileUtils.readLines(file);
             Set<String> lines = new LinkedHashSet<>(fileLines);
             boolean hasDuplicateLines = fileLines.size() > lines.size();
-            if(hasDuplicateLines){
-                String lineEnding = Util.isWindowsScriptStyle() ? LineSeparator.DOS.getSeparator() : LineSeparator.UNIX.getSeparator();
+            if (hasDuplicateLines) {
+                String lineEnding = Util.isWindowsScriptStyle() ? IOUtils.WIN_EOL : IOUtils.LNX_EOL;
                 FileUtils.writeLines(file, null, lines, lineEnding);
             }
         }
@@ -193,7 +206,11 @@ public class PrefUtil {
     }
 
     public static Boolean getBoolean(String key) {
-        return configuration().getBoolean(key);
+        return configuration().getBoolean(key, false);
+    }
+
+    public static Boolean getBoolean(String key, boolean b) {
+        return configuration().getBoolean(key, b);
     }
 
     public static InetAddress getInetAddress(String key, InetAddress def) {
@@ -232,6 +249,14 @@ public class PrefUtil {
         putFile(PARAVIEW_KEY, value);
     }
 
+    public static File getParaViewBatchEntry() {
+        return getFile(PARAVIEW_BATCH_KEY);
+    }
+
+    public static void setParaViewBatchEntry(File value) {
+        putFile(PARAVIEW_BATCH_KEY, value);
+    }
+
     public static File getOpenFoamEntry() {
         return getFile(OPENFOAM_KEY);
     }
@@ -242,6 +267,35 @@ public class PrefUtil {
 
     public static void remove(String key) {
         configuration().clearProperty(key);
+    }
+
+    public static boolean isUsingDocker() {
+        if (Util.isWindows()) {
+            return false;
+        } else {
+            boolean useDocker = getBoolean(USE_DOCKER);
+            String dockerImage = getString(DOCKER_IMAGE);
+            return useDocker && !dockerImage.isEmpty();
+        }
+    }
+
+    public static boolean isRunningOnCloud() {
+        String driver = PrefUtil.getString(PW_DRIVER);
+        return !driver.isEmpty() && !driver.equals("Localhost");
+    }
+    
+    public static void cloudOff() {
+        putString(PW_DRIVER, "");
+    }
+    
+    public static void dockerOn(String dockerImage) {
+        putBoolean(USE_DOCKER, true);
+        putString(DOCKER_IMAGE, dockerImage);
+    }
+
+    public static void dockerOff() {
+        putBoolean(USE_DOCKER, false);
+        putString(DOCKER_IMAGE, "");
     }
 
     public static Object getDefaultValue(String key) {

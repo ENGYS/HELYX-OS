@@ -1,43 +1,42 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.schemes;
 
+import static eu.engys.core.project.zero.fields.Fields.U;
 import static eu.engys.util.ui.ComponentsFactory.doubleField;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 
-import net.java.dev.designgridlayout.Componentizer;
-import eu.engys.gui.casesetup.schemes.AdvectionSchemes.Scheme;
-import eu.engys.gui.casesetup.schemes.AdvectionSchemes.SchemeTemplate;
+import eu.engys.core.project.Model;
 import eu.engys.util.ui.textfields.DoubleField;
+import net.java.dev.designgridlayout.Componentizer;
 
 public class SchemePanel {
 
@@ -47,16 +46,60 @@ public class SchemePanel {
     private DoubleField value3;
     private JComboBox<SchemeTemplate> choice;
     private AdvectionSchemes schemes;
+    private Model model;
 
-    public SchemePanel(AdvectionSchemes schemes, String fieldName) {
+    public SchemePanel(Model model, AdvectionSchemes schemes, String fieldName) {
+        this.model = model;
         this.schemes = schemes;
         this.fieldName = fieldName;
-
         layoutComponents();
     }
 
+    private void layoutComponents() {
+        this.value1 = doubleField(0.0, 1.0);
+        this.value1.setVisible(false);
+        this.value1.setName(fieldName + ".0");
+
+        this.value2 = doubleField(0.0, 1.0);
+        this.value2.setVisible(false);
+        this.value2.setName(fieldName + ".1");
+
+        this.value3 = doubleField(0.0, 1.0);
+        this.value3.setVisible(false);
+        this.value3.setName(fieldName + ".2");
+
+        this.choice = new JComboBox<SchemeTemplate>();
+        this.choice.setName(fieldName);
+
+        if (fieldName.equals(U)) {
+            if (model.getState().isCoupled()) {
+                if (model.getState().isRANS()) {
+                    addAllChoices(schemes.getCoupledVectorSchemesRANS());
+                } else if (model.getState().isLES()) {
+                    addAllChoices(schemes.getCoupledVectorSchemesLES());
+                }
+            } else {
+                addAllChoices(schemes.getVectorSchemes());
+            }
+        } else {
+            addAllChoices(schemes.getScalarSchemes());
+        }
+
+        this.choice.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SchemeTemplate template = choice.getItemAt(choice.getSelectedIndex());
+                if (template != null) {
+                    value1.setVisible(template.hasValue1());
+                    value2.setVisible(template.hasValue2());
+                    value3.setVisible(template.hasValue3());
+                }
+            }
+        });
+    }
+
     void load() {
-        Scheme scheme = schemes.readScheme(fieldName);
+        Scheme scheme = schemes.load(fieldName);
         choice.setSelectedItem(scheme.getTemplate());
         value1.setDoubleValue(scheme.getValue1());
         value2.setDoubleValue(scheme.getValue2());
@@ -70,64 +113,13 @@ public class SchemePanel {
         scheme.setValue1(value1.getDoubleValue());
         scheme.setValue2(value2.getDoubleValue());
         scheme.setValue3(value3.getDoubleValue());
-        schemes.writeScheme(scheme);
+        schemes.save(scheme);
     }
 
-    private void layoutComponents() {
-        value1 = doubleField();
-        value2 = doubleField();
-        value3 = doubleField();
-
-        value1.setVisible(false);
-        value2.setVisible(false);
-        value3.setVisible(false);
-
-        value1.setName(fieldName + ".0");
-        value2.setName(fieldName + ".1");
-        value3.setName(fieldName + ".2");
-
-        choice = new JComboBox<SchemeTemplate>();
-        choice.setName(fieldName);
-        
-        if (fieldName.equals("U")) {
-            for (SchemeTemplate scheme : schemes.getVectorSchemes()) {
-                choice.addItem(scheme);
-            }
-        } else {
-            for (SchemeTemplate scheme : schemes.getScalarSchemes()) {
-                choice.addItem(scheme);
-            }
+    private void addAllChoices(List<SchemeTemplate> templates) {
+        for (SchemeTemplate template : templates) {
+            choice.addItem(template);
         }
-
-        choice.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                SchemeTemplate scheme = choice.getItemAt(choice.getSelectedIndex());
-                if (scheme != null) {
-                    value1.setVisible(scheme.hasValue1());
-                    value2.setVisible(scheme.hasValue2());
-                    value3.setVisible(scheme.hasValue3());
-                }
-            }
-        });
-
-        // PropertyChangeListener listener = new PropertyChangeListener() {
-        // @Override
-        // public void propertyChange(PropertyChangeEvent evt) {
-        // if (evt.getPropertyName().equals("value")) {
-        // choice.setSelectedIndex(choice.getSelectedIndex());
-        // if (choice.getSelectedIndex() == 5) {
-        // choice.setEnabled(false);
-        // } else {
-        // choice.setEnabled(true);
-        // }
-        // }
-        // }
-        // };
-
-        // value1.addPropertyChangeListener(listener);
-        // value2.addPropertyChangeListener(listener);
-        // advectionBuilder.addComponent(name, row);
     }
 
     JComponent getPanel() {

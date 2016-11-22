@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels;
 
 import static eu.engys.core.project.system.SnappyHexMeshDict.ADD_LAYERS_CONTROLS_KEY;
@@ -44,6 +43,7 @@ import static eu.engys.core.project.system.SnappyHexMeshDict.MIN_VOL_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.MIN_VOL_RATIO_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.N_SMOOTH_SCALE_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.SNAP_CONTROLS_KEY;
+import static eu.engys.util.TooltipUtils.NEW_LINE;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -54,7 +54,6 @@ import eu.engys.core.dictionary.model.DictionaryModel;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.system.SnappyHexMeshDict;
 import eu.engys.gui.DefaultGUIPanel;
-import eu.engys.util.TooltipUtils;
 import eu.engys.util.ui.builder.PanelBuilder;
 
 public abstract class DefaultMeshAdvancedOptionsPanel extends DefaultGUIPanel {
@@ -75,7 +74,7 @@ public abstract class DefaultMeshAdvancedOptionsPanel extends DefaultGUIPanel {
     public static final String LAYERS_ADDITION_LABEL = "Layers Addition";
     public static final String LAYERS_ADDITION_TOOLTIP = "Perform generation of layers";
     public static final String DEBUG_LABEL = "Debug";
-    public static final String DEBUG_TOOLTIP = "Control of debug output:" + TooltipUtils.NEW_LINE + "0: Write only final mesh" + TooltipUtils.NEW_LINE + "1: Write intermediate meshes" + TooltipUtils.NEW_LINE + "2: Write cell level information";
+    public static final String DEBUG_TOOLTIP = "Control of debug output:" + NEW_LINE + "0: Write only final mesh" + NEW_LINE + "1: Write intermediate meshes" + NEW_LINE + "2: Write cell level information";
     public static final String MERGE_TOLERANCE_LABEL = "Merge Tolerance";
     public static final String MERGE_TOLERANCE_TOOLTIP = "Merge tolerance specified as a function of the initial bounding box size";
 
@@ -203,21 +202,21 @@ public abstract class DefaultMeshAdvancedOptionsPanel extends DefaultGUIPanel {
 
     protected JPanel createQualityPanel() {
         qualityBuilder = new PanelBuilder("options.quality.panel");
-        qualityBuilder.addComponent(MAX_NON_ORTHO_LABEL, meshQualityControlsModel.bindDoubleAngle_180(MAX_NON_ORTHO_KEY), MAX_NON_ORTHO_TOOLTIP);
-        qualityBuilder.addComponent(MAX_BOUNDARY_SKEWNESS_LABEL, meshQualityControlsModel.bindInteger(MAX_BOUNDARY_SKEWNESS_KEY), MAX_BOUNDARY_SKEWNESS_TOOLTIP);
-        qualityBuilder.addComponent(MAX_INTERNAL_SKEWNESS_LABEL, meshQualityControlsModel.bindInteger(MAX_INTERNAL_SKEWNESS_KEY), MAX_INTERNAL_SKEWNESS_TOOLTIP);
-        qualityBuilder.addComponent(MAX_CONCAVE_LABEL, meshQualityControlsModel.bindDoubleAngle_180(MAX_CONCAVE_KEY), MAX_CONCAVE_TOOLTIP);
-        qualityBuilder.addComponent(MIN_FLATNESS_LABEL, meshQualityControlsModel.bindDouble(MIN_FLATNESS_KEY), MIN_FLATNESS_TOOLTIP);
-        qualityBuilder.addComponent(MIN_VOL_LABEL, meshQualityControlsModel.bindDouble(MIN_VOL_KEY), MIN_VOL_TOOLTIP);
-        qualityBuilder.addComponent(MIN_TET_QUALITY_LABEL, meshQualityControlsModel.bindDouble(MIN_TET_QUALITY_KEY), MIN_TET_QUALITY_TOOLTIP);
-        qualityBuilder.addComponent(MIN_AREA_LABEL, meshQualityControlsModel.bindDouble(MIN_AREA_KEY), MIN_AREA_TOOLTIP);
-        qualityBuilder.addComponent(MIN_TWIST_LABEL, meshQualityControlsModel.bindDouble(MIN_TWIST_KEY), MIN_TWIST_TOOLTIP);
-        qualityBuilder.addComponent(MIN_DETERMINANT_LABEL, meshQualityControlsModel.bindDouble(MIN_DETERMINANT_KEY), MIN_DETERMINANT_TOOLTIP);
-        qualityBuilder.addComponent(MIN_FACE_WEIGHT_LABEL, meshQualityControlsModel.bindDouble(MIN_FACE_WEIGHT_KEY), MIN_FACE_WEIGHT_TOOLTIP);
-        qualityBuilder.addComponent(MIN_VOL_RATIO_LABEL, meshQualityControlsModel.bindDouble(MIN_VOL_RATIO_KEY), MIN_VOL_RATIO_TOOLTIP);
-        qualityBuilder.addComponent(MIN_TRIANGLE_TWIST_LABEL, meshQualityControlsModel.bindDouble(MIN_TRIANGLE_TWIST_KEY), MIN_TRIANGLE_TWIST_TOOLTIP);
-        qualityBuilder.addComponent(SMOOTH_SCALE_LABEL, meshQualityControlsModel.bindIntegerPositive(N_SMOOTH_SCALE_KEY), SMOOTH_SCALE_TOOLTIP);
-        qualityBuilder.addComponent(ERROR_REDUCTION_LABEL, meshQualityControlsModel.bindDouble(ERROR_REDUCTION_KEY), ERROR_REDUCTION_TOOLTIP);
+        qualityBuilder.addComponent(MAX_NON_ORTHO_LABEL, MAX_NON_ORTHO_TOOLTIP, meshQualityControlsModel.bindDoubleAngle_180(MAX_NON_ORTHO_KEY));
+        qualityBuilder.addComponent(MAX_BOUNDARY_SKEWNESS_LABEL, MAX_BOUNDARY_SKEWNESS_TOOLTIP, meshQualityControlsModel.bindInteger(MAX_BOUNDARY_SKEWNESS_KEY));
+        qualityBuilder.addComponent(MAX_INTERNAL_SKEWNESS_LABEL, MAX_INTERNAL_SKEWNESS_TOOLTIP, meshQualityControlsModel.bindInteger(MAX_INTERNAL_SKEWNESS_KEY));
+        qualityBuilder.addComponent(MAX_CONCAVE_LABEL, MAX_CONCAVE_TOOLTIP, meshQualityControlsModel.bindDoubleAngle_180(MAX_CONCAVE_KEY));
+        qualityBuilder.addComponent(MIN_FLATNESS_LABEL, MIN_FLATNESS_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_FLATNESS_KEY));
+        qualityBuilder.addComponent(MIN_VOL_LABEL, MIN_VOL_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_VOL_KEY));
+        qualityBuilder.addComponent(MIN_TET_QUALITY_LABEL, MIN_TET_QUALITY_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_TET_QUALITY_KEY));
+        qualityBuilder.addComponent(MIN_AREA_LABEL, MIN_AREA_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_AREA_KEY));
+        qualityBuilder.addComponent(MIN_TWIST_LABEL, MIN_TWIST_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_TWIST_KEY));
+        qualityBuilder.addComponent(MIN_DETERMINANT_LABEL, MIN_DETERMINANT_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_DETERMINANT_KEY));
+        qualityBuilder.addComponent(MIN_FACE_WEIGHT_LABEL, MIN_FACE_WEIGHT_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_FACE_WEIGHT_KEY));
+        qualityBuilder.addComponent(MIN_VOL_RATIO_LABEL, MIN_VOL_RATIO_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_VOL_RATIO_KEY));
+        qualityBuilder.addComponent(MIN_TRIANGLE_TWIST_LABEL, MIN_TRIANGLE_TWIST_TOOLTIP, meshQualityControlsModel.bindDouble(MIN_TRIANGLE_TWIST_KEY));
+        qualityBuilder.addComponent(SMOOTH_SCALE_LABEL, SMOOTH_SCALE_TOOLTIP, meshQualityControlsModel.bindIntegerPositive(N_SMOOTH_SCALE_KEY));
+        qualityBuilder.addComponent(ERROR_REDUCTION_LABEL, ERROR_REDUCTION_TOOLTIP, meshQualityControlsModel.bindDouble(ERROR_REDUCTION_KEY));
         return qualityBuilder.getPanel();
     }
 

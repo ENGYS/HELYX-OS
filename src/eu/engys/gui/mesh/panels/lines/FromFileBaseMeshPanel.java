@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels.lines;
 
 import java.awt.HeadlessException;
@@ -40,17 +39,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.engys.core.controller.Controller;
-import eu.engys.core.dictionary.FileEditor;
-import eu.engys.core.dictionary.model.DictionaryPanelBuilder;
+import eu.engys.core.controller.ScriptFactory;
 import eu.engys.core.project.Model;
 import eu.engys.core.project.geometry.Geometry;
 import eu.engys.core.project.system.BlockMeshDict;
+import eu.engys.gui.FileEditor;
 import eu.engys.gui.events.EventManager;
 import eu.engys.gui.events.view3D.RemoveSurfaceEvent;
 import eu.engys.gui.mesh.actions.RunBlockMeshAction;
-import eu.engys.util.LineSeparator;
+import eu.engys.util.IOUtils;
 import eu.engys.util.PrefUtil;
 import eu.engys.util.Util;
+import eu.engys.util.bean.BeanPanelBuilder;
 import eu.engys.util.filechooser.HelyxFileChooser;
 import eu.engys.util.filechooser.util.HelyxFileFilter;
 import eu.engys.util.filechooser.util.SelectionMode;
@@ -63,19 +63,22 @@ public class FromFileBaseMeshPanel {
     public static final HelyxFileFilter BLOCKMESHDICT_FILE_FILTER = new HelyxFileFilter("Block Mesh Dictionary", BlockMeshDict.BLOCK_DICT);
 
     public static final String FROM_FILE_LABEL = "From File";
-    
+
     public static final String EDIT_LABEL = "Edit";
     public static final String IMPORT_LABEL = "Import";
     public static final String CREATE_LABEL = "Create";
 
     private Model model;
     private Controller controller;
-    private DictionaryPanelBuilder builder;
+    private BeanPanelBuilder builder;
     private JButton editButton, previewButton, importButton;
 
-    public FromFileBaseMeshPanel(Model model, Controller controller, DictionaryPanelBuilder builder) {
+    private ScriptFactory scriptFactory;
+
+    public FromFileBaseMeshPanel(Model model, Controller controller, ScriptFactory scriptFactory, BeanPanelBuilder builder) {
         this.model = model;
         this.controller = controller;
+        this.scriptFactory = scriptFactory;
         this.builder = builder;
         builder.startGroup(FROM_FILE_LABEL);
         layoutComponents();
@@ -83,7 +86,7 @@ public class FromFileBaseMeshPanel {
     }
 
     private void layoutComponents() {
-        previewButton = new JButton(new RunBlockMeshAction(model, controller));
+        previewButton = new JButton(new RunBlockMeshAction(model, controller, scriptFactory));
         previewButton.setName(CREATE_LABEL);
 
         editButton = new JButton(new AbstractAction(EDIT_LABEL, ResourcesUtil.getIcon("mesh.create.edit.icon")) {
@@ -109,13 +112,13 @@ public class FromFileBaseMeshPanel {
         builder.addSeparator("");
         builder.addComponent(importButton, editButton, previewButton);
     }
-    
-    public void save(){
+
+    public void save() {
         model.getProject().getSystemFolder().getBlockMeshDict().setFromFile(true);
         model.getGeometry().setAutoBoundingBox(false);
     }
-    
-    public void updateBlock(){
+
+    public void updateBlock() {
         if (model.getGeometry().hasBlock()) {
             EventManager.triggerEvent(this, new RemoveSurfaceEvent(model.getGeometry().getBlock()));
             model.getGeometry().setBlock(Geometry.FAKE_BLOCK);
@@ -153,7 +156,7 @@ public class FromFileBaseMeshPanel {
         File currentBlockMeshDict = new File(model.getProject().getSystemFolder().getFileManager().getFile(), BlockMeshDict.BLOCK_DICT);
         newBlockMeshDictContent.add(BlockMeshDict.FROM_FILE_LINE);
 
-        String lineEnding = Util.isWindowsScriptStyle() ? LineSeparator.DOS.getSeparator() : LineSeparator.UNIX.getSeparator();
+        String lineEnding = Util.isWindowsScriptStyle() ? IOUtils.WIN_EOL : IOUtils.LNX_EOL;
         FileUtils.writeLines(currentBlockMeshDict, null, newBlockMeshDictContent, lineEnding);
 
         showEditor();
@@ -178,7 +181,7 @@ public class FromFileBaseMeshPanel {
                 editButton.setEnabled(true);
                 previewButton.setEnabled(true);
                 try {
-                    String lineEnding = Util.isWindowsScriptStyle() ? LineSeparator.DOS.getSeparator() : LineSeparator.UNIX.getSeparator();
+                    String lineEnding = Util.isWindowsScriptStyle() ? IOUtils.WIN_EOL : IOUtils.LNX_EOL;
                     FileUtils.writeLines(blockMeshDictFile, null, lines, lineEnding);
                 } catch (IOException e) {
                     logger.error("Error saving blockMeshDict" + e.getMessage());

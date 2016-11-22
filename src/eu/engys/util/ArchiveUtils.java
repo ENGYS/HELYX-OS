@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.util;
 
 import java.io.BufferedInputStream;
@@ -53,6 +52,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.engys.util.progress.ProgressMonitor;
 
 public class ArchiveUtils {
 
@@ -92,11 +93,17 @@ public class ArchiveUtils {
 	 */
 
 	public static void zip(File zipFile, File... sourceFiles) {
+	    zip(zipFile, null, sourceFiles);
+	}
+	
+	public static void zip(File zipFile, ProgressMonitor monitor, File... sourceFiles) {
 		try {
 			ZipArchiveOutputStream zOut = new ZipArchiveOutputStream(zipFile);
+            if (monitor != null) monitor.info("Creating archive " + zipFile.getName());
 			for (File file : sourceFiles) {
-				addToZipArchive(zOut, file, "");
+				addToZipArchive(zOut, file, "", monitor);
 			}
+			if (monitor != null) monitor.info("Done with " + zipFile.getName());
 			IOUtils.closeQuietly(zOut);
 		} catch (IOException e) {
 			logger.error("Error creating archive", e);
@@ -274,13 +281,15 @@ public class ArchiveUtils {
 		return isZip(file.getName()) || isGz(file.getName()) || isTarGz(file.getName()) || isTarBz2(file.getName());
 	}
 
-	private static void addToZipArchive(ArchiveOutputStream zOut, File fileToAdd, String basePath) throws IOException {
+	private static void addToZipArchive(ArchiveOutputStream zOut, File fileToAdd, String basePath, ProgressMonitor monitor) throws IOException {
 		String entryName = basePath + fileToAdd.getName();
 
 		ArchiveEntry entry = new ZipArchiveEntry(fileToAdd, entryName);
 		zOut.putArchiveEntry(entry);
 
 		if (fileToAdd.isFile()) {
+		    if (monitor != null) monitor.info("  -> " + entryName);
+		    
 			FileInputStream fInputStream = new FileInputStream(fileToAdd);
 			IOUtils.copy(fInputStream, zOut);
 			zOut.closeArchiveEntry();
@@ -288,7 +297,7 @@ public class ArchiveUtils {
 		} else {
 			zOut.closeArchiveEntry();
 			for (File child : fileToAdd.listFiles()) {
-				addToZipArchive(zOut, child, entryName + File.separator);
+				addToZipArchive(zOut, child, entryName + "/", monitor);
 			}
 		}
 	}
@@ -307,7 +316,7 @@ public class ArchiveUtils {
 		} else {
 			zOut.closeArchiveEntry();
 			for (File child : fileToAdd.listFiles()) {
-				addToTarArchive(zOut, child, entryName + File.separator);
+				addToTarArchive(zOut, child, entryName + "/");
 			}
 		}
 	}

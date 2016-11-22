@@ -1,34 +1,32 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.mesh.panels.lines;
 
 import static eu.engys.core.project.system.SnappyHexMeshDict.EXPANSION_RATIO_KEY;
-import static eu.engys.core.project.system.SnappyHexMeshDict.FCH_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.FINAL_LAYER_THICKNESS_KEY;
-import static eu.engys.core.project.system.SnappyHexMeshDict.MAX_LAYER_THICKNESS_KEY;
+import static eu.engys.core.project.system.SnappyHexMeshDict.MIN_THICKNESS_KEY;
 import static eu.engys.core.project.system.SnappyHexMeshDict.N_SURFACE_LAYERS_KEY;
 import static eu.engys.util.ui.ComponentsFactory.stringField;
 
@@ -47,10 +45,9 @@ import eu.engys.util.ui.textfields.StringField;
 public class BoundingBoxFacesPanel {
 
     public static final String NUMBER_OF_LAYERS_LABEL = "Number of Layers";
-    public static final String FIRST_CELL_HEIGHT_LABEL = "First Cell Height";
     public static final String LAYER_STRETCHING_LABEL = "Layer Stretching";
     public static final String FINAL_LAYER_THICKNESS_LABEL = "Final Layer Thickness";
-    public static final String TOTAL_LAYER_THICKNESS_LABEL = "Total Layer Thickness";
+    private static final String LAYER_MIN_THICKNESS_LABEL = "Layer Min Thickness";
     public static final String FACE_NAME_LABEL = "Face Name";
     public static final String BOUNDING_BOX_FACES_LABEL = "Bounding Box Faces";
 
@@ -73,10 +70,9 @@ public class BoundingBoxFacesPanel {
         planeBuilder = new DictionaryPanelBuilder();
         planeBuilder.addComponent(FACE_NAME_LABEL, planeName = stringField());
         planeBuilder.addComponent(NUMBER_OF_LAYERS_LABEL, planeModel.bindIntegerPositive(N_SURFACE_LAYERS_KEY));
-        planeBuilder.addComponent(TOTAL_LAYER_THICKNESS_LABEL, planeModel.bindDouble(MAX_LAYER_THICKNESS_KEY, (Double) null));
         planeBuilder.addComponent(FINAL_LAYER_THICKNESS_LABEL, planeModel.bindDouble(FINAL_LAYER_THICKNESS_KEY, (Double) null));
         planeBuilder.addComponent(LAYER_STRETCHING_LABEL, planeModel.bindDouble(EXPANSION_RATIO_KEY, (Double) null));
-        planeBuilder.addComponent(FIRST_CELL_HEIGHT_LABEL, planeModel.bindDouble(FCH_KEY, (Double) null));
+        planeBuilder.addComponent(LAYER_MIN_THICKNESS_LABEL, planeModel.bindDouble(MIN_THICKNESS_KEY, (Double) null));
         planeBuilder.setEnabled(false);
     }
 
@@ -120,11 +116,11 @@ public class BoundingBoxFacesPanel {
         return planeName.getText();
     }
 
-    public void addNameListener() {
+    private void addNameListener() {
         planeName.addPropertyChangeListener(listener);
     }
 
-    public void removeNameListener() {
+    private void removeNameListener() {
         planeName.removePropertyChangeListener(listener);
     }
 

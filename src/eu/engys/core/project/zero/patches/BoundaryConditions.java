@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 
 package eu.engys.core.project.zero.patches;
 
@@ -46,6 +45,7 @@ import static eu.engys.core.project.zero.fields.Fields.NU_SGS;
 import static eu.engys.core.project.zero.fields.Fields.NU_TILDA;
 import static eu.engys.core.project.zero.fields.Fields.OMEGA;
 import static eu.engys.core.project.zero.fields.Fields.P;
+import static eu.engys.core.project.zero.fields.Fields.POINT_DISPLACEMENT;
 import static eu.engys.core.project.zero.fields.Fields.P_RGH;
 import static eu.engys.core.project.zero.fields.Fields.SMOKE;
 import static eu.engys.core.project.zero.fields.Fields.T;
@@ -61,44 +61,45 @@ import eu.engys.core.dictionary.Dictionary;
 import eu.engys.core.project.zero.fields.Fields;
 
 public class BoundaryConditions {
-	
-    private static final Logger logger = LoggerFactory.getLogger(BoundaryConditions.class);
-    
-	public static final String[] PLACE_HOLDER_KEYS = {"value", "refValue", "inletValue", "gradient"};
 
-	public static void replaceNonUniformVector(Dictionary d) {
-	    for (String ph : PLACE_HOLDER_KEYS) {
-	        if(isNonUniform(d, ph)){
-	            d.add(ph, "uniform (0 0 0)");
+    private static final Logger logger = LoggerFactory.getLogger(BoundaryConditions.class);
+
+    public static final String[] PLACE_HOLDER_KEYS = { "value", "refValue", "inletValue", "gradient", "inletDirection" };
+
+    public static void replaceNonUniformVector(Dictionary d) {
+        for (String ph : PLACE_HOLDER_KEYS) {
+            if (isNonUniform(d, ph)) {
+                d.add(ph, "uniform (0 0 0)");
                 logger.warn("Nonuniform field {} replaced with {}", ph, d.lookup(ph));
-	        }
-	    }
-	}
-	public static void replaceNonUniformScalar(Dictionary d) {
-	    for (String ph : PLACE_HOLDER_KEYS) {
-	        if(isNonUniform(d, ph)){
-	            d.add(ph, "uniform 0");
-	            logger.warn("Nonuniform field {} replaced with {}", ph, d.lookup(ph));
-	        }
-	    }
-	}
-	
+            }
+        }
+    }
+
+    public static void replaceNonUniformScalar(Dictionary d) {
+        for (String ph : PLACE_HOLDER_KEYS) {
+            if (isNonUniform(d, ph)) {
+                d.add(ph, "uniform 0");
+                logger.warn("Nonuniform field {} replaced with {}", ph, d.lookup(ph));
+            }
+        }
+    }
+
     public static boolean isNonUniform(Dictionary d) {
-    	for (String ph : PLACE_HOLDER_KEYS) {
-			if(isNonUniform(d, ph)){
-				return true;
-			}
-		}
-    	return false;
+        for (String ph : PLACE_HOLDER_KEYS) {
+            if (isNonUniform(d, ph)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isPlaceHolder(Dictionary d) {
-    	for (String ph : PLACE_HOLDER_KEYS) {
-			if(isPlaceHolder(d, ph)){
-				return true;
-			}
-		}
-    	return false;
+        for (String ph : PLACE_HOLDER_KEYS) {
+            if (isPlaceHolder(d, ph)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isPlaceHolder(Dictionary d, String key) {
@@ -109,6 +110,17 @@ public class BoundaryConditions {
         return (d.isField(key) && d.lookup(key).contains("nonuniform List")) || (d.isList2(key) && d.getList2(key).isNonuniform());
     }
 
+    private static final String BOUNDARY_CONDITIONS = "boundaryConditions";
+    private static final String MOMENTUM = "momentum";
+    private static final String TURBULENCE = "turbulence";
+    private static final String THERMAL = "thermal";
+    private static final String HUMIDITY = "humidity";
+    private static final String RADIATION = "radiation";
+    private static final String PASSIVE_SCALARS = "passiveScalars";
+    private static final String PHASE = "phase";
+    private static final String ROUGHNESS = "roughness";
+    private static final String DISPLACEMENT = "displacement";
+
     private Dictionary momentum;
     private Dictionary turbulence;
     private Dictionary thermal;
@@ -117,16 +129,18 @@ public class BoundaryConditions {
     private Dictionary passiveScalars;
     private Dictionary phase;
     private Dictionary roughness;
+    private Dictionary displacement;
 
     public BoundaryConditions() {
-        setMomentum(new Dictionary("momentum"));
-        setTurbulence(new Dictionary("turbulence"));
-        setThermal(new Dictionary("thermal"));
-        setHumidity(new Dictionary("humidity"));
-        setRadiation(new Dictionary("radiation"));
-        setPassiveScalars(new Dictionary("passiveScalars"));
-        setPhase(new Dictionary("phase"));
-        setRoughness(new Dictionary("roughness"));
+        setMomentum(new Dictionary(MOMENTUM));
+        setTurbulence(new Dictionary(TURBULENCE));
+        setThermal(new Dictionary(THERMAL));
+        setHumidity(new Dictionary(HUMIDITY));
+        setRadiation(new Dictionary(RADIATION));
+        setPassiveScalars(new Dictionary(PASSIVE_SCALARS));
+        setPhase(new Dictionary(PHASE));
+        setRoughness(new Dictionary(ROUGHNESS));
+        setDisplacement(new Dictionary(DISPLACEMENT));
     }
 
     public BoundaryConditions(BoundaryConditions defaults) {
@@ -140,11 +154,12 @@ public class BoundaryConditions {
             getPassiveScalars().merge(defaults.getPassiveScalars());
             getPhase().merge(defaults.getPhase());
             getRoughness().merge(defaults.getRoughness());
+            getDisplacement().merge(defaults.getDisplacement());
         }
     }
 
     public Dictionary toDictionary() {
-        Dictionary dict = new Dictionary("boundaryConditions");
+        Dictionary dict = new Dictionary(BOUNDARY_CONDITIONS);
         dict.merge(getMomentum());
         dict.merge(getTurbulence());
         dict.merge(getThermal());
@@ -153,6 +168,7 @@ public class BoundaryConditions {
         dict.merge(getPassiveScalars());
         dict.merge(getPhase());
         dict.merge(getRoughness());
+        dict.merge(getDisplacement());
         return dict;
     }
 
@@ -188,17 +204,24 @@ public class BoundaryConditions {
             getPhase().add(dictionary);
         } else if (isRoughness(name)) {
             getRoughness().add(dictionary);
+        } else if (isDisplacement(name)) {
+            getDisplacement().add(dictionary);
         } else {
 
         }
     }
 
     private boolean isRoughness(String name) {
-    	String[] list = new String[] { NUT, MUT, NU_SGS, MU_SGS };
-		return Arrays.asList(list).contains(name);
-	}
+        String[] list = new String[] { NUT, MUT, NU_SGS, MU_SGS };
+        return Arrays.asList(list).contains(name);
+    }
 
-	public static boolean isPassiveScalar(String name) {
+    private boolean isDisplacement(String name) {
+        String[] list = new String[] { POINT_DISPLACEMENT };
+        return Arrays.asList(list).contains(name);
+    }
+
+    public static boolean isPassiveScalar(String name) {
         String[] list = new String[] { AOA, DT_AOA, CO2, DT_CO2, SMOKE, DT_SMOKE };
         return Arrays.asList(list).contains(name);
     }
@@ -220,7 +243,7 @@ public class BoundaryConditions {
     }
 
     public static boolean isTurbulence(String name) {
-        String[] list = new String[] { K, OMEGA, EPSILON, NU_TILDA, /*NUT, NU_SGS, MUT, MU_SGS, */ALPHA_SGS, ALPHA_T };
+        String[] list = new String[] { K, OMEGA, EPSILON, NU_TILDA, /* NUT, NU_SGS, MUT, MU_SGS, */ALPHA_SGS, ALPHA_T };
         return Arrays.asList(list).contains(name);
     }
 
@@ -291,13 +314,21 @@ public class BoundaryConditions {
         return phase;
     }
 
-	public Dictionary getRoughness() {
-		return roughness;
-	}
-	
-	public void setRoughness(Dictionary roughness) {
-		this.roughness = roughness;
-	}
+    public Dictionary getRoughness() {
+        return roughness;
+    }
+
+    public void setRoughness(Dictionary roughness) {
+        this.roughness = roughness;
+    }
+
+    public Dictionary getDisplacement() {
+        return displacement;
+    }
+
+    public void setDisplacement(Dictionary displacement) {
+        this.displacement = displacement;
+    }
 
     public static BoundaryConditions toMomentumRoughness(Dictionary dict) {
         BoundaryConditions bc = new BoundaryConditions();

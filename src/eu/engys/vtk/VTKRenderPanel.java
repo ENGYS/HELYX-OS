@@ -1,29 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.vtk;
 
 import java.awt.Color;
@@ -42,13 +40,6 @@ import javax.swing.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import vtk.vtkActorCollection;
-import vtk.vtkAssembly;
-import vtk.vtkImageData;
-import vtk.vtkLight;
-import vtk.vtkObject;
-import vtk.vtkPanel;
-import vtk.vtkWindowToImageFilter;
 import eu.engys.gui.view3D.Actor;
 import eu.engys.gui.view3D.CameraManager;
 import eu.engys.gui.view3D.CameraManager.Position;
@@ -58,11 +49,21 @@ import eu.engys.gui.view3D.Representation;
 import eu.engys.util.PrefUtil;
 import eu.engys.util.plaf.ILookAndFeel;
 import eu.engys.util.ui.ExecUtil;
+import vtk.vtkActorCollection;
+import vtk.vtkAssembly;
+import vtk.vtkImageData;
+import vtk.vtkLight;
+import vtk.vtkObject;
+import vtk.vtkPanel;
+import vtk.vtkRenderer;
+import vtk.vtkWindowToImageFilter;
 
 public class VTKRenderPanel extends vtkPanel implements RenderPanel {
 
-    private enum LowRendering {ON, OFF}
-    
+    private enum LowRendering {
+        ON, OFF
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(VTKRenderPanel.class);
 
     public class DelayTimer extends Timer implements ActionListener {
@@ -75,7 +76,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
             InteractiveOff();
         }
     }
-    
+
     public class CountdownTimer extends Timer implements ActionListener {
 
         private int delay = PrefUtil.getInt(PrefUtil._3D_LOCK_INTRACTIVE_TIME, 2000);
@@ -130,65 +131,65 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
     private void Initialize() {
         iren = new VTKInteractor(rw);
 
-        double[] color1 = laf.get3DColor1();
-        double[] color2 = laf.get3DColor2();
-        double[] colorSelection = laf.get3DSelectionColor();
+        double[] color1 = laf != null ? laf.get3DColor1() : VTKColors.BLUE;
+        double[] color2 = laf != null ? laf.get3DColor2() : VTKColors.WHITE;
+        double[] colorSelection = laf != null ? laf.get3DSelectionColor() : VTKColors.PINK;
 
         handler = new VTKMouseHandler(this);
         addMouseListener(handler);
         addMouseMotionListener(handler);
         addMouseWheelListener(handler);
         addKeyListener(handler);
-        
+
         pickManager = new VTKPickManager(this);
-        pickManager .pickForActors();
-        
+        pickManager.pickForActors();
+
         cameraManager = new VTKCameraManager(this);
-        
+
         ren.GradientBackgroundOn();
         ren.SetBackground(color1);
         ren.SetBackground2(color2);
         ren.SetGradientBackground(true);
 
-    //  ren.RemoveAllLights();
+        // ren.RemoveAllLights();
         ren.AutomaticLightCreationOff();
         ren.LightFollowCameraOn();
-        
-        ren.AddLight(createLight( 45, 45));
+
+        ren.AddLight(createLight(45, 45));
         ren.AddLight(createLight(-45, 45));
-        ren.AddLight(createLight( 45,-45));
-        ren.AddLight(createLight(-45,-45));
+        ren.AddLight(createLight(45, -45));
+        ren.AddLight(createLight(-45, -45));
 
         sren.AutomaticLightCreationOn();
         sren.GradientBackgroundOff();
-        //iren.start();
+        // iren.start();
 
         addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent event) {
                 updateSize(getWidth(), getHeight());
             }
         });
-        
-//        VTKUtil.observe(rw, "");
-        
-//        rw.AddObserver("AbortCheckEvent", this, "AbortCheckEvent");
-    }   
-    
-//    public void AbortCheckEvent() {
-//        if (rw.GetEventPending() != 0) {
-//            System.out.println("VTKRenderPanel.AbortCheckEvent() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
-//            rw.SetAbortRender(1);
-//        }
-//    }
-    
+
+        // VTKUtil.observe(rw, "");
+
+        // rw.AddObserver("AbortCheckEvent", this, "AbortCheckEvent");
+    }
+
+    // public void AbortCheckEvent() {
+    // if (rw.GetEventPending() != 0) {
+    // System.out.println("VTKRenderPanel.AbortCheckEvent() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+    // rw.SetAbortRender(1);
+    // }
+    // }
+
     private vtkLight createLight(double elevation, double azimuth) {
         vtkLight light = new vtkLight();
         light.SetIntensity(0.5);
-        light.SetColor(1,1,1);
+        light.SetColor(1, 1, 1);
         light.SetLightTypeToCameraLight();
         light.SetDirectionAngle(elevation, azimuth);
         light.SwitchOn();
-        
+
         return light;
     }
 
@@ -222,7 +223,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
     private void updateSize(int w, int h) {
         if (windowset == 1) {
             lock();
-            iren.updateSize(w,h);
+            iren.updateSize(w, h);
             unlock();
         }
     }
@@ -265,53 +266,53 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
 
     @Override
     public void setHighRendering() {
-//        System.out.println("VTKRenderPanel.setHighRendering()");
+        // System.out.println("VTKRenderPanel.setHighRendering()");
         if (iren == null) {
             return;
         }
-        
+
         if (lowRendering == LowRendering.OFF) {
             return;
         }
-        
+
         StartTimer();
     }
 
     @Override
     public void setLowRendering() {
-//        System.out.println("VTKRenderPanel.setLowRendering()");
+        // System.out.println("VTKRenderPanel.setLowRendering()");
         if (iren == null) {
             return;
         }
-        
+
         if (lowRendering == LowRendering.OFF) {
             return;
         }
-        
+
         DestroyTimer();
-        
+
         InteractiveOn();
     }
 
     private void InteractiveOn() {
-//        System.err.println("VTKRenderPanel.InteractiveOn()");
+        // System.err.println("VTKRenderPanel.InteractiveOn()");
         lock();
 
         for (Actor actor : getAllActors()) {
             actor.interactiveOn();
         }
-        
+
         unlock();
     }
 
     private void InteractiveOff() {
-//        System.err.println("VTKRenderPanel.InteractiveOff()");
+        // System.err.println("VTKRenderPanel.InteractiveOff()");
         lock();
 
         for (Actor actor : getAllActors()) {
             actor.interactiveOff();
         }
-        
+
         unlock();
         renderLater();
     }
@@ -361,6 +362,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
             return;
         lock();
         GetRenderer().ResetCamera();
+        getInteractor().setCenter(getCameraManager().getFocusPoint());
         unlock();
         renderLater();
     }
@@ -374,6 +376,13 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
     public void addActor(vtkAssembly actor) {
         lock();
         GetRenderer().AddActor(actor);
+        unlock();
+    }
+
+    @Override
+    public void removeActor(vtkAssembly actor) {
+        lock();
+        GetRenderer().RemoveActor(actor);
         unlock();
     }
 
@@ -392,9 +401,9 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         for (Actor actor : getAllActors()) {
             size += actor.getMemorySize();
         }
-        
-        logger.debug("Total Memory Size: {}", size);
-        
+
+        logger.trace("Total Memory Size: {}", size);
+
         for (Actor actor : getAllActors()) {
             if (size > memory_limit) {
                 actor.deselectedStateOff();
@@ -412,7 +421,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         correctSelectionVisualization();
         unlock();
     }
-    
+
     @Override
     public void clearSelection() {
         lock();
@@ -422,14 +431,36 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         unlock();
     }
 
+    @Override
+    public void filterActors(Actor... actors) {
+        lock();
+        List<Actor> toKeep = Arrays.asList(actors);
+        List<Actor> allActors = getAllActors();
+        for (Actor actor : allActors) {
+            if (toKeep.size() > 0) {
+                if (toKeep.contains(actor)) {
+                    actor.unfilterActor();
+                } else {
+                    actor.filterActor();
+                }
+            } else {
+                actor.unfilterActor();
+            }
+        }
+
+        unlock();
+        Render();
+    }
+
+    @Override
     public void selectActors(boolean keepSelected, Actor... actors) {
         setLowRendering();
         lock();
-        
+
         if (!keepSelected) {
             selection.clear();
         }
-        
+
         List<Actor> toSelect = new ArrayList<>();
         if (keepSelected) {
             for (Actor actor : actors) {
@@ -442,11 +473,11 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         } else {
             toSelect.addAll(Arrays.asList(actors));
         }
-        
+
         selection.addAll(toSelect);
-        
+
         for (Actor actor : getAllActors()) {
-//            actor.interactiveOn();
+            // actor.interactiveOn();
             if (selection.size() > 0) {
                 if (selection.contains(actor)) {
                     actor.selectActor();
@@ -461,10 +492,15 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
             }
         }
         unlock();
-//        renderLater();
+        // renderLater();
         Render();
-//        renderAndWait();
+        // renderAndWait();
         setHighRendering();
+    }
+
+    @Override
+    public vtkRenderer GetSelectionRenderer() {
+        return super.GetSelectionRenderer();
     }
 
     private List<Actor> getAllActors() {
@@ -476,7 +512,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
                 list.add((Actor) item);
             }
         }
-        
+
         return list;
     }
 
@@ -485,12 +521,11 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         vtkActorCollection actors = sren.GetActors();
         for (int a = 0; a < actors.GetNumberOfItems(); a++) {
             vtkObject item = actors.GetItemAsObject(a);
-            System.out.println("VTKRenderPanel.getSelectionActors() " +item);
+            System.out.println("VTKRenderPanel.getSelectionActors() " + item);
         }
-        
+
         return list;
     }
-    
 
     @Override
     public void setActorColor(Color c, Actor... actors) {
@@ -505,7 +540,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
             if (actor == null)
                 continue;
             actor.setSolidColor(color, opacity);
-            
+
         }
         unlock();
     }
@@ -515,7 +550,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         selection.clear();
     }
 
-    Representation representation = Representation.WIREFRAME;
+    Representation representation = Representation.SURFACE;
 
     public void setRepresentation(Representation representation) {
         this.representation = representation;
@@ -535,7 +570,7 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         unlock();
         Render();
     }
-    
+
     @Override
     public void ParallelProjectionOn() {
         lock();
@@ -552,16 +587,16 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
         Render();
     }
 
-//    @Override
-//    public vtkRenderer GetRenderer() {
-//        return super.GetRenderer();
-//    }
-//
-//    @Override
-//    public vtkRenderWindow GetRenderWindow() {
-//        return super.GetRenderWindow();
-//    }
-    
+    // @Override
+    // public vtkRenderer GetRenderer() {
+    // return super.GetRenderer();
+    // }
+    //
+    // @Override
+    // public vtkRenderWindow GetRenderWindow() {
+    // return super.GetRenderWindow();
+    // }
+
     @Override
     public Interactor getInteractor() {
         return this.iren;
@@ -571,7 +606,12 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
     public VTKPickManager getPickManager() {
         return pickManager;
     }
-    
+
+    @Override
+    public CameraManager getCameraManager() {
+        return cameraManager;
+    }
+
     @Override
     public vtkImageData toImageData() {
         vtkWindowToImageFilter w2i = new vtkWindowToImageFilter();
@@ -582,12 +622,12 @@ public class VTKRenderPanel extends vtkPanel implements RenderPanel {
 
         return w2i.GetOutput();
     }
-    
+
     @Override
     public void lowRenderingOn() {
         this.lowRendering = LowRendering.ON;
     }
-    
+
     @Override
     public void lowRenderingOff() {
         this.lowRendering = LowRendering.OFF;

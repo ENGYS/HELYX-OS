@@ -1,34 +1,35 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.solver.postprocessing.parsers;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ import eu.engys.util.Util;
 
 public abstract class AbstractParser implements Parser {
 
-    private static final int MAX_LINES_PARSED_AT_A_TIME = 100_000;
+    public static final int MAX_LINES_PARSED_AT_A_TIME = 100_000;
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractParser.class);
 
@@ -77,7 +78,9 @@ public abstract class AbstractParser implements Parser {
         try {
             File file = getFile();
             if (file.exists()) {
-                in = new BufferedReader(new FileReader(file), 2048);
+                Reader reader = new InputStreamReader(new FileInputStream(file), Util.UTF_8);
+//                in = new BufferedReader(new FileReader(file), 2048);
+                in = new BufferedReader(reader, 2048);
                 logger.info("{} Parsing file {}", getClass().getCanonicalName(), file);
             }
         } catch (Exception e) {
@@ -121,8 +124,6 @@ public abstract class AbstractParser implements Parser {
         List<String> newFileLines = updateNewFileLines();
         if (newFileLines.size() > 0) {
             TimeBlocks timeBlocks = updateNewTimeBlocks(newFileLines);
-            removeInconsistentBlocks(timeBlocks);
-            checkTimeBlockConsistency(timeBlocks);
             newFileLines = null;
             System.gc();
 
@@ -154,12 +155,7 @@ public abstract class AbstractParser implements Parser {
         return newFileLines;
     }
 
-    protected void removeInconsistentBlocks(TimeBlocks newTimeBlocks) {
-    }
-
     protected abstract TimeBlocks updateNewTimeBlocks(List<String> newFileLines);
-
-    public abstract boolean checkTimeBlockConsistency(TimeBlocks newTimeBlocks);
 
     @Override
     public File getFile() {

@@ -1,29 +1,34 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui;
+
+import static eu.engys.gui.view.View.EXIT;
+import static eu.engys.gui.view.View.NEW_CASE;
+import static eu.engys.gui.view.View.OPEN_CASE;
+import static eu.engys.gui.view.View.SAVE_AS_CASE;
+import static eu.engys.gui.view.View.SAVE_CASE;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -42,6 +47,8 @@ import org.apache.commons.io.comparator.NameFileComparator;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
+import eu.engys.core.controller.Controller.OpenMode;
+import eu.engys.core.controller.OpenOptions;
 import eu.engys.core.executor.FileManagerSupport;
 import eu.engys.core.presentation.ActionManager;
 import eu.engys.core.project.Model;
@@ -54,12 +61,19 @@ import eu.engys.util.ui.ResourcesUtil;
 
 public class MenuBar extends JMenuBar implements RecentItemsObserver {
 
+    public static final String FILE_MENU = "File";
+    public static final String EDIT_MENU = "Edit";
+    public static final String DICTIONARIES_MENU = "Dictionaries";
+    public static final String HELP_MENU = "Help";
+
+    private static final String OPEN_RECENT_MENU = "Open Recent";
+
     public static final Icon OPEN_ICON = ResourcesUtil.getIcon("application.open.icon");
-    public static final Icon FILE_ICON = ResourcesUtil.getIcon("file");
+    public static final Icon FILE_ICON = ResourcesUtil.getIcon("file.icon");
 
     private JMenu fileMenu;
     private JMenu editMenu;
-    // private JMenu dictionariesMenu;
+    private JMenu dictionariesMenu;
     private JMenu helpMenu;
     // private JMenu viewMenu;
     private JMenu recentCasesMenu;
@@ -70,29 +84,38 @@ public class MenuBar extends JMenuBar implements RecentItemsObserver {
         super();
         this.view = view;
         StartUpMonitor.info("Loading Menu Bar");
-        fileMenu = new JMenu("File");
-        fileMenu.add(ActionManager.getInstance().get("application.create"));
-        fileMenu.add(ActionManager.getInstance().get("application.open"));
+        fileMenu = new JMenu(FILE_MENU);
 
-        recentCasesMenu = new JMenu("Open Recent");
+        if (ActionManager.getInstance().contains(NEW_CASE)) {
+            fileMenu.add(ActionManager.getInstance().get(NEW_CASE));
+        }
+        fileMenu.add(ActionManager.getInstance().get(OPEN_CASE));
+
+        recentCasesMenu = new JMenu(OPEN_RECENT_MENU);
         recentCasesMenu.setIcon(OPEN_ICON);
         fileMenu.add(recentCasesMenu);
 
-        fileMenu.add(ActionManager.getInstance().get("application.save"));
-        fileMenu.add(ActionManager.getInstance().get("application.saveAs"));
-        fileMenu.addSeparator();
-        fileMenu.add(ActionManager.getInstance().get("application.exit"));
+        if (ActionManager.getInstance().contains(SAVE_CASE)) {
+            fileMenu.add(ActionManager.getInstance().get(SAVE_CASE));
+        }
+        if (ActionManager.getInstance().contains(SAVE_AS_CASE)) {
+            fileMenu.add(ActionManager.getInstance().get(SAVE_AS_CASE));
+        }
+        if (ActionManager.getInstance().contains(EXIT)) {
+            fileMenu.addSeparator();
+            fileMenu.add(ActionManager.getInstance().get(EXIT));
+        }
 
-        editMenu = new JMenu("Edit");
+        editMenu = new JMenu(EDIT_MENU);
         editMenu.setName("Application Edit");
 
-        // dictionariesMenu = new JMenu("Dictionaries");
+        dictionariesMenu = new JMenu(DICTIONARIES_MENU);
 
-        helpMenu = new JMenu("Help");
+        helpMenu = new JMenu(HELP_MENU);
 
         add(fileMenu);
         add(editMenu);
-        // add(dictionariesMenu);
+//        add(dictionariesMenu);
         add(helpMenu);
         
         RecentItems.getInstance().addObserver(this);
@@ -104,6 +127,10 @@ public class MenuBar extends JMenuBar implements RecentItemsObserver {
 
     public JMenu getEditMenu() {
         return editMenu;
+    }
+
+    public JMenu getDictionariesMenu() {
+        return dictionariesMenu;
     }
 
     public JMenu getHelpMenu() {
@@ -125,7 +152,7 @@ public class MenuBar extends JMenuBar implements RecentItemsObserver {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if (view.getController().allowActionsOnRunning(false)) {
-                            view.getController().openCase(new File(item));
+                            view.getController().openCase(OpenOptions.file(new File(item), OpenMode.CHECK_FOLDER_ASK_USER));
                         }
                     }
                 });
@@ -144,22 +171,25 @@ public class MenuBar extends JMenuBar implements RecentItemsObserver {
         ExecUtil.invokeLater(new Runnable() {
             @Override
             public void run() {
-                // dictionariesMenu.removeAll();
-                if (model.hasProject()) {
-                    File baseDir = model.getProject().getBaseDir();
-                    IOFileFilter fileFilter = FileFilterUtils.or(FileFilterUtils.suffixFileFilter("Dict"), FileFilterUtils.suffixFileFilter("Properties"), FileFilterUtils.prefixFileFilter("fv"));
-                    List<File> files = new ArrayList<File>(FileUtils.listFiles(baseDir, fileFilter, FileFilterUtils.directoryFileFilter()));
-                    Collections.sort(files, NameFileComparator.NAME_INSENSITIVE_COMPARATOR);
-                    for (final File file : files) {
-                        JMenuItem menuItem = new JMenuItem(new AbstractAction(file.getName(), FILE_ICON) {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                FileManagerSupport.open(file);
-                            }
-                        });
-                        menuItem.setToolTipText(file.getAbsolutePath());
-                        // dictionariesMenu.add(menuItem);
+                try{
+                    view.getMenuBar().getDictionariesMenu().removeAll();
+                    if (model.hasProject()) {
+                        File baseDir = model.getProject().getBaseDir();
+                        IOFileFilter fileFilter = FileFilterUtils.or(FileFilterUtils.suffixFileFilter("Dict"), FileFilterUtils.suffixFileFilter("Properties"), FileFilterUtils.prefixFileFilter("fv"));
+                        List<File> files = new ArrayList<File>(FileUtils.listFiles(baseDir, fileFilter, FileFilterUtils.directoryFileFilter()));
+                        Collections.sort(files, NameFileComparator.NAME_INSENSITIVE_COMPARATOR);
+                        for (final File file : files) {
+                            JMenuItem menuItem = new JMenuItem(new AbstractAction(file.getName(), FILE_ICON) {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    FileManagerSupport.open(file);
+                                }
+                            });
+                            menuItem.setToolTipText(file.getAbsolutePath());
+                            view.getMenuBar().getDictionariesMenu().add(menuItem);
+                        }
                     }
+                } catch(Exception e){
                 }
             }
         });

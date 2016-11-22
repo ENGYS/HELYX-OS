@@ -1,30 +1,31 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.core.project.system;
+
+import static eu.engys.core.project.system.ControlDict.INCLUDE_KEY;
+import static eu.engys.core.project.system.ControlDict.LIBS_KEY;
 
 import java.io.File;
 import java.util.Set;
@@ -42,21 +43,22 @@ import eu.engys.core.project.system.monitoringfunctionobjects.MonitoringFunction
 import eu.engys.util.progress.ProgressMonitor;
 
 public class SystemFolder implements Folder {
-    
+
     public static final String SYSTEM = "system";
-    
-    //ECOMARINE
+
+    // ECOMARINE
     public static final String REGION_KEY = "region";
     public static final String PATCHES_KEY = "patches";
     public static final String EXTRUDE_TO_REGION_MESH_DICT = "extrudeToRegionMeshDict";
 
     private BlockMeshDict blockMeshDict;
     private SnappyHexMeshDict snappyHexMeshDict;
+    private StretchMeshDict stretchMeshDict;
     private FvSchemes fvSchemes;
     private FvSolution fvSolution;
     private FvOptions fvOptions;
     private ControlDict controlDict;
-    private RunDict runDict;
+    private ProjectDict projectDict;
     private SetFieldsDict setFieldsDict;
     private MapFieldsDict mapFieldsDict;
     private DecomposeParDict decomposeParDict;
@@ -73,12 +75,12 @@ public class SystemFolder implements Folder {
         fileManager = new DefaultFileManager(new File(baseDir, SYSTEM));
         setBlockMeshDict(systemFolder.getBlockMeshDict());
         setSnappyHexMeshDict(systemFolder.getSnappyHexMeshDict());
+        setStretchMeshDict(systemFolder.getStretchMeshDict());
         setFvSchemes(systemFolder.getFvSchemes());
         setFvSolution(systemFolder.getFvSolution());
         setFvOptions(systemFolder.getFvOptions());
         setControlDict(systemFolder.getControlDict());
-        setRunDict(systemFolder.getRunDict());
-//        setSetFieldsDict(systemFolder.getSetFieldsDict());
+        setProjectDict(systemFolder.getProjectDict());
         setMapFieldsDict(systemFolder.getMapFieldsDict());
         setDecomposeParDict(systemFolder.getDecomposeParDict());
         setCustomNodeDict(systemFolder.getCustomNodeDict());
@@ -105,10 +107,19 @@ public class SystemFolder implements Folder {
     public SnappyHexMeshDict getSnappyHexMeshDict() {
         return snappyHexMeshDict;
     }
-    
+
     public void setSnappyHexMeshDict(Dictionary dict) throws DictionaryException {
         this.snappyHexMeshDict = new SnappyHexMeshDict();
         snappyHexMeshDict.merge(dict);
+    }
+
+    public StretchMeshDict getStretchMeshDict() {
+        return stretchMeshDict;
+    }
+
+    public void setStretchMeshDict(Dictionary dict) {
+        this.stretchMeshDict = new StretchMeshDict();
+        stretchMeshDict.merge(dict);
     }
 
     public FvSchemes getFvSchemes() {
@@ -150,14 +161,14 @@ public class SystemFolder implements Folder {
         controlDict.check();
     }
 
-    public RunDict getRunDict() {
-        return runDict;
+    public ProjectDict getProjectDict() {
+        return projectDict;
     }
 
-    public void setRunDict(Dictionary dict) {
-        this.runDict = new RunDict();
-        runDict.merge(dict);
-        runDict.check();
+    public void setProjectDict(Dictionary dict) {
+        this.projectDict = new ProjectDict();
+        projectDict.merge(dict);
+        projectDict.check();
     }
 
     public SetFieldsDict getSetFieldsDict() {
@@ -166,6 +177,7 @@ public class SystemFolder implements Folder {
 
     public void setSetFieldsDict(Dictionary dict) {
         this.setFieldsDict = new SetFieldsDict(dict);
+        setFieldsDict.check();
     }
 
     public MapFieldsDict getMapFieldsDict() {
@@ -185,6 +197,7 @@ public class SystemFolder implements Folder {
     public void setDecomposeParDict(Dictionary dict) throws DictionaryException {
         this.decomposeParDict = new DecomposeParDict();
         decomposeParDict.merge(dict);
+        decomposeParDict.check();
     }
 
     public CustomNodeDict getCustomNodeDict() {
@@ -202,18 +215,49 @@ public class SystemFolder implements Folder {
         writeBlockMeshDict(monitor);
         DictionaryUtils.writeDictionary(systemDir, snappyHexMeshDict, monitor);
         DictionaryUtils.writeDictionary(systemDir, decomposeParDict, monitor);
-        writeControlDict(monitor);
+        DictionaryUtils.writeDictionary(systemDir, stretchMeshDict, monitor);
+        writeControlDict(model, monitor);
         DictionaryUtils.writeDictionary(systemDir, fvSolution, monitor);
         DictionaryUtils.writeDictionary(systemDir, fvSchemes, monitor);
         DictionaryUtils.writeDictionary(systemDir, fvOptions, monitor);
         DictionaryUtils.writeDictionary(systemDir, setFieldsDict, monitor);
-        DictionaryUtils.writeDictionary(systemDir, runDict, monitor);
+        writeProjectDict(monitor);
         DictionaryUtils.writeDictionary(systemDir, customDict, monitor);
         DictionaryUtils.writeDictionary(systemDir, mapFieldsDict, monitor);
     }
 
-    public void writeControlDict(ProgressMonitor monitor) {
+    public void writeControlDict(Model model, ProgressMonitor monitor) {
+        // applyHELYXFixes(model);NOT FOR HELYXOS
         DictionaryUtils.writeDictionary(fileManager.getFile(), controlDict, monitor);
+    }
+
+    private void applyHELYXFixes(Model model) {
+        if (model.getState().getSolverType().isCoupled()) {
+            if (controlDict.found(INCLUDE_KEY)) {
+                controlDict.remove(INCLUDE_KEY);
+            }
+        } else {
+            if (!controlDict.found(INCLUDE_KEY)) {
+                controlDict.add(INCLUDE_KEY, "\"$FOAM_CONFIG/controlDict.libs\"");
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("( \"libLEMOS-2.2.x.so\" ");
+        if (model.getState().isAdjoint() && model.getState().isTransient()) {
+            sb.append("\"libHelyxAdjointPlus.so\"");
+        } else if (model.getState().isAdjoint() && model.getState().isSteady()) {
+            sb.append("\"libHelyxAdjoint.so\"");
+        }
+        sb.append(" )");
+
+        if (controlDict.found(LIBS_KEY)) {
+            controlDict.remove(LIBS_KEY);
+        }
+        controlDict.add(LIBS_KEY, sb.toString());
+    }
+
+    public void writeProjectDict(ProgressMonitor monitor) {
+        DictionaryUtils.writeDictionary(fileManager.getFile(), projectDict, monitor);
     }
 
     public void writeBlockMeshDict(ProgressMonitor monitor) {
@@ -225,7 +269,7 @@ public class SystemFolder implements Folder {
     public void read(Model model, Set<FieldManipulationFunctionObjectType> ffoTypes, Set<MonitoringFunctionObjectType> mfoTypes, ProgressMonitor monitor) {
         File systemFolder = new File(model.getProject().getBaseDir(), SYSTEM);
         if (systemFolder.exists() && systemFolder.isDirectory()) {
-            
+
             readControlDict(model, monitor, systemFolder);
 
             readFvSolution(model, monitor, systemFolder);
@@ -236,6 +280,8 @@ public class SystemFolder implements Folder {
 
             readSnappyHexMeshDict(model, monitor, systemFolder);
 
+            readStretchMeshDict(model, monitor, systemFolder);
+
             readBlockMeshDict(model, monitor, systemFolder);
 
             readDecomposeParDict(model, monitor, systemFolder);
@@ -244,13 +290,13 @@ public class SystemFolder implements Folder {
 
             readMapFiedsDict(model, monitor, systemFolder);
 
-            readRunDict(model, monitor, systemFolder);
+            readProjectDict(model, monitor, systemFolder);
 
             readCustomDict(model, monitor, systemFolder);
 
             model.getRuntimeFields().load(controlDict, monitor);
             model.runtimeFieldsChanged();
-            
+
             model.getFieldManipulationFunctionObjects().load(controlDict, ffoTypes, monitor);
             model.fieldManipulationFunctionObjectsChanged();
 
@@ -275,7 +321,6 @@ public class SystemFolder implements Folder {
             } catch (DictionaryException e) {
                 monitor.warning(e.getMessage(), 1);
             }
-            getControlDict().functionObjectsToDict();
         } else {
             setControlDict(model.getDefaults().getDefaultControlDict());
             monitor.warning(ControlDict.CONTROL_DICT + " not found, the default one will be used", 1);
@@ -336,7 +381,7 @@ public class SystemFolder implements Folder {
     private void readSnappyHexMeshDict(Model model, ProgressMonitor monitor, File systemFolder) {
         File snappyHexMeshFile = new File(systemFolder, SnappyHexMeshDict.SNAPPY_DICT);
         SnappyHexMeshDict snappy = model.getDefaults().getDefaultSnappyHexMeshDict();
-        
+
         if (snappyHexMeshFile.exists()) {
             SnappyHexMeshDict snappyFromFile = new SnappyHexMeshDict(snappyHexMeshFile);
             snappy.merge(snappyFromFile);
@@ -350,6 +395,22 @@ public class SystemFolder implements Folder {
         } else {
             setSnappyHexMeshDict(snappy);
             monitor.warning(SnappyHexMeshDict.SNAPPY_DICT + " not found, the default one will be used", 1);
+        }
+    }
+
+    private void readStretchMeshDict(Model model, ProgressMonitor monitor, File systemFolder) {
+        File stretchMeshDictFile = new File(systemFolder, StretchMeshDict.STRETCH_MESH_DICT);
+        if (stretchMeshDictFile.exists()) {
+            Dictionary dict = new StretchMeshDict(stretchMeshDictFile);
+            try {
+                setStretchMeshDict(dict);
+                monitor.info(StretchMeshDict.STRETCH_MESH_DICT, 1);
+            } catch (DictionaryException e) {
+                monitor.warning(e.getMessage(), 1);
+            }
+        } else {
+            setStretchMeshDict(model.getDefaults().getDefaultStretchMeshDict());
+            monitor.warning(StretchMeshDict.STRETCH_MESH_DICT + " not found, the default one will be used", 1);
         }
     }
 
@@ -384,14 +445,13 @@ public class SystemFolder implements Folder {
             Dictionary dict = new DecomposeParDict(decomposeParFile);
             try {
                 setDecomposeParDict(dict);
-                decomposeParDict.check();
                 monitor.info(DecomposeParDict.DECOMPOSE_PAR_DICT, 1);
             } catch (DictionaryException e) {
                 monitor.warning(e.getMessage(), 1);
             }
         } else {
             setDecomposeParDict(model.getDefaults().getDefaultDecomposeParDict());
-            monitor.warning(DecomposeParDict.DECOMPOSE_PAR_DICT+ " not found, the default one will be used", 1);
+            monitor.warning(DecomposeParDict.DECOMPOSE_PAR_DICT + " not found, the default one will be used", 1);
         }
     }
 
@@ -401,7 +461,6 @@ public class SystemFolder implements Folder {
             Dictionary dict = new SetFieldsDict(setFieldsDictFile);
             try {
                 setSetFieldsDict(dict);
-                setFieldsDict.check();
                 monitor.info(SetFieldsDict.SET_FIELDS_DICT, 1);
             } catch (DictionaryException e) {
                 monitor.warning(e.getMessage(), 1);
@@ -417,7 +476,6 @@ public class SystemFolder implements Folder {
             Dictionary dict = new MapFieldsDict(mapFieldsDictFile);
             try {
                 setMapFieldsDict(dict);
-                mapFieldsDict.check();
                 monitor.info(MapFieldsDict.MAP_FIELDS_DICT, 1);
             } catch (DictionaryException e) {
                 monitor.warning(e.getMessage(), 1);
@@ -428,19 +486,33 @@ public class SystemFolder implements Folder {
         }
     }
 
-    private void readRunDict(Model model, ProgressMonitor monitor, File systemFolder) {
-        File runDictFile = new File(systemFolder, RunDict.RUN_DICT);
+    // private void readRunDict(Model model, ProgressMonitor monitor, File systemFolder) {
+    // File runDictFile = new File(systemFolder, RunDict.RUN_DICT);
+    // if (runDictFile.exists()) {
+    // RunDict dict = new RunDict(runDictFile);
+    // try {
+    //// setRunDict(dict);
+    // monitor.info(RunDict.RUN_DICT, 1);
+    // } catch (DictionaryException e) {
+    // monitor.warning(e.getMessage(), 1);
+    // }
+    // } else {
+    // monitor.warning(RunDict.RUN_DICT + " NOT FOUND", 1);
+    // }
+    // }
+
+    public void readProjectDict(Model model, ProgressMonitor monitor, File systemFolder) {
+        File runDictFile = new File(systemFolder, ProjectDict.PROJECT_DICT);
         if (runDictFile.exists()) {
-            RunDict dict = new RunDict(runDictFile);
+            ProjectDict dict = new ProjectDict(runDictFile);
             try {
-                setRunDict(dict);
-                runDict.check();
-                monitor.info(RunDict.RUN_DICT, 1);
+                setProjectDict(dict);
+                monitor.info(ProjectDict.PROJECT_DICT, 1);
             } catch (DictionaryException e) {
                 monitor.warning(e.getMessage(), 1);
             }
         } else {
-            monitor.warning(RunDict.RUN_DICT + " NOT FOUND", 1);
+            monitor.warning(ProjectDict.PROJECT_DICT + " NOT FOUND", 1);
         }
     }
 

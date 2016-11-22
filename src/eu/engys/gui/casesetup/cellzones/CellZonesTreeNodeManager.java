@@ -1,28 +1,27 @@
-/*--------------------------------*- Java -*---------------------------------*\
- |		 o                                                                   |                                                                                     
- |    o     o       | HelyxOS: The Open Source GUI for OpenFOAM              |
- |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
- |    o     o       | http://www.engys.com                                   |
- |       o          |                                                        |
- |---------------------------------------------------------------------------|
- |	 License                                                                 |
- |   This file is part of HelyxOS.                                           |
- |                                                                           |
- |   HelyxOS is free software; you can redistribute it and/or modify it      |
- |   under the terms of the GNU General Public License as published by the   |
- |   Free Software Foundation; either version 2 of the License, or (at your  |
- |   option) any later version.                                              |
- |                                                                           |
- |   HelyxOS is distributed in the hope that it will be useful, but WITHOUT  |
- |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
- |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
- |   for more details.                                                       |
- |                                                                           |
- |   You should have received a copy of the GNU General Public License       |
- |   along with HelyxOS; if not, write to the Free Software Foundation,      |
- |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
-\*---------------------------------------------------------------------------*/
-
+/*******************************************************************************
+ *  |       o                                                                   |
+ *  |    o     o       | HELYX-OS: The Open Source GUI for OpenFOAM             |
+ *  |   o   O   o      | Copyright (C) 2012-2016 ENGYS                          |
+ *  |    o     o       | http://www.engys.com                                   |
+ *  |       o          |                                                        |
+ *  |---------------------------------------------------------------------------|
+ *  |   License                                                                 |
+ *  |   This file is part of HELYX-OS.                                          |
+ *  |                                                                           |
+ *  |   HELYX-OS is free software; you can redistribute it and/or modify it     |
+ *  |   under the terms of the GNU General Public License as published by the   |
+ *  |   Free Software Foundation; either version 2 of the License, or (at your  |
+ *  |   option) any later version.                                              |
+ *  |                                                                           |
+ *  |   HELYX-OS is distributed in the hope that it will be useful, but WITHOUT |
+ *  |   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or   |
+ *  |   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   |
+ *  |   for more details.                                                       |
+ *  |                                                                           |
+ *  |   You should have received a copy of the GNU General Public License       |
+ *  |   along with HELYX-OS; if not, write to the Free Software Foundation,     |
+ *  |   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA            |
+ *******************************************************************************/
 package eu.engys.gui.casesetup.cellzones;
 
 import java.awt.Component;
@@ -48,6 +47,7 @@ import eu.engys.gui.view3D.Actor;
 import eu.engys.gui.view3D.Picker;
 import eu.engys.util.ui.ExecUtil;
 import eu.engys.util.ui.TreeUtil;
+import eu.engys.util.ui.checkboxtree.RootVisibleLoadableTreeNode;
 import eu.engys.util.ui.checkboxtree.VisibleItem;
 
 public class CellZonesTreeNodeManager extends DefaultTreeNodeManager<CellZone> {
@@ -57,6 +57,7 @@ public class CellZonesTreeNodeManager extends DefaultTreeNodeManager<CellZone> {
 
     public CellZonesTreeNodeManager(Model model, CellZonesPanel cellZonesPanel) {
         super(model, cellZonesPanel);
+        this.root = new RootVisibleLoadableTreeNode(cellZonesPanel.getTitle());
         this.selectionHandler = new CellZonesSelectionHandler(cellZonesPanel);
         this.zonesMap = new HashMap<>();
     }
@@ -227,44 +228,4 @@ public class CellZonesTreeNodeManager extends DefaultTreeNodeManager<CellZone> {
             currentSelection = null;
         }
     }
-
-    // private final class PopUpMenuListener extends MouseAdapter {
-    // private JPopupMenu popUp;
-    // private RemoveSurfaceAction removeAction;
-    //
-    // public PopUpMenuListener() {
-    // // removeAction = new RemoveSurfaceAction();
-    //
-    // popUp = new JPopupMenu();
-    // // popUp.add(removeAction);
-    // }
-    //
-    // @Override
-    // public void mouseReleased(MouseEvent e) {
-    // // Surface[] selectedValues = treeNodeManager.getSelectedValues();
-    // // if (SwingUtilities.isRightMouseButton(e) && selectedValues.length
-    // // > 0) {
-    // // removeAction.setEnabled(selectedValues[0].getType() !=
-    // // Type.REGION);
-    // // popUp.show(treeNodeManager, e.getX(), e.getY());
-    // // }
-    // }
-    // }
-
-    // private final class VisibilityListener implements TableModelListener {
-    // @Override
-    // public void tableChanged(TableModelEvent e) {
-    // if (e.getType() == TableModelEvent.UPDATE && e.getColumn() == 0) {
-    // if (e.getSource() instanceof AbstractTableModel) {
-    // AbstractTableModel tm = (AbstractTableModel) e.getSource();
-    // int row = e.getFirstRow();
-    // boolean b = Boolean.parseBoolean(tm.getValueAt(row,
-    // GeometryTreePanel.VISIBLE_INDEX).toString());
-    // Surface surface = (Surface) tm.getValueAt(row,
-    // GeometryTreePanel.SURFACE_INDEX);
-    // EventManager.triggerEvent(this, new VisibleSurfaceEvent(surface, b));
-    // }
-    // }
-    // }
-    // }
 }
