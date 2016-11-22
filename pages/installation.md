@@ -90,6 +90,7 @@ Please report all bugs encountered with HELYX-OS on the [project issue tracker](
 12.  Finally, start a new case and open Edit>Preferences in the menu.  Ensure that you have selected the core folder location of the OpenFOAM V4.1 installation and select "OK" to save your preferences.  You are now ready to start using HELYX-OS
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
+
 ## <a name="v1606"></a>HELYX-OS Installation for OpenFOAM v1606+
 
 Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.
@@ -107,5 +108,6 @@ Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence liste
 3.  Press "OK" to apply settings 
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
+
 ## <a name="fromSource"></a>Compilation from Source
 For the latest instructions on how to compile HELYX-OS from source, please see the git repository [README](https://github.com/ENGYS/HELYX-OS/blob/master/README.md) file inside the [HELYX-OS repository](https://github.com/ENGYS/HELYX-OS).  Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
