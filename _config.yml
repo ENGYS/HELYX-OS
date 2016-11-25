@@ -16,7 +16,7 @@ slogan: "The market leading open-source GUI for OpenFOAM®"
 
 
 # The description is used on homepage and in the footer to quickly describe your website. Use a maximum of 150 characters for SEO-purposes.
-description: "HELYX-OS is a product created and developed by ENGYS ltd. None of the OPENFOAM® related products and services offered by ENGYS are approved or endorsed by OpenCFD Ltd. (ESI Group), producer of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks"
+description: "HELYX-OS is a product created and developed by ENGYS ltd. This offering is not approved or endorsed by OpenCFD Limited, producer and distributor of the OpenFOAM software and owner of the OPENFOAM® and OpenCFD® trade marks."
 
 # Main author of the website
 # See > authors.yml

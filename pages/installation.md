@@ -109,5 +109,5 @@ Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence liste
 
 Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
 
-## <a name="v1606"></a>Compilation from Source
+## <a name="fromSource"></a>Compilation from Source
 For the latest instructions on how to compile HELYX-OS from source, please see the git repository [README](https://github.com/ENGYS/HELYX-OS/blob/master/README.md) file inside the [HELYX-OS repository](https://github.com/ENGYS/HELYX-OS).  Please report all bugs encountered with HELYX-OS on the [project issue tracker](https://github.com/ENGYS/HELYX-OS/issues).
