@@ -34,4 +34,4 @@ Visit [http://engys.github.io/HELYX-OS/](http://engys.github.io/HELYX-OS/) to do
         ./HELYX-OS.sh
 
 ## Disclaimer
-This offering is not approved or endorsed by OpenCFD Limited, producer and distributor of the OpenFOAM software and owner of the OPENFOAM®  and OpenCFD®  trade marks.
+This offering is not approved or endorsed by OpenCFD Limited, producer and distributor of the OpenFOAM software via www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®  trade marks.
