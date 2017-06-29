@@ -93,7 +93,7 @@ Please report all bugs encountered with HELYX-OS on the [project issue tracker](
 
 ## <a name="v1606"></a>HELYX-OS Installation for OpenFOAM v1606+
 
-Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.
+Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.  At this point in the installation process, we assume that you are well acquainted with OpenFOAM+ and have a valid installation of v1606+ completed prior to the deployment of HELYX-OS.
 
 ### Using OpenFOAM 1606+ and Docker
 
