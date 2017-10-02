@@ -7,7 +7,7 @@ teaser: ""
 permalink: /installation/
 ---
 
-HELYX-OS v2.4.0 is designed to work only with [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or [OpenFOAM v1606+](http://openfoam.com/download/install-binary.php).  The HELYX-OS installation instructions will vary slightly, depending on which version of OpenFOAM you have installed.  Additionally, users are free to download the HELYX-OS source and compile separately.  See the following sub sections for more information:
+HELYX-OS v2.4.0 is designed to work only with [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or OpenFOAM v1606+.  The HELYX-OS installation instructions will vary slightly, depending on which version of OpenFOAM you have installed.  Additionally, users are free to download the HELYX-OS source and compile separately.  See the following sub sections for more information:
 
 - [HELYX-OS Installation for OpenFOAM v4.1](#v41)
 - [HELYX-OS Installation for OpenFOAM v1606+](#v1606)
@@ -93,7 +93,7 @@ Please report all bugs encountered with HELYX-OS on the [project issue tracker](
 
 ## <a name="v1606"></a>HELYX-OS Installation for OpenFOAM v1606+
 
-Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.
+Installing HELYX-OS and using OpenFOAM v1606+ is identical to the sequence listed above, with several additional steps to link to the existing v1606+ installation.  At this point in the installation process, we assume that you are well acquainted with OpenFOAM+ and have a valid installation of v1606+ completed prior to the deployment of HELYX-OS.
 
 ### Using OpenFOAM 1606+ and Docker
 
