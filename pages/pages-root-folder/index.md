@@ -15,7 +15,7 @@ widget1:
 widget2:
   title: "Installation"
   url: '/installation/'
-  image: 'installation.png'
+  image: '/images/installation.png'
   text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.'
 widget3:
   title: "Training  and Support"
