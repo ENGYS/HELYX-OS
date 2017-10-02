@@ -6,7 +6,7 @@
 #
 layout: frontpage
 header:
-  image_fullwidth: meshHeader-scaled2-lighter.png
+  image_fullwidth: meshHeader-2017.png
 widget1:
   title: "About HELYX-OS"
   url: 'http://engys.com/products/helyx-os'
