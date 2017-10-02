@@ -1,7 +1,7 @@
 ---
 layout: page-fullwidth
 header:
-    image_fullwidth: 'meshHeader-scaled2-lighter.png'
+    image_fullwidth: 'meshHeader-2017.png'
 title: "Installation of the Latest 64 Bit Linux Binaries"
 teaser: ""
 permalink: /installation/
