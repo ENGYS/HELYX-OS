@@ -1,5 +1,9 @@
 # HELYX-OS
-[HELYX-OS](https://engys.com/products/helyx-os) is an open-source Graphical User Interface designed to work natively with OpenFOAM [version 4.1](http://www.openfoam.org/archive/4.1/download/source.php) and OpenFOAM v1606+. The GUI is developed by [ENGYS](http://engys.com/) using Java+[VTK](https://www.vtk.org/) and delivered to the public under the GNU General Public License.
+### The HELYX-OS project has been deprecated but you can still download/compile the last version released by ENGYS following the instructions provided in these pages. Please [contact us](https://engys.com/contact-us/) if you want to learn nore about our open-source CFD software tools HELYX and ELEMENTS for enterprise applications.
+
+## About HELYX-OS
+
+HELYX-OS is an open-source Graphical User Interface designed to work natively with OpenFOAM [version 4.1](http://www.openfoam.org/archive/4.1/download/source.php) and OpenFOAM v1606+. The GUI is developed by [ENGYS](http://engys.com/) using Java+[VTK](https://www.vtk.org/) and delivered to the public under the GNU General Public License.
  
 HELYX-OS has been created to facilitate the usage of the standard OpenFOAM libraries, by removing the complexity of text based case definition in favour of an intuitive easy-to-use graphical user interface. The GUI is focused on pre-processing tasks, including meshing, case definition and solver execution.  Visit the [HELYX-OS Project Page](http://engys.github.io/HELYX-OS/) for more information.
 
