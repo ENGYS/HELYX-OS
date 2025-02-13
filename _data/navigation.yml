@@ -5,16 +5,16 @@
   url: "http://engys.github.io/HELYX-OS/"
   side: left
 
-- title: "Quick Links"
-  url: "#"
-  side: left
-  dropdown:
-  - title: "About HELYX-OS"
-    url: "http://engys.com/products/helyx-os"
-  - title: "Installation"
-    url: "http://engys.github.io/HELYX-OS/installation/"
-  - title: "Training and Support"
-    url: "http://engys.com/services/support"
+#- title: "Quick Links"
+#  url: "#"
+#  side: left
+#  dropdown:
+#  - title: "About HELYX-OS"
+#    url: "http://engys.com/products/helyx-os"
+#  - title: "Installation"
+#    url: "http://engys.github.io/HELYX-OS/installation/"
+#  - title: "Training and Support"
+#    url: "http://engys.com/services/support"
 - title: "HELYX-OS on Github"
   url: "https://github.com/ENGYS/HELYX-OS"
   side: left
