@@ -9,7 +9,7 @@ header:
   image_fullwidth: 'meshHeader-2017.png'
 widget1:
   title: "About HELYX-OS"
-  url: 'http://engys.com/products/helyx-os'
+  url: ''
   image: '/images/HELYX-OS-v231-welcomescreen.png'
   text: 'HELYX-OS was an open-source Graphical User Interface designed to work natively with OpenFOAM v4.1 and OpenFOAM v1606+. Developed by ENGYS using Java™/GTK, HELYX-OS was released under the GNU General Public License, enabling users to run OpenFOAM simulations with an intuitive interface. While HELYX-OS is no longer actively developed, ENGYS continues to offer advanced CFD solutions with HELYX.'
 widget2:
