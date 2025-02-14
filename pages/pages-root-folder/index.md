@@ -18,10 +18,10 @@ widget2:
   image: '/images/installation.png'
   text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.                                                                                 '
 widget3:
-  title: "Training  and Support"
-  url: 'http://engys.com/services/support'
+  title: "HELYX"
+  url: 'http://engys.com/products/helyx'
   image: '/images/support-scaled.png'
-  text: 'HELYX-OS is provided without any formal support from ENGYS.  For additional paid support and training with HELYX-OS and/or all other ENGYS products, please visit our website.                                                            '
+  text: 'HELYX is ENGYS’s actively developed, open-source CFD software, offering advanced features, regular updates, and dedicated support.                                                            '
 #
 # Use the call for action to show a button on the frontpage
 #
