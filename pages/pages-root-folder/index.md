@@ -9,7 +9,7 @@ header:
   image_fullwidth: 'meshHeader-2017.png'
 widget1:
   title: "About HELYX-OS"
-  url: 'http://engys.com/'
+  url: 'https://github.com/ENGYS/HELYX-OS'
   image: '/images/HELYX-OS-v231-welcomescreen.png'
   text: 'HELYX-OS was an open-source GUI for OpenFOAM® v4.1 and v1606+, developed by ENGYS, but has been deprecated. While HELYX-OS is no longer actively developed, ENGYS continues to offer advanced CFD solutions with HELYX.'
 widget2:
