@@ -81,7 +81,10 @@ body.video cite { color: #fff; }
     height: 175px;
 }
 #masthead-no-image-header #logo img {
-    margin-top: 60px;
+    margin-top: 0 !important;
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: 250px !important;
 }
 
 /* Masthead › small-only
