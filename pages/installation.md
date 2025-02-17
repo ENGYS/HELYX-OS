@@ -2,12 +2,12 @@
 layout: page-fullwidth
 header:
     image_fullwidth: 'meshHeader-2017.png'
-title: "Installation of the Latest 64 Bit Linux Binaries"
+title: "Installation of the Legacy 64 Bit Linux Binaries"
 teaser: ""
 permalink: /installation/
 ---
-
-HELYX-OS v2.4.0 is designed to work only with [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or OpenFOAM v1606+.  The HELYX-OS installation instructions will vary slightly, depending on which version of OpenFOAM you have installed.  Additionally, users are free to download the HELYX-OS source and compile separately.  See the following sub sections for more information:
+HELYX-OS has been deprecated and is no longer actively maintained. However, you can still find the legacy installation instructions below for setting up the last available version.
+HELYX-OS v2.4.0 was designed to work only with [OpenFOAM v4.1](http://www.openfoam.org/archive/4.1/download/source.php) or OpenFOAM v1606+.  The HELYX-OS installation instructions will vary slightly, depending on which version of OpenFOAM you have installed.  Additionally, users are free to download the HELYX-OS source and compile separately.  See the following sub sections for more information:
 
 - [HELYX-OS Installation for OpenFOAM v4.1](#v41)
 - [HELYX-OS Installation for OpenFOAM v1606+](#v1606)
