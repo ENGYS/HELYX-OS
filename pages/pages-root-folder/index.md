@@ -13,10 +13,10 @@ widget1:
   image: '/images/HELYX-OS-v231-welcomescreen.png'
   text: 'HELYX-OS was an open-source GUI for OpenFOAM® v4.1 and v1606+, developed by ENGYS, but has been deprecated. While HELYX-OS is no longer actively developed, ENGYS continues to offer advanced CFD solutions with HELYX.'
 widget2:
-  title: "Installation"
+  title: "Legacy Installation"
   url: '/installation/'
   image: '/images/installation.png'
-  text: 'After downloading the most recent binary, users can find more information about how to install HELYX-OS on their system to get up and running quickly.                                                                                 '
+  text: 'HELYX-OS is no longer maintained, but you can still install the last available version. Follow the instructions to set up HELYX-OS on your system and continue using its features.                                                                                 '
 widget3:
   title: "HELYX"
   url: 'http://engys.com/products/helyx'
@@ -35,7 +35,7 @@ widget3:
 
 callforaction:
   url: https://github.com/ENGYS/HELYX-OS/releases/download/v2.4.0/HELYX-OS-2.4.0-linux-x86_64.bin
-  text: Download HELYX-OS v2.4.0 binary for 64 bit Linux ›
+  text: Download HELYX-OS v2.4.0 (Legacy Version) for 64-bit Linux ›
   style: alert
 
 permalink: /index.html
