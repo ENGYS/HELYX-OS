@@ -47,16 +47,16 @@
 {% elsif page.header.image_fullwidth %}
 
 <div id="masthead">
-	<div class="row" style="display: flex; justify-content: center; align-items: center;">
+	<div class="row" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
 		<div class="small-12 columns" style="text-align: center;">
 			<a id="logo" href="{{ site.url }}" title="{{ site.title }} – {{ site.slogan }}">
 				<img src="{{ site.url }}{{ site.baseurl }}/assets/img/{{ site.logo }}" 
 				     alt="{{ site.title }} – {{ site.slogan }}" 
 				     style="display: block; margin: 0 auto; width: auto; height: auto; max-width: 400px; max-height: 100px;">
 			</a>
-		</div><!-- /.small-12.columns -->
-	</div><!-- /.row -->
-</div><!-- /#masthead -->
+		</div>
+	</div>
+</div>
 
 {% if page.breadcrumb == true %}
 {% include _breadcrumb.html %}
