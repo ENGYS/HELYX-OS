@@ -32,6 +32,7 @@ $ci-4: #E27A3F;		// orange
 $ci-5: #DF4949;		// red
 $ci-6: #A1D044;     // green
 $ci-7: #313131;		// botton color
+$ci-8: #000000; // black
 
 /* Grey Scale
 ------------------------------------------------------------------- */
@@ -58,7 +59,7 @@ $grey-16: #0B0B0B;
 
 $primary-color: $ci-7;
 $secondary-color: $grey-2;
-$alert-color: $ci-5;
+$alert-color: $ci-8;
 $success-color: $ci-6;
 $warning-color: $ci-4;
 $info-color: $ci-1;
